@@ -11,9 +11,10 @@ export const useGame = () => {
   return context;
 };
 
-export const GameProvider = ({ children }) => {
+export const GameProvider = ({ children, externalGame = null }) => {
   const [games, setGames] = useState([]);
   const [currentGame, setCurrentGame] = useState(null);
+  const [externalGameData, setExternalGameData] = useState(externalGame);
   const [isLoading, setIsLoading] = useState(true);
   const [isLocalMode, setIsLocalMode] = useState(false);
 
@@ -153,6 +154,9 @@ export const GameProvider = ({ children }) => {
   };
 
   const getGame = (gameId) => {
+    if (externalGameData && String(externalGameData.id) === String(gameId)) {
+      return externalGameData;
+    }
     return games.find(game => String(game.id) === String(gameId));
   };
 
@@ -165,6 +169,7 @@ export const GameProvider = ({ children }) => {
     deleteGame,
     duplicateGame,
     getGame,
+    setExternalGameData,
     isLoading,
     isLocalMode
   };

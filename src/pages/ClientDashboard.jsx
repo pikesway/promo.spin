@@ -390,7 +390,14 @@ export default function ClientDashboard() {
       </div>
 
       {showWizard && (
-        <CampaignWizard clientId={clientId} onClose={() => setShowWizard(false)} />
+        <CampaignWizard
+          clientId={clientId}
+          onClose={() => setShowWizard(false)}
+          onCampaignCreated={(campaign) => {
+            setShowWizard(false);
+            setEditingCampaign(campaign);
+          }}
+        />
       )}
 
       {showQRModal && (

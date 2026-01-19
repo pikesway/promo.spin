@@ -1,73 +1,25 @@
 import React, { useState, useMemo } from 'react';
 import { FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
-import BrandColorPicker from './BrandColorPicker';
-import { prepareBrandingForCampaign, getDefaultColors } from '../utils/brandingHelpers';
+import { initializeCampaignConfig } from '../utils/campaignAdapter';
 
-const defaultSpinConfig = {
-  segments: [
-    { id: '1', text: '10% Off', color: '#6366F1', probability: 30 },
-    { id: '2', text: '20% Off', color: '#8B5CF6', probability: 20 },
-    { id: '3', text: 'Free Shipping', color: '#10B981', probability: 25 },
-    { id: '4', text: 'Try Again', color: '#EF4444', probability: 25 }
-  ],
-  wheelColors: {
-    primary: '#6366F1',
-    secondary: '#8B5CF6'
-  }
-};
-
-const defaultScratchConfig = {
-  foregroundImage: null,
-  backgroundImage: null,
-  prizes: [
-    { id: '1', text: 'Winner!', probability: 30 },
-    { id: '2', text: 'Try Again', probability: 70 }
-  ]
-};
-
-export default function CampaignWizard({ clientId, onClose }) {
+export default function CampaignWizard({ clientId, onClose, onCampaignCreated }) {
   const { createCampaign, clients } = usePlatform();
   const [step, setStep] = useState(1);
-  const [useClientBranding, setUseClientBranding] = useState(true);
-  const [customColors, setCustomColors] = useState(getDefaultColors());
   const [formData, setFormData] = useState({
     name: '',
     type: null,
     slug: '',
-    startDate: '',
-    endDate: '',
-    requireEmail: true,
-    requirePhone: false,
-    config: {}
+    spinLimit: 'one-per-user',
+    spinDelayHours: 24
   });
 
   const client = useMemo(() => clients.find(c => c.id === clientId), [clients, clientId]);
 
   const handleTypeSelect = (type) => {
-    const colors = useClientBranding ? {
-      primary: client?.primary_color || getDefaultColors().primary,
-      secondary: client?.secondary_color || getDefaultColors().secondary
-    } : customColors;
-
-    let config;
-    if (type === 'spin') {
-      config = {
-        ...defaultSpinConfig,
-        segments: defaultSpinConfig.segments.map((seg, idx) => ({
-          ...seg,
-          color: idx % 2 === 0 ? colors.primary : colors.secondary
-        })),
-        wheelColors: colors
-      };
-    } else {
-      config = defaultScratchConfig;
-    }
-
     setFormData({
       ...formData,
-      type,
-      config
+      type
     });
     setStep(2);
   };
@@ -76,29 +28,26 @@ export default function CampaignWizard({ clientId, onClose }) {
     try {
       const slug = formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
-      const brandingConfig = useClientBranding
-        ? { branding: { useClientBranding: true } }
-        : { branding: { useClientBranding: false, customColors } };
+      const fullConfig = initializeCampaignConfig(formData.type, client);
+      fullConfig.settings.spinLimit = formData.spinLimit;
+      fullConfig.settings.spinDelayHours = formData.spinDelayHours;
 
-      await createCampaign({
+      const newCampaign = await createCampaign({
         clientId,
         name: formData.name,
         slug,
         type: formData.type,
         status: 'draft',
-        startDate: formData.startDate || null,
-        endDate: formData.endDate || null,
-        config: {
-          ...formData.config,
-          ...brandingConfig,
-          leadCapture: {
-            requireEmail: formData.requireEmail,
-            requirePhone: formData.requirePhone
-          }
-        }
+        startDate: null,
+        endDate: null,
+        config: fullConfig
       });
 
       onClose();
+
+      if (onCampaignCreated && newCampaign) {
+        onCampaignCreated(newCampaign);
+      }
     } catch (error) {
       console.error('Error creating campaign:', error);
       alert('Failed to create campaign');
@@ -139,7 +88,7 @@ export default function CampaignWizard({ clientId, onClose }) {
         </div>
 
         <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-6)' }}>
-          {[1, 2, 3].map(s => (
+          {[1, 2].map(s => (
             <div key={s} style={{
               flex: 1,
               height: '4px',
@@ -232,172 +181,10 @@ export default function CampaignWizard({ clientId, onClose }) {
         {step === 2 && formData.type && (
           <div>
             <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-4)' }}>
-              Step 2: Configure {formData.type === 'spin' ? 'Spin Wheel' : 'Scratch Card'}
+              Step 2: Basic Settings
             </h3>
 
-            {client && (
-              <div className="glass-card" style={{ padding: 'var(--space-4)', marginBottom: 'var(--space-4)', background: 'var(--bg-tertiary)' }}>
-                <div style={{ marginBottom: 'var(--space-3)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-2)' }}>
-                    {client.logo_url && (
-                      <img
-                        src={client.logo_url}
-                        alt={`${client.name} logo`}
-                        style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: 'var(--radius-md)' }}
-                      />
-                    )}
-                    <div>
-                      <p style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', color: 'var(--text-primary)' }}>
-                        Using {client.name}'s branding
-                      </p>
-                      <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', marginTop: 'var(--space-1)' }}>
-                        {client.primary_color && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
-                            <div
-                              style={{
-                                width: '16px',
-                                height: '16px',
-                                borderRadius: '50%',
-                                backgroundColor: client.primary_color,
-                                border: '1px solid var(--border-color)'
-                              }}
-                            />
-                            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>Primary</span>
-                          </div>
-                        )}
-                        {client.secondary_color && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
-                            <div
-                              style={{
-                                width: '16px',
-                                height: '16px',
-                                borderRadius: '50%',
-                                backgroundColor: client.secondary_color,
-                                border: '1px solid var(--border-color)'
-                              }}
-                            />
-                            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>Secondary</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={!useClientBranding}
-                    onChange={(e) => {
-                      setUseClientBranding(!e.target.checked);
-                      if (e.target.checked) {
-                        setCustomColors({
-                          primary: client.primary_color || getDefaultColors().primary,
-                          secondary: client.secondary_color || getDefaultColors().secondary,
-                          background: client.background_color || getDefaultColors().background
-                        });
-                      }
-                    }}
-                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  />
-                  <span style={{ fontSize: 'var(--text-sm)' }}>Customize colors for this campaign</span>
-                </label>
-
-                {!useClientBranding && (
-                  <div style={{ marginTop: 'var(--space-4)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--divider)' }}>
-                    <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>
-                      Custom Campaign Colors
-                    </p>
-                    <div style={{ display: 'grid', gap: 'var(--space-3)' }}>
-                      <BrandColorPicker
-                        label="Primary Color"
-                        value={customColors.primary}
-                        onChange={(color) => setCustomColors({ ...customColors, primary: color })}
-                      />
-                      <BrandColorPicker
-                        label="Secondary Color"
-                        value={customColors.secondary}
-                        onChange={(color) => setCustomColors({ ...customColors, secondary: color })}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {formData.type === 'spin' && (
-              <div>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>
-                  Default wheel configuration loaded. You can customize segments later.
-                </p>
-                <div className="glass-card" style={{ padding: 'var(--space-3)' }}>
-                  {formData.config.segments?.map((segment, idx) => (
-                    <div key={segment.id} style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      padding: 'var(--space-2)',
-                      borderBottom: idx < formData.config.segments.length - 1 ? '1px solid var(--divider)' : 'none'
-                    }}>
-                      <span>{segment.text}</span>
-                      <span style={{ color: 'var(--text-secondary)' }}>{segment.probability}%</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {formData.type === 'scratch' && (
-              <div>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>
-                  Upload images for your scratch card (can be configured later in campaign settings)
-                </p>
-                <div style={{ display: 'grid', gap: 'var(--space-3)' }}>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                      Foreground (Scratch-off layer)
-                    </label>
-                    <div className="glass-card" style={{
-                      padding: 'var(--space-6)',
-                      textAlign: 'center',
-                      border: '2px dashed var(--border-color)'
-                    }}>
-                      Click to upload image
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                      Background (Prize reveal)
-                    </label>
-                    <div className="glass-card" style={{
-                      padding: 'var(--space-6)',
-                      textAlign: 'center',
-                      border: '2px dashed var(--border-color)'
-                    }}>
-                      Click to upload image
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-4)' }}>
-              <button className="btn btn-ghost" onClick={() => setStep(1)}>
-                <FiChevronLeft /> Back
-              </button>
-              <button className="btn btn-primary" onClick={() => setStep(3)} style={{ flex: 1 }}>
-                Next <FiChevronRight />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div>
-            <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-4)' }}>
-              Step 3: Campaign Details
-            </h3>
-
-            <div style={{ display: 'grid', gap: 'var(--space-3)' }}>
+            <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
                   Campaign Name *
@@ -428,60 +215,48 @@ export default function CampaignWizard({ clientId, onClose }) {
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                    Start Date (Optional)
-                  </label>
-                  <input
-                    className="input"
-                    type="datetime-local"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                    End Date (Optional)
-                  </label>
-                  <input
-                    className="input"
-                    type="datetime-local"
-                    value={formData.endDate}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  />
-                </div>
-              </div>
-
               <div>
                 <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                  Lead Capture Requirements
+                  Spin Limit *
                 </label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.requireEmail}
-                      onChange={(e) => setFormData({ ...formData, requireEmail: e.target.checked })}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                    />
-                    <span>Require Email Address</span>
+                <select
+                  className="input"
+                  value={formData.spinLimit}
+                  onChange={(e) => setFormData({ ...formData, spinLimit: e.target.value })}
+                >
+                  <option value="unlimited">Unlimited - Players can spin as many times as they want</option>
+                  <option value="one-per-user">One Per User - Each player can only spin once ever</option>
+                  <option value="one-per-session">One Per Session - One spin per browser session</option>
+                  <option value="time-limit">Time Limit - Wait between spins</option>
+                  <option value="calendar-limit">Calendar Limit - Reset weekly or monthly</option>
+                </select>
+              </div>
+
+              {formData.spinLimit === 'time-limit' && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+                    Hours Between Spins
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.requirePhone}
-                      onChange={(e) => setFormData({ ...formData, requirePhone: e.target.checked })}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                    />
-                    <span>Require Phone Number</span>
-                  </label>
+                  <input
+                    className="input"
+                    type="number"
+                    min="1"
+                    max="168"
+                    value={formData.spinDelayHours}
+                    onChange={(e) => setFormData({ ...formData, spinDelayHours: parseInt(e.target.value) })}
+                  />
                 </div>
+              )}
+
+              <div className="glass-card" style={{ padding: 'var(--space-4)', background: 'var(--bg-tertiary)' }}>
+                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-2)' }}>
+                  Campaign will inherit {client?.name}'s branding (logo and colors). You can customize all screens, prizes, and settings in the editor after creation.
+                </p>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-6)' }}>
-              <button className="btn btn-ghost" onClick={() => setStep(2)}>
+              <button className="btn btn-ghost" onClick={() => setStep(1)}>
                 <FiChevronLeft /> Back
               </button>
               <button
@@ -490,7 +265,7 @@ export default function CampaignWizard({ clientId, onClose }) {
                 disabled={!formData.name}
                 style={{ flex: 1 }}
               >
-                Create Campaign
+                Create & Open Editor
               </button>
             </div>
           </div>
