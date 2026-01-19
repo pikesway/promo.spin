@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiGrid, FiEdit, FiTrash2, FiExternalLink, FiSettings } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
 import CampaignWizard from '../components/CampaignWizard';
+import CampaignEditor from '../components/CampaignEditor';
 import QRCode from 'qrcode.react';
 import StatusBadge from '../components/StatusBadge';
 import ClientBrandingForm from '../components/ClientBrandingForm';
@@ -15,6 +16,7 @@ export default function ClientDashboard() {
   const [showWizard, setShowWizard] = useState(false);
   const [showQRModal, setShowQRModal] = useState(null);
   const [showBrandingModal, setShowBrandingModal] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState(null);
 
   const client = clients.find(c => c.id === clientId);
   const clientCampaigns = getCampaignsByClient(clientId);
@@ -103,6 +105,16 @@ export default function ClientDashboard() {
           </button>
         </div>
       </div>
+    );
+  }
+
+  if (editingCampaign) {
+    return (
+      <CampaignEditor
+        campaign={editingCampaign}
+        client={client}
+        onClose={() => setEditingCampaign(null)}
+      />
     );
   }
 
@@ -292,6 +304,13 @@ export default function ClientDashboard() {
                               title="Show QR Code & Share"
                             >
                               <FiGrid />
+                            </button>
+                            <button
+                              className="btn btn-sm btn-primary"
+                              onClick={() => setEditingCampaign(campaign)}
+                              title="Edit Campaign"
+                            >
+                              <FiEdit />
                             </button>
                             <button
                               className="btn btn-sm btn-primary"
