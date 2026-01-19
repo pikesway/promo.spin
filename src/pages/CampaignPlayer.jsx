@@ -7,15 +7,21 @@ import { LeadProvider } from '../context/LeadContext';
 import { RedemptionProvider } from '../context/RedemptionContext';
 import { campaignToGame, updateCampaignAnalytics } from '../utils/campaignAdapter';
 
-export default function CampaignPlayer() {
+export default function CampaignPlayer({ previewData, isPreview = false }) {
   const { slug } = useParams();
   const { getCampaignBySlug, clients, updateCampaign } = usePlatform();
   const [campaign, setCampaign] = useState(null);
   const [client, setClient] = useState(null);
   const [game, setGame] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!previewData);
 
   useEffect(() => {
+    if (previewData) {
+      setGame(previewData);
+      setIsLoading(false);
+      return;
+    }
+
     const loadCampaign = async () => {
       const foundCampaign = getCampaignBySlug(slug);
       if (foundCampaign) {
@@ -39,7 +45,7 @@ export default function CampaignPlayer() {
       setIsLoading(false);
     };
     loadCampaign();
-  }, [slug, clients, getCampaignBySlug, updateCampaign]);
+  }, [slug, clients, getCampaignBySlug, updateCampaign, previewData]);
 
   if (isLoading) {
     return (
@@ -55,30 +61,32 @@ export default function CampaignPlayer() {
     );
   }
 
-  if (!campaign || !game) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg-primary)',
-        padding: 'var(--space-4)',
-        textAlign: 'center'
-      }}>
-        <div>
-          <h1 style={{ fontSize: 'var(--text-3xl)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)' }}>
-            Campaign Not Found
-          </h1>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            This campaign may have been removed or the link is incorrect.
-          </p>
+  if (!game && !previewData) {
+    if (!campaign) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--bg-primary)',
+          padding: 'var(--space-4)',
+          textAlign: 'center'
+        }}>
+          <div>
+            <h1 style={{ fontSize: 'var(--text-3xl)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)' }}>
+              Campaign Not Found
+            </h1>
+            <p style={{ color: 'var(--text-secondary)' }}>
+              This campaign may have been removed or the link is incorrect.
+            </p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
-  if (campaign.status !== 'active') {
+  if (!isPreview && campaign && campaign.status !== 'active') {
     return (
       <div style={{
         minHeight: '100vh',
@@ -101,11 +109,15 @@ export default function CampaignPlayer() {
     );
   }
 
+  if (!game) {
+    return null;
+  }
+
   return (
     <GameProvider externalGame={game}>
       <LeadProvider>
         <RedemptionProvider>
-          <GamePlayer gameId={game.id} isPreview={false} />
+          <GamePlayer gameId={game.id} isPreview={isPreview} />
         </RedemptionProvider>
       </LeadProvider>
     </GameProvider>

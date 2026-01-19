@@ -1,7 +1,13 @@
 import React from 'react';
 import GamePlayer from '../../game/GamePlayer';
+import CampaignPlayer from '../../../pages/CampaignPlayer';
 
-const GamePreview = ({ gameData }) => {
+const GamePreview = ({ gameData, playUrl, embedUrl, isCampaign = false, campaignSlug }) => {
+  const defaultUrl = `${window.location.origin}/#/game/${gameData.id}`;
+  const url = playUrl || defaultUrl;
+  const embedCode = `<iframe src="${embedUrl || url}" width="100%" height="600" frameborder="0"></iframe>`;
+  const linkPath = playUrl ? `/#/play/${campaignSlug}` : `/#/game/${gameData.id}`;
+
   return (
     <div className="space-y-6">
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -20,16 +26,20 @@ const GamePreview = ({ gameData }) => {
               <div className="w-3 h-3 bg-green-400 rounded-full"></div>
             </div>
             <span className="text-sm text-gray-600 ml-4">
-              {window.location.origin}/#/game/{gameData.id}
+              {url}
             </span>
           </div>
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <span>Preview</span>
           </div>
         </div>
-        
+
         <div className="h-96 overflow-auto">
-          <GamePlayer gameId={gameData.id} isPreview={true} />
+          {isCampaign ? (
+            <CampaignPlayer previewData={gameData} isPreview={true} />
+          ) : (
+            <GamePlayer gameId={gameData.id} isPreview={true} />
+          )}
         </div>
       </div>
 
@@ -40,13 +50,13 @@ const GamePreview = ({ gameData }) => {
             <div className="flex items-center space-x-2">
               <input
                 type="text"
-                value={`${window.location.origin}/#/game/${gameData.id}`}
+                value={url}
                 readOnly
                 className="flex-1 text-sm bg-gray-50 border border-gray-200 rounded px-2 py-1"
               />
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.origin}/#/game/${gameData.id}`);
+                  navigator.clipboard.writeText(url);
                   alert('URL copied!');
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
@@ -55,12 +65,12 @@ const GamePreview = ({ gameData }) => {
               </button>
             </div>
             <a
-              href={`/#/game/${gameData.id}`}
+              href={linkPath}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-700 text-sm"
             >
-              Open in new tab →
+              Open in new tab
             </a>
           </div>
         </div>
@@ -68,14 +78,14 @@ const GamePreview = ({ gameData }) => {
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <h4 className="font-medium text-gray-900 mb-3">Embed Code</h4>
           <textarea
-            value={`<iframe src="${window.location.origin}/#/game/${gameData.id}" width="100%" height="600" frameborder="0"></iframe>`}
+            value={embedCode}
             readOnly
             rows={4}
             className="w-full text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1 font-mono"
           />
           <button
             onClick={() => {
-              navigator.clipboard.writeText(`<iframe src="${window.location.origin}/#/game/${gameData.id}" width="100%" height="600" frameborder="0"></iframe>`);
+              navigator.clipboard.writeText(embedCode);
               alert('Embed code copied!');
             }}
             className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"

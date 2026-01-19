@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
 import CampaignWizard from '../components/CampaignWizard';
-import CampaignEditor from '../components/CampaignEditor';
+import CampaignBuilder from '../components/admin/CampaignBuilder';
 import CampaignList from '../components/admin/CampaignList';
 import QRCode from 'qrcode.react';
 import StatusBadge from '../components/StatusBadge';
@@ -130,10 +130,10 @@ export default function ClientDashboard() {
 
   if (editingCampaign) {
     return (
-      <CampaignEditor
+      <CampaignBuilder
         campaign={editingCampaign}
         client={client}
-        onClose={() => setEditingCampaign(null)}
+        onBack={() => setEditingCampaign(null)}
       />
     );
   }

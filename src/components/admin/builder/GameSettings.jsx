@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 
-const GameSettings = ({ gameData, onChange }) => {
+const GameSettings = ({ gameData, onChange, customUrl, idLabel = 'Game ID' }) => {
   const qrRef = useRef();
 
   const handleSettingsChange = (key, value) => {
@@ -14,7 +14,7 @@ const GameSettings = ({ gameData, onChange }) => {
   const handleNameChange = (value) => {
     onChange({ ...gameData, name: value });
   };
-  
+
   const downloadQRCode = () => {
     const canvas = qrRef.current.querySelector('canvas');
     if (canvas) {
@@ -26,7 +26,7 @@ const GameSettings = ({ gameData, onChange }) => {
     }
   };
 
-  const gameUrl = `${window.location.origin}/#/game/${gameData.id}`;
+  const gameUrl = customUrl || `${window.location.origin}/#/game/${gameData.id}`;
 
   const timezones = [
     { value: 'UTC', label: 'UTC' },
@@ -61,7 +61,7 @@ const GameSettings = ({ gameData, onChange }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Game ID (Read Only)
+              {idLabel} (Read Only)
             </label>
             <input
               type="text"

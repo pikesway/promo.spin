@@ -147,6 +147,34 @@ export const campaignToGame = (campaign, client) => {
   };
 };
 
+export const gameDataToCampaignConfig = (gameData) => {
+  if (!gameData) return {};
+
+  return {
+    screens: gameData.screens || {},
+    visual: gameData.visual || {},
+    settings: {
+      spinLimit: gameData.settings?.spinLimit,
+      spinDelayHours: gameData.settings?.spinDelayHours,
+      calendarResetFrequency: gameData.settings?.calendarResetFrequency,
+      calendarResetDay: gameData.settings?.calendarResetDay,
+      timezone: gameData.settings?.timezone
+    },
+    segments: gameData.segments || []
+  };
+};
+
+export const gameDataToCampaignUpdates = (gameData, originalCampaign) => {
+  const config = gameDataToCampaignConfig(gameData);
+
+  return {
+    name: gameData.name,
+    start_date: gameData.settings?.startDate || null,
+    end_date: gameData.settings?.endDate || null,
+    config
+  };
+};
+
 export const updateCampaignAnalytics = (currentAnalytics, event, data = {}) => {
   const analytics = currentAnalytics || {
     views: 0,
