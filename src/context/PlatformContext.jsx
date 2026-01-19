@@ -98,9 +98,26 @@ export const PlatformProvider = ({ children }) => {
   };
 
   const updateClient = async (clientId, updates) => {
+    const cleanUpdates = { ...updates };
+
+    if (cleanUpdates.logo_type === 'upload' && cleanUpdates.logo_file) {
+      const client = clients.find(c => c.id === clientId);
+      if (client?.logo_url && client?.logo_type === 'upload') {
+        await deleteClientLogo(client.logo_url);
+      }
+
+      const uploadResult = await uploadLogoToStorage(cleanUpdates.logo_file, clientId);
+      if (uploadResult.error) {
+        throw new Error('Failed to upload logo');
+      }
+      cleanUpdates.logo_url = uploadResult.data.url;
+    }
+
+    delete cleanUpdates.logo_file;
+
     const { data, error } = await supabase
       .from('clients')
-      .update(updates)
+      .update(cleanUpdates)
       .eq('id', clientId)
       .select()
       .single();
