@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUsers, FiTrendingUp, FiTarget, FiDollarSign, FiPlus, FiExternalLink } from 'react-icons/fi';
+import { FiUsers, FiTrendingUp, FiTarget, FiDollarSign, FiPlus, FiExternalLink, FiEdit } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
+import ClientBrandingForm from '../components/ClientBrandingForm';
+import StatusBadge from '../components/StatusBadge';
+import { getStatusConfig } from '../utils/brandingHelpers';
 
 export default function AgencyDashboard() {
   const navigate = useNavigate();
-  const { clients, campaigns, leads, redemptions, createClient, deleteClient, isLoading } = usePlatform();
+  const { clients, campaigns, leads, redemptions, createClient, updateClient, deleteClient, isLoading } = usePlatform();
   const [showClientModal, setShowClientModal] = useState(false);
-  const [newClient, setNewClient] = useState({ name: '', email: '' });
+  const [editingClient, setEditingClient] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const statusBreakdown = useMemo(() => {
+    return {
+      prospect: clients.filter(c => c.status === 'prospect').length,
+      active: clients.filter(c => c.status === 'active').length,
+      idle: clients.filter(c => c.status === 'idle').length,
+      paused: clients.filter(c => c.status === 'paused').length,
+      churned: clients.filter(c => c.status === 'churned').length
+    };
+  }, [clients]);
+
+  const filteredClients = useMemo(() => {
+    if (statusFilter === 'all') return clients;
+    return clients.filter(c => c.status === statusFilter);
+  }, [clients, statusFilter]);
 
   const stats = {
     totalClients: clients.length,
@@ -17,21 +36,33 @@ export default function AgencyDashboard() {
     activeCampaigns: campaigns.filter(c => c.status === 'active').length
   };
 
-  const handleCreateClient = async (e) => {
-    e.preventDefault();
+  const handleSaveClient = async (formData) => {
     try {
-      const client = await createClient({
-        agencyId: null,
-        name: newClient.name,
-        email: newClient.email
-      });
+      if (editingClient) {
+        await updateClient(editingClient.id, formData);
+      } else {
+        const client = await createClient({
+          agencyId: null,
+          ...formData
+        });
+        navigate(`/client/${client.id}`);
+      }
       setShowClientModal(false);
-      setNewClient({ name: '', email: '' });
-      navigate(`/client/${client.id}`);
+      setEditingClient(null);
     } catch (error) {
-      console.error('Error creating client:', error);
-      alert('Failed to create client');
+      console.error('Error saving client:', error);
+      throw error;
     }
+  };
+
+  const handleEditClient = (client) => {
+    setEditingClient(client);
+    setShowClientModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowClientModal(false);
+    setEditingClient(null);
   };
 
   const handleDeleteClient = async (clientId) => {
@@ -71,6 +102,9 @@ export default function AgencyDashboard() {
                 <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-1)' }}>Total Clients</p>
                 <p style={{ fontSize: 'var(--text-4xl)', fontWeight: 'var(--font-bold)', color: 'var(--text-primary)' }}>
                   {stats.totalClients}
+                </p>
+                <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-xs)', marginTop: 'var(--space-2)' }}>
+                  {statusBreakdown.active} Active, {statusBreakdown.idle} Idle, {statusBreakdown.prospect} Prospects
                 </p>
               </div>
               <div style={{
@@ -155,10 +189,25 @@ export default function AgencyDashboard() {
         </div>
 
         <div className="glass-card" style={{ padding: 'var(--space-4)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
-            <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--font-semibold)', color: 'var(--text-primary)' }}>
-              Clients
-            </h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+              <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--font-semibold)', color: 'var(--text-primary)' }}>
+                Clients
+              </h2>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="input"
+                style={{ width: 'auto', minWidth: '150px' }}
+              >
+                <option value="all">All Statuses</option>
+                <option value="prospect">Prospects</option>
+                <option value="active">Active</option>
+                <option value="idle">Idle</option>
+                <option value="paused">Paused</option>
+                <option value="churned">Churned</option>
+              </select>
+            </div>
             <button className="btn btn-primary" onClick={() => setShowClientModal(true)}>
               <FiPlus /> Add Client
             </button>
@@ -173,30 +222,82 @@ export default function AgencyDashboard() {
             </div>
           ) : (
             <div style={{ display: 'grid', gap: 'var(--space-3)' }}>
-              {clients.map(client => {
+              {filteredClients.map(client => {
                 const clientCampaigns = campaigns.filter(c => c.client_id === client.id);
                 const clientLeads = leads.filter(l => l.client_id === client.id);
+                const statusConfig = getStatusConfig(client.status);
 
                 return (
-                  <div key={client.id} className="glass-card" style={{ padding: 'var(--space-4)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', color: 'var(--text-primary)', marginBottom: 'var(--space-1)' }}>
-                        {client.name}
-                      </h3>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-2)' }}>
-                        {client.email}
-                      </p>
+                  <div key={client.id} className="glass-card" style={{ padding: 'var(--space-4)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-4)' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-2)' }}>
+                        {client.logo_url && (
+                          <img
+                            src={client.logo_url}
+                            alt={`${client.name} logo`}
+                            style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: 'var(--radius-md)' }}
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        )}
+                        <div>
+                          <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', color: 'var(--text-primary)', marginBottom: 'var(--space-1)' }}>
+                            {client.name}
+                          </h3>
+                          <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
+                            {client.email}
+                          </p>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-2)' }}>
+                        <StatusBadge status={client.status} showAction={true} />
+                        {(client.primary_color || client.secondary_color) && (
+                          <div style={{ display: 'flex', gap: 'var(--space-1)', alignItems: 'center' }}>
+                            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>Brand:</span>
+                            {client.primary_color && (
+                              <div
+                                style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  borderRadius: '50%',
+                                  backgroundColor: client.primary_color,
+                                  border: '1px solid var(--border-color)'
+                                }}
+                                title={`Primary: ${client.primary_color}`}
+                              />
+                            )}
+                            {client.secondary_color && (
+                              <div
+                                style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  borderRadius: '50%',
+                                  backgroundColor: client.secondary_color,
+                                  border: '1px solid var(--border-color)'
+                                }}
+                                title={`Secondary: ${client.secondary_color}`}
+                              />
+                            )}
+                          </div>
+                        )}
+                      </div>
                       <div style={{ display: 'flex', gap: 'var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
                         <span>{clientCampaigns.length} campaigns</span>
                         <span>{clientLeads.length} leads</span>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                    <div style={{ display: 'flex', gap: 'var(--space-2)', flexShrink: 0 }}>
+                      <button
+                        className="btn btn-ghost"
+                        onClick={() => handleEditClient(client)}
+                        title="Edit Client"
+                      >
+                        <FiEdit />
+                      </button>
                       <button
                         className="btn btn-primary"
                         onClick={() => navigate(`/client/${client.id}`)}
                       >
-                        <FiExternalLink /> Open Dashboard
+                        <FiExternalLink /> Dashboard
                       </button>
                       <button
                         className="btn btn-danger"
@@ -225,58 +326,27 @@ export default function AgencyDashboard() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 'var(--z-modal)',
-          padding: 'var(--space-3)'
+          padding: 'var(--space-3)',
+          overflow: 'auto'
         }}>
           <div className="glass-card" style={{
-            maxWidth: '500px',
+            maxWidth: '800px',
             width: '100%',
             padding: 'var(--space-6)',
             background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-color)'
+            border: '1px solid var(--border-color)',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            margin: 'var(--space-4)'
           }}>
             <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-4)' }}>
-              Create New Client
+              {editingClient ? 'Edit Client' : 'Create New Client'}
             </h2>
-            <form onSubmit={handleCreateClient}>
-              <div style={{ marginBottom: 'var(--space-3)' }}>
-                <label style={{ display: 'block', marginBottom: 'var(--space-1)', color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
-                  Client Name
-                </label>
-                <input
-                  className="input"
-                  type="text"
-                  value={newClient.name}
-                  onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
-                  placeholder="Acme Corporation"
-                  required
-                />
-              </div>
-              <div style={{ marginBottom: 'var(--space-4)' }}>
-                <label style={{ display: 'block', marginBottom: 'var(--space-1)', color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
-                  Contact Email
-                </label>
-                <input
-                  className="input"
-                  type="email"
-                  value={newClient.email}
-                  onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
-                  placeholder="contact@acme.com"
-                  required
-                />
-              </div>
-              <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={() => setShowClientModal(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Create Client
-                </button>
-              </div>
-            </form>
+            <ClientBrandingForm
+              client={editingClient}
+              onSave={handleSaveClient}
+              onCancel={handleCloseModal}
+            />
           </div>
         </div>
       )}

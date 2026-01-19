@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-export default function SpinWheel({ config, onComplete }) {
+export default function SpinWheel({ config, brandColors, onComplete }) {
   const canvasRef = useRef(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const segments = config?.segments || [];
+  const primaryColor = brandColors?.primary || '#6366F1';
 
   useEffect(() => {
     drawWheel();
@@ -61,7 +62,7 @@ export default function SpinWheel({ config, onComplete }) {
 
     ctx.beginPath();
     ctx.arc(centerX, centerY, 25, 0, 2 * Math.PI);
-    ctx.fillStyle = '#6366F1';
+    ctx.fillStyle = primaryColor;
     ctx.fill();
     ctx.strokeStyle = '#FFFFFF';
     ctx.lineWidth = 3;

@@ -1,11 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
 
-export default function ScratchCard({ config, onComplete }) {
+export default function ScratchCard({ config, brandColors, onComplete }) {
   const canvasRef = useRef(null);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchPercentage, setScratchPercentage] = useState(0);
   const [hasRevealed, setHasRevealed] = useState(false);
   const [prize, setPrize] = useState(null);
+  const primaryColor = brandColors?.primary || '#6366F1';
+  const secondaryColor = brandColors?.secondary || '#8B5CF6';
 
   useEffect(() => {
     initCanvas();
@@ -42,8 +44,8 @@ export default function ScratchCard({ config, onComplete }) {
     ctx.scale(2, 2);
 
     const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
-    gradient.addColorStop(0, '#6366F1');
-    gradient.addColorStop(1, '#8B5CF6');
+    gradient.addColorStop(0, primaryColor);
+    gradient.addColorStop(1, secondaryColor);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, rect.width, rect.height);
 
@@ -129,7 +131,7 @@ export default function ScratchCard({ config, onComplete }) {
         aspectRatio: '16 / 9',
         borderRadius: 'var(--radius-lg)',
         overflow: 'hidden',
-        background: 'linear-gradient(135deg, #10B981, #059669)',
+        background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'

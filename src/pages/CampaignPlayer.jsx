@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { usePlatform } from '../context/PlatformContext';
 import SpinWheel from '../components/games/SpinWheel';
 import ScratchCard from '../components/games/ScratchCard';
 import RedemptionTicket from '../components/games/RedemptionTicket';
+import { resolveClientBranding } from '../utils/brandingHelpers';
 
 export default function CampaignPlayer() {
   const { slug } = useParams();
@@ -28,6 +29,11 @@ export default function CampaignPlayer() {
     };
     loadCampaign();
   }, [slug]);
+
+  const brandColors = useMemo(() => {
+    if (!campaign || !client) return null;
+    return resolveClientBranding(campaign, client);
+  }, [campaign, client]);
 
   const handleLeadSubmit = async (e) => {
     e.preventDefault();
@@ -149,7 +155,9 @@ export default function CampaignPlayer() {
               fontSize: 'var(--text-3xl)',
               fontWeight: 'var(--font-bold)',
               marginBottom: 'var(--space-2)',
-              background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-light))',
+              background: brandColors
+                ? `linear-gradient(135deg, ${brandColors.primary}, ${brandColors.secondary})`
+                : 'linear-gradient(135deg, var(--brand-primary), var(--brand-light))',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
@@ -236,11 +244,13 @@ export default function CampaignPlayer() {
             {campaign.type === 'spin' ? (
               <SpinWheel
                 config={campaign.config}
+                brandColors={brandColors}
                 onComplete={handleGameComplete}
               />
             ) : (
               <ScratchCard
                 config={campaign.config}
+                brandColors={brandColors}
                 onComplete={handleGameComplete}
               />
             )}
@@ -253,6 +263,7 @@ export default function CampaignPlayer() {
             redemption={redemption}
             campaign={campaign}
             client={client}
+            brandColors={brandColors}
           />
         )}
 

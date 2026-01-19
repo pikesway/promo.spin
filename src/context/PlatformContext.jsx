@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../supabase/client';
+import { uploadClientLogo as uploadLogoToStorage, deleteClientLogo } from '../utils/storageHelpers';
+import { getDefaultColors } from '../utils/brandingHelpers';
 
 const PlatformContext = createContext();
 
@@ -62,13 +64,30 @@ export const PlatformProvider = ({ children }) => {
   };
 
   const createClient = async (clientData) => {
+    let logoUrl = clientData.logoUrl || clientData.logo_url || null;
+
+    if (clientData.logo_type === 'upload' && clientData.logo_file) {
+      const tempId = `temp-${Date.now()}`;
+      const uploadResult = await uploadLogoToStorage(clientData.logo_file, tempId);
+      if (uploadResult.error) {
+        throw new Error('Failed to upload logo');
+      }
+      logoUrl = uploadResult.data.url;
+    }
+
+    const defaults = getDefaultColors();
     const newClient = {
-      agency_id: clientData.agencyId,
+      agency_id: clientData.agencyId || clientData.agency_id,
       name: clientData.name,
       email: clientData.email,
-      logo_url: clientData.logoUrl || null,
-      settings: clientData.settings || {},
-      status: 'active'
+      logo_type: clientData.logo_type || 'url',
+      logo_url: logoUrl,
+      primary_color: clientData.primary_color || defaults.primary,
+      secondary_color: clientData.secondary_color || defaults.secondary,
+      background_color: clientData.background_color || defaults.background,
+      status: clientData.status || 'prospect',
+      status_notes: clientData.status_notes || null,
+      settings: clientData.settings || {}
     };
 
     const { data, error } = await supabase.from('clients').insert(newClient).select().single();
@@ -96,6 +115,59 @@ export const PlatformProvider = ({ children }) => {
     const { error } = await supabase.from('clients').delete().eq('id', clientId);
     if (error) throw error;
     setClients(prev => prev.filter(c => c.id !== clientId));
+  };
+
+  const updateClientBranding = async (clientId, brandingData) => {
+    let logoUrl = brandingData.logo_url;
+
+    if (brandingData.logo_type === 'upload' && brandingData.logo_file) {
+      const client = clients.find(c => c.id === clientId);
+      if (client?.logo_url && client?.logo_type === 'upload') {
+        await deleteClientLogo(client.logo_url);
+      }
+
+      const uploadResult = await uploadLogoToStorage(brandingData.logo_file, clientId);
+      if (uploadResult.error) {
+        throw new Error('Failed to upload logo');
+      }
+      logoUrl = uploadResult.data.url;
+    }
+
+    const updates = {
+      logo_type: brandingData.logo_type,
+      logo_url: logoUrl,
+      primary_color: brandingData.primary_color,
+      secondary_color: brandingData.secondary_color,
+      background_color: brandingData.background_color
+    };
+
+    return updateClient(clientId, updates);
+  };
+
+  const updateClientStatus = async (clientId, status, notes) => {
+    const updates = {
+      status,
+      status_notes: notes || null
+    };
+
+    return updateClient(clientId, updates);
+  };
+
+  const uploadClientLogoFile = async (file, clientId) => {
+    return uploadLogoToStorage(file, clientId);
+  };
+
+  const getClientBranding = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    if (!client) return null;
+
+    return {
+      logo_type: client.logo_type,
+      logo_url: client.logo_url,
+      primary_color: client.primary_color,
+      secondary_color: client.secondary_color,
+      background_color: client.background_color
+    };
   };
 
   const createCampaign = async (campaignData) => {
@@ -234,6 +306,10 @@ export const PlatformProvider = ({ children }) => {
     createClient,
     updateClient,
     deleteClient,
+    updateClientBranding,
+    updateClientStatus,
+    uploadClientLogoFile,
+    getClientBranding,
     createCampaign,
     updateCampaign,
     deleteCampaign,

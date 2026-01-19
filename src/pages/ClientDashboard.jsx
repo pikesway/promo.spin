@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiGrid, FiEdit, FiTrash2, FiExternalLink } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiGrid, FiEdit, FiTrash2, FiExternalLink, FiSettings } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
 import CampaignWizard from '../components/CampaignWizard';
 import QRCode from 'qrcode.react';
+import StatusBadge from '../components/StatusBadge';
+import ClientBrandingForm from '../components/ClientBrandingForm';
 
 export default function ClientDashboard() {
   const { clientId } = useParams();
   const navigate = useNavigate();
-  const { clients, campaigns, leads, getCampaignsByClient, getLeadsByClient, deleteCampaign } = usePlatform();
+  const { clients, campaigns, leads, getCampaignsByClient, getLeadsByClient, deleteCampaign, updateClient } = usePlatform();
   const [activeTab, setActiveTab] = useState('campaigns');
   const [showWizard, setShowWizard] = useState(false);
   const [showQRModal, setShowQRModal] = useState(null);
+  const [showBrandingModal, setShowBrandingModal] = useState(false);
 
   const client = clients.find(c => c.id === clientId);
   const clientCampaigns = getCampaignsByClient(clientId);
@@ -80,6 +83,16 @@ export default function ClientDashboard() {
     }
   };
 
+  const handleSaveBranding = async (formData) => {
+    try {
+      await updateClient(clientId, formData);
+      setShowBrandingModal(false);
+    } catch (error) {
+      console.error('Error updating branding:', error);
+      throw error;
+    }
+  };
+
   if (!client) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -100,12 +113,68 @@ export default function ClientDashboard() {
           <button className="btn btn-ghost" onClick={() => navigate('/agency')} style={{ marginBottom: 'var(--space-3)' }}>
             <FiArrowLeft /> Back to Agency
           </button>
-          <h1 style={{ fontSize: 'var(--text-4xl)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)' }}>
-            {client.name}
-          </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-lg)' }}>
-            {client.email}
-          </p>
+
+          <div className="glass-card" style={{ padding: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', flex: 1 }}>
+                {client.logo_url && (
+                  <img
+                    src={client.logo_url}
+                    alt={`${client.name} logo`}
+                    style={{ width: '80px', height: '80px', objectFit: 'contain', borderRadius: 'var(--radius-lg)' }}
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                )}
+                <div style={{ flex: 1 }}>
+                  <h1 style={{ fontSize: 'var(--text-4xl)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-1)' }}>
+                    {client.name}
+                  </h1>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-base)', marginBottom: 'var(--space-2)' }}>
+                    {client.email}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+                    <StatusBadge status={client.status} />
+                    {(client.primary_color || client.secondary_color) && (
+                      <div style={{ display: 'flex', gap: 'var(--space-1)', alignItems: 'center' }}>
+                        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>Brand Colors:</span>
+                        {client.primary_color && (
+                          <div
+                            style={{
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '50%',
+                              backgroundColor: client.primary_color,
+                              border: '2px solid var(--border-color)'
+                            }}
+                            title={`Primary: ${client.primary_color}`}
+                          />
+                        )}
+                        {client.secondary_color && (
+                          <div
+                            style={{
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '50%',
+                              backgroundColor: client.secondary_color,
+                              border: '2px solid var(--border-color)'
+                            }}
+                            title={`Secondary: ${client.secondary_color}`}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <button
+                className="btn btn-ghost"
+                onClick={() => setShowBrandingModal(true)}
+                style={{ flexShrink: 0 }}
+              >
+                <FiSettings /> Edit Branding
+              </button>
+            </div>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-6)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--space-2)' }}>
@@ -369,6 +438,43 @@ export default function ClientDashboard() {
             <button className="btn btn-primary w-full" onClick={() => setShowQRModal(null)}>
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {showBrandingModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 'var(--z-modal)',
+          padding: 'var(--space-3)',
+          overflow: 'auto'
+        }}>
+          <div className="glass-card" style={{
+            maxWidth: '800px',
+            width: '100%',
+            padding: 'var(--space-6)',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            margin: 'var(--space-4)'
+          }}>
+            <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-4)' }}>
+              Edit Client Branding
+            </h2>
+            <ClientBrandingForm
+              client={client}
+              onSave={handleSaveBranding}
+              onCancel={() => setShowBrandingModal(false)}
+            />
           </div>
         </div>
       )}

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
+import BrandColorPicker from './BrandColorPicker';
+import { prepareBrandingForCampaign, getDefaultColors } from '../utils/brandingHelpers';
 
 const defaultSpinConfig = {
   segments: [
@@ -25,8 +27,10 @@ const defaultScratchConfig = {
 };
 
 export default function CampaignWizard({ clientId, onClose }) {
-  const { createCampaign } = usePlatform();
+  const { createCampaign, clients } = usePlatform();
   const [step, setStep] = useState(1);
+  const [useClientBranding, setUseClientBranding] = useState(true);
+  const [customColors, setCustomColors] = useState(getDefaultColors());
   const [formData, setFormData] = useState({
     name: '',
     type: null,
@@ -38,11 +42,32 @@ export default function CampaignWizard({ clientId, onClose }) {
     config: {}
   });
 
+  const client = useMemo(() => clients.find(c => c.id === clientId), [clients, clientId]);
+
   const handleTypeSelect = (type) => {
+    const colors = useClientBranding ? {
+      primary: client?.primary_color || getDefaultColors().primary,
+      secondary: client?.secondary_color || getDefaultColors().secondary
+    } : customColors;
+
+    let config;
+    if (type === 'spin') {
+      config = {
+        ...defaultSpinConfig,
+        segments: defaultSpinConfig.segments.map((seg, idx) => ({
+          ...seg,
+          color: idx % 2 === 0 ? colors.primary : colors.secondary
+        })),
+        wheelColors: colors
+      };
+    } else {
+      config = defaultScratchConfig;
+    }
+
     setFormData({
       ...formData,
       type,
-      config: type === 'spin' ? defaultSpinConfig : defaultScratchConfig
+      config
     });
     setStep(2);
   };
@@ -50,6 +75,10 @@ export default function CampaignWizard({ clientId, onClose }) {
   const handleSubmit = async () => {
     try {
       const slug = formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+      const brandingConfig = useClientBranding
+        ? { branding: { useClientBranding: true } }
+        : { branding: { useClientBranding: false, customColors } };
 
       await createCampaign({
         clientId,
@@ -61,6 +90,7 @@ export default function CampaignWizard({ clientId, onClose }) {
         endDate: formData.endDate || null,
         config: {
           ...formData.config,
+          ...brandingConfig,
           leadCapture: {
             requireEmail: formData.requireEmail,
             requirePhone: formData.requirePhone
@@ -204,6 +234,96 @@ export default function CampaignWizard({ clientId, onClose }) {
             <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-4)' }}>
               Step 2: Configure {formData.type === 'spin' ? 'Spin Wheel' : 'Scratch Card'}
             </h3>
+
+            {client && (
+              <div className="glass-card" style={{ padding: 'var(--space-4)', marginBottom: 'var(--space-4)', background: 'var(--bg-tertiary)' }}>
+                <div style={{ marginBottom: 'var(--space-3)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-2)' }}>
+                    {client.logo_url && (
+                      <img
+                        src={client.logo_url}
+                        alt={`${client.name} logo`}
+                        style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: 'var(--radius-md)' }}
+                      />
+                    )}
+                    <div>
+                      <p style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', color: 'var(--text-primary)' }}>
+                        Using {client.name}'s branding
+                      </p>
+                      <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', marginTop: 'var(--space-1)' }}>
+                        {client.primary_color && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                            <div
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                borderRadius: '50%',
+                                backgroundColor: client.primary_color,
+                                border: '1px solid var(--border-color)'
+                              }}
+                            />
+                            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>Primary</span>
+                          </div>
+                        )}
+                        {client.secondary_color && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                            <div
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                borderRadius: '50%',
+                                backgroundColor: client.secondary_color,
+                                border: '1px solid var(--border-color)'
+                              }}
+                            />
+                            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>Secondary</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={!useClientBranding}
+                    onChange={(e) => {
+                      setUseClientBranding(!e.target.checked);
+                      if (e.target.checked) {
+                        setCustomColors({
+                          primary: client.primary_color || getDefaultColors().primary,
+                          secondary: client.secondary_color || getDefaultColors().secondary,
+                          background: client.background_color || getDefaultColors().background
+                        });
+                      }
+                    }}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: 'var(--text-sm)' }}>Customize colors for this campaign</span>
+                </label>
+
+                {!useClientBranding && (
+                  <div style={{ marginTop: 'var(--space-4)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--divider)' }}>
+                    <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>
+                      Custom Campaign Colors
+                    </p>
+                    <div style={{ display: 'grid', gap: 'var(--space-3)' }}>
+                      <BrandColorPicker
+                        label="Primary Color"
+                        value={customColors.primary}
+                        onChange={(color) => setCustomColors({ ...customColors, primary: color })}
+                      />
+                      <BrandColorPicker
+                        label="Secondary Color"
+                        value={customColors.secondary}
+                        onChange={(color) => setCustomColors({ ...customColors, secondary: color })}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {formData.type === 'spin' && (
               <div>

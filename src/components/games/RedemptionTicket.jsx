@@ -3,10 +3,12 @@ import { FiCheck, FiX, FiClock } from 'react-icons/fi';
 import QRCode from 'qrcode.react';
 import { usePlatform } from '../../context/PlatformContext';
 
-export default function RedemptionTicket({ prize, redemption, campaign, client }) {
+export default function RedemptionTicket({ prize, redemption, campaign, client, brandColors }) {
   const { redeemCode } = usePlatform();
   const [localStatus, setLocalStatus] = useState(redemption.status);
   const [isRedeeming, setIsRedeeming] = useState(false);
+  const primaryColor = brandColors?.primary || '#6366F1';
+  const secondaryColor = brandColors?.secondary || '#8B5CF6';
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -63,7 +65,7 @@ export default function RedemptionTicket({ prize, redemption, campaign, client }
           fontSize: 'var(--text-3xl)',
           fontWeight: 'var(--font-bold)',
           marginBottom: 'var(--space-2)',
-          background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-light))',
+          background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent'
         }}>
@@ -122,11 +124,13 @@ export default function RedemptionTicket({ prize, redemption, campaign, client }
           borderRadius: 'var(--radius-md)',
           display: 'inline-block',
           width: '100%',
-          textAlign: 'center'
+          textAlign: 'center',
+          border: `3px solid ${primaryColor}20`
         }}>
           <QRCode
             value={redemption.short_code}
             size={150}
+            fgColor={primaryColor}
             style={{ maxWidth: '100%', height: 'auto' }}
           />
         </div>
