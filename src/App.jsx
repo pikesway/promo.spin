@@ -1,28 +1,22 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import AdminDashboard from './components/admin/AdminDashboard';
-import GamePlayer from './components/game/GamePlayer';
-import { GameProvider } from './context/GameContext';
-import { LeadProvider } from './context/LeadContext';
-import { RedemptionProvider } from './context/RedemptionContext';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { PlatformProvider } from './context/PlatformContext';
+import AgencyDashboard from './pages/AgencyDashboard';
+import ClientDashboard from './pages/ClientDashboard';
+import CampaignPlayer from './pages/CampaignPlayer';
 
 function App() {
   return (
-    <GameProvider>
-      <LeadProvider>
-        <RedemptionProvider>
-          <Router>
-            <div className="min-h-screen bg-gray-50">
-              <Routes>
-                <Route path="/" element={<AdminDashboard />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/game/:gameId" element={<GamePlayer />} />
-              </Routes>
-            </div>
-          </Router>
-        </RedemptionProvider>
-      </LeadProvider>
-    </GameProvider>
+    <PlatformProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Navigate to="/agency" replace />} />
+          <Route path="/agency" element={<AgencyDashboard />} />
+          <Route path="/client/:clientId" element={<ClientDashboard />} />
+          <Route path="/play/:slug" element={<CampaignPlayer />} />
+        </Routes>
+      </Router>
+    </PlatformProvider>
   );
 }
 
