@@ -229,6 +229,58 @@ export const PlatformProvider = ({ children }) => {
     setCampaigns(prev => prev.filter(c => c.id !== campaignId));
   };
 
+  const duplicateCampaign = async (campaignId) => {
+    const campaign = campaigns.find(c => c.id === campaignId);
+    if (!campaign) throw new Error('Campaign not found');
+
+    const existingSlugs = campaigns.map(c => c.slug);
+    let newSlug = `${campaign.slug}-copy`;
+    let counter = 1;
+    while (existingSlugs.includes(newSlug)) {
+      newSlug = `${campaign.slug}-copy-${counter}`;
+      counter++;
+    }
+
+    const newCampaign = {
+      client_id: campaign.client_id,
+      name: `${campaign.name} (Copy)`,
+      slug: newSlug,
+      type: campaign.type,
+      status: 'draft',
+      start_date: null,
+      end_date: null,
+      config: { ...campaign.config },
+      analytics: {}
+    };
+
+    const { data, error } = await supabase.from('campaigns').insert(newCampaign).select().single();
+    if (error) throw error;
+
+    setCampaigns(prev => [data, ...prev]);
+    return data;
+  };
+
+  const toggleCampaignStatus = async (campaignId, currentStatus) => {
+    let newStatus;
+    if (currentStatus === 'active') {
+      newStatus = 'paused';
+    } else {
+      newStatus = 'active';
+    }
+
+    const { data, error } = await supabase
+      .from('campaigns')
+      .update({ status: newStatus })
+      .eq('id', campaignId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    setCampaigns(prev => prev.map(c => c.id === campaignId ? data : c));
+    return data;
+  };
+
   const createLead = async (leadData) => {
     const newLead = {
       campaign_id: leadData.campaignId,
@@ -330,6 +382,8 @@ export const PlatformProvider = ({ children }) => {
     createCampaign,
     updateCampaign,
     deleteCampaign,
+    duplicateCampaign,
+    toggleCampaignStatus,
     createLead,
     createRedemption,
     redeemCode,

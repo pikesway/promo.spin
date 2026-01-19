@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiGrid, FiEdit, FiTrash2, FiExternalLink, FiSettings } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
 import CampaignWizard from '../components/CampaignWizard';
 import CampaignEditor from '../components/CampaignEditor';
+import CampaignList from '../components/admin/CampaignList';
 import QRCode from 'qrcode.react';
 import StatusBadge from '../components/StatusBadge';
 import ClientBrandingForm from '../components/ClientBrandingForm';
@@ -11,7 +12,7 @@ import ClientBrandingForm from '../components/ClientBrandingForm';
 export default function ClientDashboard() {
   const { clientId } = useParams();
   const navigate = useNavigate();
-  const { clients, campaigns, leads, getCampaignsByClient, getLeadsByClient, deleteCampaign, updateClient } = usePlatform();
+  const { clients, campaigns, leads, getCampaignsByClient, getLeadsByClient, deleteCampaign, duplicateCampaign, toggleCampaignStatus, updateClient } = usePlatform();
   const [activeTab, setActiveTab] = useState('campaigns');
   const [showWizard, setShowWizard] = useState(false);
   const [showQRModal, setShowQRModal] = useState(null);
@@ -82,6 +83,25 @@ export default function ClientDashboard() {
     } catch (error) {
       console.error('Error deleting campaign:', error);
       alert('Failed to delete campaign');
+    }
+  };
+
+  const handleDuplicateCampaign = async (campaignId) => {
+    try {
+      const newCampaign = await duplicateCampaign(campaignId);
+      setEditingCampaign(newCampaign);
+    } catch (error) {
+      console.error('Error duplicating campaign:', error);
+      alert('Failed to duplicate campaign');
+    }
+  };
+
+  const handleToggleStatus = async (campaignId, currentStatus) => {
+    try {
+      await toggleCampaignStatus(campaignId, currentStatus);
+    } catch (error) {
+      console.error('Error toggling campaign status:', error);
+      alert('Failed to update campaign status');
     }
   };
 
@@ -262,77 +282,18 @@ export default function ClientDashboard() {
               ))}
             </div>
 
-            <div className="glass-card" style={{ padding: 'var(--space-4)' }}>
+            <div>
               <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-4)' }}>
                 All Campaigns
               </h3>
-              {clientCampaigns.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
-                  <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>No campaigns yet</p>
-                  <button className="btn btn-primary" onClick={() => setShowWizard(true)}>
-                    Create Your First Campaign
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: 'grid', gap: 'var(--space-3)' }}>
-                  {clientCampaigns.map(campaign => {
-                    const campaignLeads = leads.filter(l => l.campaign_id === campaign.id);
-                    return (
-                      <div key={campaign.id} className="glass-card" style={{ padding: 'var(--space-4)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 'var(--space-2)' }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-1)' }}>
-                              <h4 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-semibold)' }}>
-                                {campaign.name}
-                              </h4>
-                              <span className={`badge badge-${campaign.status}`}>{campaign.status}</span>
-                              <span className="badge" style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}>
-                                {campaign.type}
-                              </span>
-                            </div>
-                            <div className="slug-preview" style={{ marginBottom: 'var(--space-2)' }}>
-                              /play/{campaign.slug}
-                            </div>
-                            <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
-                              {campaignLeads.length} leads collected
-                            </p>
-                          </div>
-                          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                            <button
-                              className="btn btn-sm btn-secondary"
-                              onClick={() => setShowQRModal(campaign)}
-                              title="Show QR Code & Share"
-                            >
-                              <FiGrid />
-                            </button>
-                            <button
-                              className="btn btn-sm btn-primary"
-                              onClick={() => setEditingCampaign(campaign)}
-                              title="Edit Campaign"
-                            >
-                              <FiEdit />
-                            </button>
-                            <button
-                              className="btn btn-sm btn-primary"
-                              onClick={() => window.open(`#/play/${campaign.slug}`, '_blank')}
-                              title="Preview Campaign"
-                            >
-                              <FiExternalLink />
-                            </button>
-                            <button
-                              className="btn btn-sm btn-danger"
-                              onClick={() => handleDeleteCampaign(campaign.id)}
-                              title="Delete Campaign"
-                            >
-                              <FiTrash2 />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              <CampaignList
+                campaigns={clientCampaigns}
+                onEditCampaign={setEditingCampaign}
+                onDeleteCampaign={handleDeleteCampaign}
+                onDuplicateCampaign={handleDuplicateCampaign}
+                onToggleStatus={handleToggleStatus}
+                onShowQR={setShowQRModal}
+              />
             </div>
           </>
         )}
