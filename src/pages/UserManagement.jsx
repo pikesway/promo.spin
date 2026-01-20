@@ -195,12 +195,20 @@ export default function UserManagement() {
 
   const getRoleBadge = (role) => {
     const colors = {
-      super_admin: 'bg-purple-100 text-purple-800',
-      admin: 'bg-blue-100 text-blue-800',
-      client: 'bg-green-100 text-green-800'
+      super_admin: { bg: 'rgba(168, 85, 247, 0.1)', text: '#C084FC', border: 'rgba(168, 85, 247, 0.2)' },
+      admin: { bg: 'rgba(59, 130, 246, 0.1)', text: '#60A5FA', border: 'rgba(59, 130, 246, 0.2)' },
+      client: { bg: 'rgba(16, 185, 129, 0.1)', text: '#34D399', border: 'rgba(16, 185, 129, 0.2)' }
     };
+    const color = colors[role];
     return (
-      <span className={`px-2 py-1 rounded text-xs font-medium ${colors[role]}`}>
+      <span
+        className="px-2 py-1 rounded text-xs font-medium"
+        style={{
+          background: color.bg,
+          color: color.text,
+          border: `1px solid ${color.border}`
+        }}
+      >
         {role.replace('_', ' ').toUpperCase()}
       </span>
     );
@@ -208,39 +216,47 @@ export default function UserManagement() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+        <div className="spinner"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+    <div className="min-h-screen p-6" style={{ background: 'var(--bg-primary)' }}>
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <FiUsers className="text-blue-600" />
+            <h1 className="text-3xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <FiUsers style={{ color: 'var(--brand-primary)' }} />
               User Management
             </h1>
-            <p className="text-gray-600 mt-1">Manage system users and their access</p>
+            <p className="mt-1" style={{ color: 'var(--text-secondary)' }}>Manage system users and their access</p>
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+            className="btn btn-primary"
           >
             <FiPlus /> Add User
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          <div className="mb-4 p-3 rounded-lg" style={{
+            background: 'var(--error-bg)',
+            border: '1px solid var(--error)',
+            color: 'var(--error)'
+          }}>
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700">
+          <div className="mb-4 p-3 rounded-lg" style={{
+            background: 'var(--success-bg)',
+            border: '1px solid var(--success)',
+            color: 'var(--success)'
+          }}>
             {success}
           </div>
         )}
@@ -249,26 +265,35 @@ export default function UserManagement() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Role</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Client</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
+                <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-secondary)' }}>Name</th>
+                  <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-secondary)' }}>Email</th>
+                  <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-secondary)' }}>Role</th>
+                  <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-secondary)' }}>Client</th>
+                  <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-secondary)' }}>Status</th>
+                  <th className="text-right py-3 px-4 font-semibold" style={{ color: 'var(--text-secondary)' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 text-gray-900">{user.full_name || '-'}</td>
-                    <td className="py-3 px-4 text-gray-900">{user.email}</td>
+                  <tr
+                    key={user.id}
+                    style={{ borderBottom: '1px solid var(--border-color)' }}
+                    className="hover:bg-white/5 transition-colors"
+                  >
+                    <td className="py-3 px-4" style={{ color: 'var(--text-primary)' }}>{user.full_name || '-'}</td>
+                    <td className="py-3 px-4" style={{ color: 'var(--text-primary)' }}>{user.email}</td>
                     <td className="py-3 px-4">{getRoleBadge(user.role)}</td>
-                    <td className="py-3 px-4 text-gray-900">{user.clients?.name || '-'}</td>
+                    <td className="py-3 px-4" style={{ color: 'var(--text-primary)' }}>{user.clients?.name || '-'}</td>
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span
+                        className="px-2 py-1 rounded text-xs font-medium"
+                        style={{
+                          background: user.is_active ? 'var(--success-bg)' : 'var(--error-bg)',
+                          color: user.is_active ? 'var(--success)' : 'var(--error)',
+                          border: `1px solid ${user.is_active ? 'var(--success)' : 'var(--error)'}`
+                        }}
+                      >
                         {user.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
@@ -278,14 +303,20 @@ export default function UserManagement() {
                           <>
                             <button
                               onClick={() => handleToggleActive(user)}
-                              className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                              className="p-2 transition-colors"
+                              style={{ color: 'var(--text-tertiary)' }}
+                              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--brand-primary)'}
+                              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
                               title={user.is_active ? 'Deactivate' : 'Activate'}
                             >
                               {user.is_active ? <FiLock /> : <FiUnlock />}
                             </button>
                             <button
                               onClick={() => handleEdit(user)}
-                              className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                              className="p-2 transition-colors"
+                              style={{ color: 'var(--text-tertiary)' }}
+                              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--brand-primary)'}
+                              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
                               title="Edit"
                             >
                               <FiEdit2 />
@@ -293,7 +324,10 @@ export default function UserManagement() {
                             {isSuperAdmin() && (
                               <button
                                 onClick={() => handleDelete(user.id)}
-                                className="p-2 text-gray-600 hover:text-red-600 transition-colors"
+                                className="p-2 transition-colors"
+                                style={{ color: 'var(--text-tertiary)' }}
+                                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--error)'}
+                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
                                 title="Delete"
                               >
                                 <FiTrash2 />
@@ -312,15 +346,15 @@ export default function UserManagement() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 flex items-center justify-center p-4 z-50" style={{ background: 'rgba(0, 0, 0, 0.8)' }}>
           <GlassCard className="w-full max-w-md">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
               {editingUser ? 'Edit User' : 'Add New User'}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
                   Email
                 </label>
                 <input
@@ -329,13 +363,13 @@ export default function UserManagement() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   disabled={editingUser}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+                  className="input"
                 />
               </div>
 
               {!editingUser && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
                     Password
                   </label>
                   <input
@@ -344,13 +378,13 @@ export default function UserManagement() {
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     required
                     minLength={6}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="input"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
                   Full Name
                 </label>
                 <input
@@ -358,18 +392,18 @@ export default function UserManagement() {
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="input"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
                   Role
                 </label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+                  className="input"
                   disabled={!isSuperAdmin() && (editingUser?.role === 'admin' || editingUser?.role === 'super_admin')}
                 >
                   <option value="client">Client</option>
@@ -384,13 +418,13 @@ export default function UserManagement() {
 
               {formData.role === 'client' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
                     Client
                   </label>
                   <select
                     value={formData.client_id || ''}
                     onChange={(e) => setFormData({ ...formData, client_id: e.target.value || null })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="input"
                   >
                     <option value="">Select a client</option>
                     {clients.map((client) => (
@@ -408,15 +442,22 @@ export default function UserManagement() {
                   id="is_active"
                   checked={formData.is_active}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 rounded"
+                  style={{
+                    accentColor: 'var(--brand-primary)'
+                  }}
                 />
-                <label htmlFor="is_active" className="ml-2 text-sm text-gray-700">
+                <label htmlFor="is_active" className="ml-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
                   Active
                 </label>
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                <div className="p-3 rounded-lg text-sm" style={{
+                  background: 'var(--error-bg)',
+                  border: '1px solid var(--error)',
+                  color: 'var(--error)'
+                }}>
                   {error}
                 </div>
               )}
@@ -426,14 +467,14 @@ export default function UserManagement() {
                   type="button"
                   onClick={handleCloseModal}
                   disabled={submitting}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="btn btn-secondary flex-1"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="btn btn-primary flex-1"
                 >
                   {submitting ? 'Saving...' : editingUser ? 'Update' : 'Create'}
                 </button>
