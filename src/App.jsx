@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import ProfileSettings from './pages/ProfileSettings';
 import UserManagement from './pages/UserManagement';
 import AgencyDashboard from './pages/AgencyDashboard';
 import ClientDashboard from './pages/ClientDashboard';
@@ -26,6 +27,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfileSettings />
                 </ProtectedRoute>
               }
             />

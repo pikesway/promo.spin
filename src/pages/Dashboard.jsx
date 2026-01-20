@@ -34,6 +34,21 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <GlassCard
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate('/profile')}
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <FiSettings className="text-2xl text-gray-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Profile Settings</h3>
+                <p className="text-gray-600 text-sm">Update your profile and password</p>
+              </div>
+            </div>
+          </GlassCard>
+
           {isAdmin() && (
             <>
               <GlassCard
@@ -75,7 +90,7 @@ export default function Dashboard() {
             >
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-green-100 rounded-lg">
-                  <FiSettings className="text-2xl text-green-600" />
+                  <FiGrid className="text-2xl text-green-600" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">My Client Portal</h3>
