@@ -80,17 +80,25 @@ export const RedemptionProvider = ({ children }) => {
     localStorage.setItem('spinToWinRedemptions', JSON.stringify([...redemptions, newRedemption]));
 
     if (supabase) {
-      const { data: campaign } = await supabase
+      console.log('[Redemption] Starting DB operations for gameId:', gameId);
+
+      const { data: campaign, error: campaignError } = await supabase
         .from('campaigns')
         .select('client_id')
         .eq('id', gameId)
         .maybeSingle();
 
+      if (campaignError) {
+        console.error('[Redemption] Campaign lookup error:', campaignError);
+      }
+      console.log('[Redemption] Campaign lookup result:', campaign);
+
       const clientId = campaign?.client_id || null;
 
       let leadId = null;
       if (leadData.email && clientId) {
-        const { data: lead } = await supabase
+        console.log('[Redemption] Creating lead with email:', leadData.email);
+        const { data: lead, error: leadError } = await supabase
           .from('leads')
           .insert({
             campaign_id: gameId,
@@ -104,11 +112,17 @@ export const RedemptionProvider = ({ children }) => {
           .select('id')
           .maybeSingle();
 
-        if (lead) {
-          leadId = lead.id;
+        if (leadError) {
+          console.error('[Redemption] Lead insert error:', leadError);
+        } else {
+          console.log('[Redemption] Lead created:', lead);
+          leadId = lead?.id;
         }
+      } else {
+        console.log('[Redemption] Skipping lead creation - email:', leadData.email, 'clientId:', clientId);
       }
 
+      console.log('[Redemption] Inserting redemption with id:', newRedemption.id);
       const { data: insertedRedemption, error } = await supabase
         .from('redemptions')
         .insert({
@@ -128,22 +142,37 @@ export const RedemptionProvider = ({ children }) => {
         .maybeSingle();
 
       if (error) {
-        console.error('Supabase redemption error', error);
-      } else if (insertedRedemption && leadData.email) {
+        console.error('[Redemption] Redemption insert error:', error);
+      } else {
+        console.log('[Redemption] Redemption created:', insertedRedemption);
+      }
+
+      if (insertedRedemption && leadData.email) {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
         if (supabaseUrl && supabaseKey) {
-          fetch(`${supabaseUrl}/functions/v1/send-redemption-email`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${supabaseKey}`
-            },
-            body: JSON.stringify({ redemptionId: insertedRedemption.id })
-          }).catch(err => console.error('Failed to trigger email:', err));
+          console.log('[Redemption] Triggering email for redemptionId:', insertedRedemption.id);
+          try {
+            const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-redemption-email`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${supabaseKey}`
+              },
+              body: JSON.stringify({ redemptionId: insertedRedemption.id })
+            });
+            const emailResult = await emailResponse.json();
+            console.log('[Redemption] Email trigger response:', emailResponse.status, emailResult);
+          } catch (err) {
+            console.error('[Redemption] Failed to trigger email:', err);
+          }
         }
+      } else {
+        console.log('[Redemption] Skipping email - insertedRedemption:', !!insertedRedemption, 'email:', leadData.email);
       }
+    } else {
+      console.log('[Redemption] Supabase not available, skipping DB operations');
     }
 
     return newRedemption;
