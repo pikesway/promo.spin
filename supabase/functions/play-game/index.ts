@@ -6,10 +6,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+interface LeadData {
+  email?: string;
+  name?: string;
+  phone?: string;
+  [key: string]: string | undefined;
+}
+
 interface PlayRequest {
   campaignId: string;
   sessionId: string;
   timestamp: number;
+  leadData?: LeadData;
 }
 
 interface Prize {
@@ -25,6 +33,16 @@ interface Prize {
   winMessage?: string;
 }
 
+function generateShortCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  const randomValues = crypto.getRandomValues(new Uint8Array(8));
+  for (let i = 0; i < 8; i++) {
+    code += chars[randomValues[i] % chars.length];
+  }
+  return code;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -38,7 +56,7 @@ Deno.serve(async (req: Request) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { campaignId, sessionId, timestamp }: PlayRequest = await req.json();
+    const { campaignId, sessionId, timestamp, leadData }: PlayRequest = await req.json();
 
     if (!campaignId || !sessionId) {
       return new Response(
@@ -52,7 +70,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: campaign, error: campaignError } = await supabase
       .from("campaigns")
-      .select("id, config, type, status")
+      .select("id, config, type, status, client_id")
       .eq("id", campaignId)
       .single();
 
@@ -190,11 +208,78 @@ Deno.serve(async (req: Request) => {
       .update({ analytics })
       .eq("id", campaignId);
 
+    let redemptionData = null;
+
+    if (selectedPrize.isWin && leadData?.email) {
+      const { data: lead, error: leadError } = await supabase
+        .from("leads")
+        .insert({
+          campaign_id: campaignId,
+          client_id: campaign.client_id,
+          data: leadData,
+          metadata: {
+            session_id: sessionId,
+            prize_won: prizeName,
+            captured_at: new Date().toISOString(),
+          },
+        })
+        .select("id")
+        .single();
+
+      if (!leadError && lead) {
+        analytics.leads = (analytics.leads || 0) + 1;
+        await supabase
+          .from("campaigns")
+          .update({ analytics })
+          .eq("id", campaignId);
+
+        const shortCode = generateShortCode();
+        const redemptionToken = crypto.randomUUID();
+        const expirationDays = campaign.config?.redemption?.expirationDays || 30;
+        const tokenExpiresAt = new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000).toISOString();
+
+        const { data: redemption, error: redemptionError } = await supabase
+          .from("redemptions")
+          .insert({
+            campaign_id: campaignId,
+            client_id: campaign.client_id,
+            lead_id: lead.id,
+            prize_name: prizeName,
+            short_code: shortCode,
+            redemption_token: redemptionToken,
+            token_expires_at: tokenExpiresAt,
+            email: leadData.email,
+            status: "valid",
+            expires_at: tokenExpiresAt,
+          })
+          .select("id, short_code")
+          .single();
+
+        if (!redemptionError && redemption) {
+          redemptionData = {
+            shortCode: redemption.short_code,
+            expiresAt: tokenExpiresAt,
+          };
+
+          const supabaseFunctionsUrl = `${supabaseUrl}/functions/v1/send-redemption-email`;
+          fetch(supabaseFunctionsUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${supabaseKey}`,
+            },
+            body: JSON.stringify({ redemptionId: redemption.id }),
+          }).catch((err) => console.error("Failed to trigger email:", err));
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         isWin: selectedPrize.isWin,
-        prize: selectedPrize
+        prize: selectedPrize,
+        redemption: redemptionData,
       }),
       {
         status: 200,

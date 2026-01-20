@@ -5,13 +5,31 @@ import GlassCard from '../common/GlassCard';
 import { FiUsers, FiSettings, FiLogOut, FiGrid } from 'react-icons/fi';
 
 export default function Dashboard() {
-  const { profile, signOut, isAdmin, isClient } = useAuth();
+  const { profile, signOut, isAdmin, isClient, loading } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loading || !profile) return;
+
+    if (isAdmin()) {
+      navigate('/agency', { replace: true });
+    } else if (isClient() && profile.client_id) {
+      navigate(`/client/${profile.client_id}`, { replace: true });
+    }
+  }, [profile, loading, isAdmin, isClient, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">

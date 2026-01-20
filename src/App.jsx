@@ -11,6 +11,7 @@ import UserManagement from './pages/UserManagement';
 import AgencyDashboard from './pages/AgencyDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import CampaignPlayer from './pages/CampaignPlayer';
+import RedemptionPage from './pages/RedemptionPage';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/play/:slug" element={<CampaignPlayer />} />
+            <Route path="/redeem/:shortCode" element={<RedemptionPage />} />
 
             <Route
               path="/"

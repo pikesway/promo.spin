@@ -21,6 +21,7 @@ export default function UserManagement() {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -61,6 +62,7 @@ export default function UserManagement() {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setSubmitting(true);
 
     try {
       if (editingUser) {
@@ -110,6 +112,8 @@ export default function UserManagement() {
       handleCloseModal();
     } catch (error) {
       setError(error.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -411,19 +415,27 @@ export default function UserManagement() {
                 </label>
               </div>
 
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  disabled={submitting}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
-                  {editingUser ? 'Update' : 'Create'}
+                  {submitting ? 'Saving...' : editingUser ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>
