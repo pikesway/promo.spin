@@ -122,29 +122,31 @@ export const RedemptionProvider = ({ children }) => {
         console.log('[Redemption] Skipping lead creation - email:', leadData.email, 'clientId:', clientId);
       }
 
-      console.log('[Redemption] Inserting redemption with id:', newRedemption.id);
+      const redemptionData = {
+        id: newRedemption.id,
+        campaign_id: gameId,
+        client_id: clientId,
+        lead_id: leadId,
+        prize_name: newRedemption.prizeName,
+        short_code: shortCode,
+        redemption_token: redemptionToken,
+        token_expires_at: expiresAt,
+        email: leadData.email || null,
+        status: 'valid',
+        expires_at: expiresAt
+      };
+      console.log('[Redemption] Inserting redemption:', JSON.stringify(redemptionData, null, 2));
+
       const { data: insertedRedemption, error } = await supabase
         .from('redemptions')
-        .insert({
-          id: newRedemption.id,
-          campaign_id: gameId,
-          client_id: clientId,
-          lead_id: leadId,
-          prize_name: newRedemption.prizeName,
-          short_code: shortCode,
-          redemption_token: redemptionToken,
-          token_expires_at: expiresAt,
-          email: leadData.email || null,
-          status: 'valid',
-          expires_at: expiresAt
-        })
+        .insert(redemptionData)
         .select('id')
         .maybeSingle();
 
+      console.log('[Redemption] Insert result - data:', insertedRedemption, 'error:', error);
+
       if (error) {
-        console.error('[Redemption] Redemption insert error:', error);
-      } else {
-        console.log('[Redemption] Redemption created:', insertedRedemption);
+        console.error('[Redemption] Redemption insert error:', error.message, error.details, error.hint);
       }
 
       if (insertedRedemption && leadData.email) {

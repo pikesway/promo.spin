@@ -32,15 +32,22 @@ export default function CampaignPlayer({ previewData, isPreview = false }) {
         const transformedGame = campaignToGame(foundCampaign, foundClient);
         setGame(transformedGame);
 
-        const hasViewed = localStorage.getItem(`campaign_viewed_${foundCampaign.id}`);
-        if (!hasViewed) {
-          const newAnalytics = updateCampaignAnalytics(foundCampaign.analytics, 'unique_view');
-          await updateCampaign(foundCampaign.id, { analytics: newAnalytics });
-          localStorage.setItem(`campaign_viewed_${foundCampaign.id}`, 'true');
-        }
+        const sessionKey = `campaign_session_${foundCampaign.id}`;
+        const hasCountedThisSession = sessionStorage.getItem(sessionKey);
 
-        const viewAnalytics = updateCampaignAnalytics(foundCampaign.analytics, 'view');
-        await updateCampaign(foundCampaign.id, { analytics: viewAnalytics });
+        if (!hasCountedThisSession) {
+          sessionStorage.setItem(sessionKey, 'true');
+
+          const hasViewed = localStorage.getItem(`campaign_viewed_${foundCampaign.id}`);
+          if (!hasViewed) {
+            const newAnalytics = updateCampaignAnalytics(foundCampaign.analytics, 'unique_view');
+            await updateCampaign(foundCampaign.id, { analytics: newAnalytics });
+            localStorage.setItem(`campaign_viewed_${foundCampaign.id}`, 'true');
+          }
+
+          const viewAnalytics = updateCampaignAnalytics(foundCampaign.analytics, 'view');
+          await updateCampaign(foundCampaign.id, { analytics: viewAnalytics });
+        }
       }
       setIsLoading(false);
     };
