@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
+import { useAuth } from '../context/AuthContext';
 import CampaignWizard from '../components/CampaignWizard';
 import CampaignBuilder from '../components/admin/CampaignBuilder';
 import CampaignList from '../components/admin/CampaignList';
@@ -12,6 +13,7 @@ import ClientBrandingForm from '../components/ClientBrandingForm';
 export default function ClientDashboard() {
   const { clientId } = useParams();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const { clients, campaigns, leads, getCampaignsByClient, getLeadsByClient, deleteCampaign, duplicateCampaign, toggleCampaignStatus, updateClient } = usePlatform();
   const [activeTab, setActiveTab] = useState('campaigns');
   const [showWizard, setShowWizard] = useState(false);
@@ -115,6 +117,11 @@ export default function ClientDashboard() {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
   if (!client) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -198,13 +205,21 @@ export default function ClientDashboard() {
                   </div>
                 </div>
               </div>
-              <button
-                className="btn btn-ghost"
-                onClick={() => setShowBrandingModal(true)}
-                style={{ flexShrink: 0 }}
-              >
-                <FiSettings /> Edit Branding
-              </button>
+              <div style={{ display: 'flex', gap: 'var(--space-2)', flexShrink: 0 }}>
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => setShowBrandingModal(true)}
+                >
+                  <FiSettings /> Edit Branding
+                </button>
+                <button
+                  className="btn btn-ghost"
+                  onClick={handleSignOut}
+                  title="Sign Out"
+                >
+                  <FiLogOut />
+                </button>
+              </div>
             </div>
           </div>
         </div>
