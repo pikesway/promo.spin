@@ -152,18 +152,18 @@ export const RedemptionProvider = ({ children }) => {
   const redeemCoupon = (id) => {
     const now = new Date();
     setRedemptions(prev => prev.map(r => {
-      if (r.id === id && r.status === 'active') {
+      const isActiveStatus = r.status === 'active' || r.status === 'valid';
+      if (r.id === id && isActiveStatus) {
         const isExpired = r.expiresAt && new Date(r.expiresAt) < now;
         const newStatus = isExpired ? 'expired' : 'redeemed';
-        
-        // Update Supabase
+
         if (supabase) {
           supabase.from('redemptions').update({
             status: newStatus,
-            data: { ...r, status: newStatus, redeemedAt: now.toISOString() }
+            redeemed_at: now.toISOString()
           }).eq('id', id).then();
         }
-        
+
         return { ...r, status: newStatus, redeemedAt: now.toISOString() };
       }
       return r;
