@@ -48,15 +48,40 @@ const GameScreen = ({ game, onSpinComplete, hasSpun, isPreview, nextSpinTime }) 
     }
   }, [nextSpinTime]);
 
-  const handleSpin = () => {
+  const handleSpin = async () => {
     if (hasSpun && !isPreview) {
       alert('You have already played this game!');
       return;
     }
     if (isSpinning) return;
-    
+
     setIsSpinning(true);
-    wheelRef.current?.spin();
+
+    if (isPreview) {
+      wheelRef.current?.spin();
+      return;
+    }
+
+    try {
+      const sessionId = getSessionId();
+      const serverResult = await playGame(game.id, sessionId);
+
+      if (serverResult.success) {
+        const prize = serverResult.prize;
+        wheelRef.current?.spin({
+          name: prize.text || prize.name,
+          text: prize.text || prize.name,
+          isWin: serverResult.isWin,
+          ...prize
+        });
+      } else {
+        throw new Error('Server returned unsuccessful result');
+      }
+    } catch (error) {
+      console.error('Error playing spin game:', error);
+      alert(`Unable to play: ${error.message}`);
+      setIsSpinning(false);
+    }
   };
 
   const getSessionId = () => {

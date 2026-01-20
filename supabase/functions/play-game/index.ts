@@ -14,9 +14,12 @@ interface PlayRequest {
 
 interface Prize {
   id?: string;
-  name: string;
+  name?: string;
+  text?: string;
   probability: number;
   isWin: boolean;
+  color?: string;
+  textColor?: string;
   backgroundImage?: string;
   winHeadline?: string;
   winMessage?: string;
@@ -132,12 +135,14 @@ Deno.serve(async (req: Request) => {
                      "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
 
+    const prizeName = selectedPrize.name || selectedPrize.text || "Unknown Prize";
+
     const { error: playLogError } = await supabase
       .from("game_plays")
       .insert({
         campaign_id: campaignId,
         session_id: sessionId,
-        outcome_prize_name: selectedPrize.name,
+        outcome_prize_name: prizeName,
         is_win: selectedPrize.isWin,
         played_at: new Date().toISOString(),
         ip_address: ipAddress,
