@@ -11,6 +11,16 @@ export const useRedemption = () => {
   return context;
 };
 
+function generateShortCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  const randomValues = crypto.getRandomValues(new Uint8Array(8));
+  for (let i = 0; i < 8; i++) {
+    code += chars[randomValues[i] % chars.length];
+  }
+  return code;
+}
+
 export const RedemptionProvider = ({ children }) => {
   const [redemptions, setRedemptions] = useState([]);
 
@@ -22,11 +32,11 @@ export const RedemptionProvider = ({ children }) => {
           const formatted = data.map(row => ({
             ...row.data,
             id: row.id,
-            gameId: row.game_id,
+            gameId: row.game_id || row.campaign_id,
             prizeName: row.prize_name,
             shortCode: row.short_code,
             status: row.status,
-            generatedAt: row.created_at,
+            generatedAt: row.generated_at,
             expiresAt: row.expires_at
           }));
           setRedemptions(formatted);
@@ -34,8 +44,8 @@ export const RedemptionProvider = ({ children }) => {
       } else {
         const saved = localStorage.getItem('spinToWinRedemptions');
         if (saved) {
-          try { 
-            setRedemptions(JSON.parse(saved)); 
+          try {
+            setRedemptions(JSON.parse(saved));
           } catch (e) {
             console.error('Failed to parse local redemptions', e);
           }
@@ -45,41 +55,95 @@ export const RedemptionProvider = ({ children }) => {
     loadRedemptions();
   }, []);
 
-  const generateRedemption = (gameId, prize, settings = {}) => {
+  const generateRedemption = async (gameId, prize, settings = {}, leadData = {}) => {
     const now = new Date();
-    let expiresAt = null;
-    if (settings.expirationMinutes) {
-      expiresAt = new Date(now.getTime() + settings.expirationMinutes * 60000).toISOString();
-    }
+    const expirationDays = settings.expiryDays || 30;
+    const expiresAt = new Date(now.getTime() + expirationDays * 24 * 60 * 60 * 1000).toISOString();
+    const redemptionToken = crypto.randomUUID();
+    const shortCode = generateShortCode();
 
     const newRedemption = {
       id: crypto.randomUUID(),
-      shortCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+      shortCode,
       gameId,
-      prizeName: prize.text || 'Prize',
+      prizeName: prize.text || prize.name || 'Prize',
       prizeId: prize.id,
       generatedAt: now.toISOString(),
       expiresAt,
-      status: 'active',
+      status: 'valid',
       redeemedAt: null,
-      deviceInfo: navigator.userAgent
+      deviceInfo: navigator.userAgent,
+      email: leadData.email || null
     };
 
     setRedemptions(prev => [...prev, newRedemption]);
     localStorage.setItem('spinToWinRedemptions', JSON.stringify([...redemptions, newRedemption]));
 
     if (supabase) {
-      supabase.from('redemptions').insert({
-        id: newRedemption.id,
-        game_id: gameId,
-        prize_name: newRedemption.prizeName,
-        short_code: newRedemption.shortCode,
-        status: 'active',
-        expires_at: expiresAt,
-        data: newRedemption
-      }).then(({ error }) => {
-        if (error) console.error('Supabase redemption error', error);
-      });
+      const { data: campaign } = await supabase
+        .from('campaigns')
+        .select('client_id')
+        .eq('id', gameId)
+        .maybeSingle();
+
+      const clientId = campaign?.client_id || null;
+
+      let leadId = null;
+      if (leadData.email && clientId) {
+        const { data: lead } = await supabase
+          .from('leads')
+          .insert({
+            campaign_id: gameId,
+            client_id: clientId,
+            data: leadData,
+            metadata: {
+              prize_won: newRedemption.prizeName,
+              captured_at: now.toISOString()
+            }
+          })
+          .select('id')
+          .maybeSingle();
+
+        if (lead) {
+          leadId = lead.id;
+        }
+      }
+
+      const { data: insertedRedemption, error } = await supabase
+        .from('redemptions')
+        .insert({
+          id: newRedemption.id,
+          campaign_id: gameId,
+          client_id: clientId,
+          lead_id: leadId,
+          prize_name: newRedemption.prizeName,
+          short_code: shortCode,
+          redemption_token: redemptionToken,
+          token_expires_at: expiresAt,
+          email: leadData.email || null,
+          status: 'valid',
+          expires_at: expiresAt
+        })
+        .select('id')
+        .maybeSingle();
+
+      if (error) {
+        console.error('Supabase redemption error', error);
+      } else if (insertedRedemption && leadData.email) {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        if (supabaseUrl && supabaseKey) {
+          fetch(`${supabaseUrl}/functions/v1/send-redemption-email`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseKey}`
+            },
+            body: JSON.stringify({ redemptionId: insertedRedemption.id })
+          }).catch(err => console.error('Failed to trigger email:', err));
+        }
+      }
     }
 
     return newRedemption;
