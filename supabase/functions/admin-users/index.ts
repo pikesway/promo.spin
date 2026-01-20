@@ -18,6 +18,8 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
+    console.log('[admin-users] Starting request processing');
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
@@ -37,11 +39,14 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
+      console.log('[admin-users] Auth error:', authError?.message);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('[admin-users] User authenticated:', user.id);
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -50,6 +55,7 @@ Deno.serve(async (req: Request) => {
       .single();
 
     if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
+      console.log('[admin-users] Forbidden - role:', profile?.role);
       return new Response(
         JSON.stringify({ error: 'Forbidden: Admin access required' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -60,7 +66,10 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
 
     if (method === 'POST' && url.pathname.endsWith('/create')) {
-      const { email, password, full_name, role, client_id } = await req.json();
+      const body = await req.json();
+      const { email, password, full_name, role, client_id } = body;
+
+      console.log('[admin-users] Creating user with:', { email, full_name, role, client_id: client_id || 'none' });
 
       const { data: authData, error: createError } = await supabase.auth.admin.createUser({
         email,
@@ -73,24 +82,43 @@ Deno.serve(async (req: Request) => {
       });
 
       if (createError) {
+        console.error('[admin-users] Auth createUser error:', {
+          message: createError.message,
+          status: createError.status,
+          name: createError.name,
+          code: (createError as any).code,
+          details: JSON.stringify(createError)
+        });
         return new Response(
-          JSON.stringify({ error: createError.message }),
+          JSON.stringify({
+            error: `Auth error: ${createError.message}`,
+            details: {
+              code: (createError as any).code,
+              status: createError.status
+            }
+          }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Wait for the trigger to create the profile
+      console.log('[admin-users] Auth user created successfully:', authData.user.id);
+
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Check if profile exists, if not create it directly
       const { data: existingProfile, error: profileCheckError } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, email, role')
         .eq('id', authData.user.id)
         .maybeSingle();
 
+      console.log('[admin-users] Profile check:', {
+        exists: !!existingProfile,
+        profileCheckError: profileCheckError?.message,
+        profile: existingProfile
+      });
+
       if (!existingProfile) {
-        // Profile wasn't created by trigger, create it directly
+        console.log('[admin-users] Creating profile directly');
         const { error: insertError } = await supabase
           .from('profiles')
           .insert({
@@ -103,14 +131,26 @@ Deno.serve(async (req: Request) => {
           });
 
         if (insertError) {
-          console.error('Error creating profile:', insertError);
+          console.error('[admin-users] Profile insert error:', {
+            message: insertError.message,
+            code: insertError.code,
+            details: insertError.details,
+            hint: insertError.hint
+          });
           return new Response(
-            JSON.stringify({ error: `User created but profile failed: ${insertError.message}` }),
+            JSON.stringify({
+              error: `Profile creation failed: ${insertError.message}`,
+              details: {
+                code: insertError.code,
+                hint: insertError.hint
+              }
+            }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
+        console.log('[admin-users] Profile created successfully');
       } else {
-        // Profile exists, update it with role and client_id
+        console.log('[admin-users] Updating existing profile');
         const updateData: { role?: string; client_id?: string | null } = {};
         if (role) updateData.role = role;
         if (client_id !== undefined) updateData.client_id = client_id || null;
@@ -122,7 +162,12 @@ Deno.serve(async (req: Request) => {
             .eq('id', authData.user.id);
 
           if (updateError) {
-            console.error('Error updating profile:', updateError);
+            console.error('[admin-users] Profile update error:', {
+              message: updateError.message,
+              code: updateError.code
+            });
+          } else {
+            console.log('[admin-users] Profile updated successfully');
           }
         }
       }
@@ -164,8 +209,12 @@ Deno.serve(async (req: Request) => {
     );
 
   } catch (error) {
+    console.error('[admin-users] Unhandled error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({
+        error: `Server error: ${error.message}`,
+        stack: error.stack
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
