@@ -79,19 +79,51 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Wait a bit for the trigger to create the profile
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Wait for the trigger to create the profile
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Update client_id if provided
-      if (client_id) {
-        const { error: updateError } = await supabase
+      // Check if profile exists, if not create it directly
+      const { data: existingProfile, error: profileCheckError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', authData.user.id)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        // Profile wasn't created by trigger, create it directly
+        const { error: insertError } = await supabase
           .from('profiles')
-          .update({ client_id })
-          .eq('id', authData.user.id);
+          .insert({
+            id: authData.user.id,
+            email,
+            full_name: full_name || '',
+            role: role || 'client',
+            client_id: client_id || null,
+            is_active: true
+          });
 
-        if (updateError) {
-          console.error('Error updating client_id:', updateError);
-          // Don't fail the entire request, user was created successfully
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+          return new Response(
+            JSON.stringify({ error: `User created but profile failed: ${insertError.message}` }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      } else {
+        // Profile exists, update it with role and client_id
+        const updateData: { role?: string; client_id?: string | null } = {};
+        if (role) updateData.role = role;
+        if (client_id !== undefined) updateData.client_id = client_id || null;
+
+        if (Object.keys(updateData).length > 0) {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update(updateData)
+            .eq('id', authData.user.id);
+
+          if (updateError) {
+            console.error('Error updating profile:', updateError);
+          }
         }
       }
 
