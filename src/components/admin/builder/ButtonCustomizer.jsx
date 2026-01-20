@@ -18,48 +18,48 @@ const ButtonCustomizer = ({ gameData, onChange }) => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg border border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Global Button Styles</h3>
-        <p className="text-sm text-gray-500 mb-6">
+      <div className="bg-charcoal-800 p-6 rounded-lg border border-white/10">
+        <h3 className="text-lg font-medium text-white mb-4">Global Button Styles</h3>
+        <p className="text-sm text-gray-400 mb-6">
           These styles will be used for all buttons in the game unless overridden on specific screens.
         </p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Background Color</label>
              <div className="flex items-center space-x-2">
-              <input 
-                type="color" 
+              <input
+                type="color"
                 value={buttonData.backgroundColor}
                 onChange={(e) => handleChange('backgroundColor', e.target.value)}
-                className="h-10 w-20 border border-gray-300 rounded cursor-pointer p-1"
+                className="h-10 w-20 border border-white/10 rounded cursor-pointer p-1"
               />
-              <span className="text-sm text-gray-600 uppercase">{buttonData.backgroundColor}</span>
+              <span className="text-sm text-gray-400 uppercase">{buttonData.backgroundColor}</span>
             </div>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Text Color</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Text Color</label>
              <div className="flex items-center space-x-2">
-              <input 
-                type="color" 
+              <input
+                type="color"
                 value={buttonData.textColor}
                 onChange={(e) => handleChange('textColor', e.target.value)}
-                className="h-10 w-20 border border-gray-300 rounded cursor-pointer p-1"
+                className="h-10 w-20 border border-white/10 rounded cursor-pointer p-1"
               />
-              <span className="text-sm text-gray-600 uppercase">{buttonData.textColor}</span>
+              <span className="text-sm text-gray-400 uppercase">{buttonData.textColor}</span>
             </div>
           </div>
         </div>
 
         <div className="mt-8">
-           <h4 className="text-sm font-medium text-gray-700 mb-4">Preview</h4>
-           <div className="flex justify-center p-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-             <button 
+           <h4 className="text-sm font-medium text-gray-300 mb-4">Preview</h4>
+           <div className="flex justify-center p-8 bg-charcoal-900 rounded-lg border border-dashed border-white/10">
+             <button
                className="px-8 py-3 rounded-lg font-medium shadow-md transition-all transform hover:-translate-y-0.5"
-               style={{ 
-                 backgroundColor: buttonData.backgroundColor, 
-                 color: buttonData.textColor 
+               style={{
+                 backgroundColor: buttonData.backgroundColor,
+                 color: buttonData.textColor
                }}
              >
                Sample Button

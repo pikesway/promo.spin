@@ -21,132 +21,132 @@ const ThankYouScreenEditor = ({ screenData, onChange }) => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Thank You Headline
           </label>
-          <input 
-            type="text" 
-            value={screenData.headline || ''} 
+          <input
+            type="text"
+            value={screenData.headline || ''}
             onChange={(e) => handleChange('headline', e.target.value)}
             placeholder="Thank You!"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
         </div>
-        
+
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Action Button Text
           </label>
-          <input 
-            type="text" 
-            value={screenData.buttonText || ''} 
+          <input
+            type="text"
+            value={screenData.buttonText || ''}
             onChange={(e) => handleChange('buttonText', e.target.value)}
             placeholder="Visit Website"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Thank You Message
           </label>
-          <textarea 
-            value={screenData.message || ''} 
+          <textarea
+            value={screenData.message || ''}
             onChange={(e) => handleChange('message', e.target.value)}
             placeholder="Your information has been submitted successfully."
             rows={3}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             External Link (Optional)
           </label>
-          <input 
-            type="url" 
-            value={screenData.externalLink || ''} 
+          <input
+            type="url"
+            value={screenData.externalLink || ''}
             onChange={(e) => handleChange('externalLink', e.target.value)}
             placeholder="https://example.com"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
         </div>
 
         <div>
-           <label className="block text-sm font-medium text-gray-700 mb-2">
+           <label className="block text-sm font-medium text-gray-300 mb-2">
             Coupon Code (Optional)
           </label>
-          <input 
-            type="text" 
-            value={screenData.couponCode || ''} 
+          <input
+            type="text"
+            value={screenData.couponCode || ''}
             onChange={(e) => handleChange('couponCode', e.target.value)}
             placeholder="SAVE10"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
         </div>
       </div>
 
-      <ButtonStyleSelector 
-        data={screenData} 
-        onChange={handleButtonChange} 
+      <ButtonStyleSelector
+        data={screenData}
+        onChange={handleButtonChange}
       />
 
       <div className="space-y-4">
-        <h4 className="font-medium text-gray-900">Additional Options</h4>
+        <h4 className="font-medium text-white">Additional Options</h4>
         <label className="flex items-center space-x-3">
-          <input 
-            type="checkbox" 
-            checked={screenData.showQR || false} 
+          <input
+            type="checkbox"
+            checked={screenData.showQR || false}
             onChange={(e) => handleChange('showQR', e.target.checked)}
             className="rounded"
           />
-          <span className="text-sm text-gray-700">Show QR code for external link</span>
+          <span className="text-sm text-gray-300">Show QR code for external link</span>
         </label>
 
         <label className="flex items-center space-x-3">
-          <input 
-            type="checkbox" 
-            checked={screenData.showSocialShare || false} 
+          <input
+            type="checkbox"
+            checked={screenData.showSocialShare || false}
             onChange={(e) => handleChange('showSocialShare', e.target.checked)}
             className="rounded"
           />
-          <span className="text-sm text-gray-700">Show social media sharing buttons</span>
+          <span className="text-sm text-gray-300">Show social media sharing buttons</span>
         </label>
 
         <label className="flex items-center space-x-3">
-          <input 
-            type="checkbox" 
-            checked={screenData.autoRedirect || false} 
+          <input
+            type="checkbox"
+            checked={screenData.autoRedirect || false}
             onChange={(e) => handleChange('autoRedirect', e.target.checked)}
             className="rounded"
           />
-          <span className="text-sm text-gray-700">Auto-redirect to external link</span>
+          <span className="text-sm text-gray-300">Auto-redirect to external link</span>
         </label>
 
         {screenData.autoRedirect && (
           <div className="ml-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               Redirect Delay (seconds)
             </label>
-            <input 
-              type="number" 
-              value={screenData.redirectDelay || 5} 
+            <input
+              type="number"
+              value={screenData.redirectDelay || 5}
               onChange={(e) => handleChange('redirectDelay', parseInt(e.target.value))}
               min="1"
               max="30"
-              className="w-32 border border-gray-300 rounded-lg px-3 py-2"
+              className="w-32 bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
             />
           </div>
         )}
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="font-medium text-gray-900 mb-3">Preview</h4>
-        <div className="bg-white rounded-lg p-6 border border-gray-200 text-center">
-          <h1 className="text-3xl font-bold text-green-600 mb-4">
+      <div className="bg-charcoal-800 rounded-lg p-4">
+        <h4 className="font-medium text-white mb-3">Preview</h4>
+        <div className="bg-charcoal-800 rounded-lg p-6 border border-white/10 text-center">
+          <h1 className="text-3xl font-bold text-green-400 mb-4">
             {screenData.headline || 'Thank You!'}
           </h1>
-          <p className="text-gray-700 mb-6">
+          <p className="text-gray-300 mb-6">
             {screenData.message || 'Your information has been submitted successfully.'}
           </p>
 
