@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUsers, FiTrendingUp, FiTarget, FiDollarSign, FiPlus, FiExternalLink, FiEdit } from 'react-icons/fi';
+import { FiUsers, FiTrendingUp, FiTarget, FiDollarSign, FiPlus, FiExternalLink, FiEdit, FiSettings, FiLogOut } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext';
 import { usePlatform } from '../context/PlatformContext';
 import ClientBrandingForm from '../components/ClientBrandingForm';
 import StatusBadge from '../components/StatusBadge';
@@ -8,6 +9,7 @@ import { getStatusConfig } from '../utils/brandingHelpers';
 
 export default function AgencyDashboard() {
   const navigate = useNavigate();
+  const { signOut, profile } = useAuth();
   const { clients, campaigns, leads, redemptions, createClient, updateClient, deleteClient, isLoading } = usePlatform();
   const [showClientModal, setShowClientModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
@@ -83,16 +85,46 @@ export default function AgencyDashboard() {
     );
   }
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: 'var(--space-4)' }}>
       <div className="container">
-        <header style={{ marginBottom: 'var(--space-6)' }}>
-          <h1 style={{ fontSize: 'var(--text-4xl)', fontWeight: 'var(--font-bold)', color: 'var(--text-primary)', marginBottom: 'var(--space-2)' }}>
-            Agency Dashboard
-          </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-lg)' }}>
-            Manage all clients and monitor global campaign performance
-          </p>
+        <header style={{ marginBottom: 'var(--space-6)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
+          <div>
+            <h1 style={{ fontSize: 'var(--text-4xl)', fontWeight: 'var(--font-bold)', color: 'var(--text-primary)', marginBottom: 'var(--space-2)' }}>
+              Agency Dashboard
+            </h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-lg)' }}>
+              Manage all clients and monitor global campaign performance
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+            <button
+              className="btn btn-secondary"
+              onClick={() => navigate('/users')}
+              title="User Management"
+            >
+              <FiUsers /> Users
+            </button>
+            <button
+              className="btn btn-ghost"
+              onClick={() => navigate('/profile')}
+              title="Profile Settings"
+            >
+              <FiSettings />
+            </button>
+            <button
+              className="btn btn-ghost"
+              onClick={handleSignOut}
+              title="Sign Out"
+            >
+              <FiLogOut />
+            </button>
+          </div>
         </header>
 
         <div className="bento-grid" style={{ marginBottom: 'var(--space-6)' }}>
