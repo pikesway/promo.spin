@@ -8,7 +8,8 @@ const CampaignList = ({
   onDeleteCampaign,
   onDuplicateCampaign,
   onToggleStatus,
-  onShowQR
+  onShowQR,
+  getCampaignAnalytics
 }) => {
   const getStatusColor = (status) => {
     switch (status) {
@@ -42,7 +43,7 @@ const CampaignList = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {campaigns.map((campaign) => {
-        const analytics = campaign.analytics || {};
+        const analytics = getCampaignAnalytics ? getCampaignAnalytics(campaign.id) : (campaign.analytics || {});
         const views = analytics.views || 0;
         const leads = analytics.leads || 0;
         const winRate = analytics.win_rate || 0;

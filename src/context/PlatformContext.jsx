@@ -364,6 +364,25 @@ export const PlatformProvider = ({ children }) => {
     return campaigns.find(c => c.slug === slug);
   };
 
+  const getCampaignAnalytics = (campaignId) => {
+    const campaignLeads = leads.filter(l => l.campaign_id === campaignId);
+    const campaignRedemptions = redemptions.filter(r => r.campaign_id === campaignId);
+    const campaign = campaigns.find(c => c.id === campaignId);
+    const storedAnalytics = campaign?.analytics || {};
+
+    const wins = campaignRedemptions.length;
+    const totalPlays = storedAnalytics.spins || storedAnalytics.plays || wins || 0;
+    const winRate = totalPlays > 0 ? Math.round((wins / totalPlays) * 100) : 0;
+
+    return {
+      views: totalPlays,
+      leads: campaignLeads.length,
+      wins,
+      totalPlays,
+      win_rate: winRate
+    };
+  };
+
   const value = {
     agencies,
     clients,
@@ -393,6 +412,7 @@ export const PlatformProvider = ({ children }) => {
     getLeadsByCampaign,
     getRedemptionsByClient,
     getCampaignBySlug,
+    getCampaignAnalytics,
     refreshData: loadData
   };
 

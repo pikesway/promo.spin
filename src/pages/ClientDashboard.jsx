@@ -14,7 +14,7 @@ export default function ClientDashboard() {
   const { clientId } = useParams();
   const navigate = useNavigate();
   const { signOut, isClient } = useAuth();
-  const { clients, campaigns, leads, getCampaignsByClient, getLeadsByClient, deleteCampaign, duplicateCampaign, toggleCampaignStatus, updateClient } = usePlatform();
+  const { clients, campaigns, leads, getCampaignsByClient, getLeadsByClient, deleteCampaign, duplicateCampaign, toggleCampaignStatus, updateClient, getCampaignAnalytics } = usePlatform();
   const [activeTab, setActiveTab] = useState('campaigns');
   const [showWizard, setShowWizard] = useState(false);
   const [showQRModal, setShowQRModal] = useState(null);
@@ -310,6 +310,7 @@ export default function ClientDashboard() {
                 onDuplicateCampaign={handleDuplicateCampaign}
                 onToggleStatus={handleToggleStatus}
                 onShowQR={setShowQRModal}
+                getCampaignAnalytics={getCampaignAnalytics}
               />
             </div>
           </>
