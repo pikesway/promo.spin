@@ -13,7 +13,7 @@ import ClientBrandingForm from '../components/ClientBrandingForm';
 export default function ClientDashboard() {
   const { clientId } = useParams();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, isClient } = useAuth();
   const { clients, campaigns, leads, getCampaignsByClient, getLeadsByClient, deleteCampaign, duplicateCampaign, toggleCampaignStatus, updateClient } = usePlatform();
   const [activeTab, setActiveTab] = useState('campaigns');
   const [showWizard, setShowWizard] = useState(false);
@@ -149,9 +149,11 @@ export default function ClientDashboard() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: 'var(--space-4)' }}>
       <div className="container">
         <div style={{ marginBottom: 'var(--space-4)' }}>
-          <button className="btn btn-ghost" onClick={() => navigate('/agency')} style={{ marginBottom: 'var(--space-3)' }}>
-            <FiArrowLeft /> Back to Agency
-          </button>
+          {!isClient() && (
+            <button className="btn btn-ghost" onClick={() => navigate('/agency')} style={{ marginBottom: 'var(--space-3)' }}>
+              <FiArrowLeft /> Back to Agency
+            </button>
+          )}
 
           <div className="glass-card" style={{ padding: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
