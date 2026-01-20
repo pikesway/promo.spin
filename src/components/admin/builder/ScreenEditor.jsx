@@ -40,8 +40,8 @@ const ScreenEditor = ({ gameData, onChange }) => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="border-b border-gray-200 overflow-x-auto">
+      <div className="bg-charcoal-800 rounded-lg border border-white/10">
+        <div className="border-b border-white/10 overflow-x-auto">
           <nav className="flex space-x-1 px-6 min-w-max">
             {screens.map(screen => (
               <button
@@ -49,11 +49,11 @@ const ScreenEditor = ({ gameData, onChange }) => {
                 onClick={() => setActiveScreen(screen.id)}
                 className={`py-4 px-4 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap ${
                   activeScreen === screen.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-teal-500 text-teal-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300'
                 }`}
               >
-                <div className={`w-3 h-3 rounded-full ${screen.enabled ? 'bg-green-400' : 'bg-gray-300'}`}></div>
+                <div className={`w-3 h-3 rounded-full ${screen.enabled ? 'bg-green-400' : 'bg-gray-500'}`}></div>
                 <span>{screen.label}</span>
               </button>
             ))}
@@ -61,7 +61,7 @@ const ScreenEditor = ({ gameData, onChange }) => {
         </div>
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-medium text-white">
               {screens.find(s => s.id === activeScreen)?.label}
             </h3>
             <label className="flex items-center space-x-2">
@@ -71,7 +71,7 @@ const ScreenEditor = ({ gameData, onChange }) => {
                 onChange={() => toggleScreenEnabled(activeScreen)}
                 className="rounded"
               />
-              <span className="text-sm font-medium text-gray-700">Enable this screen</span>
+              <span className="text-sm font-medium text-gray-300">Enable this screen</span>
             </label>
           </div>
 

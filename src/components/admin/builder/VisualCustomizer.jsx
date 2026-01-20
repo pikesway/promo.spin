@@ -16,8 +16,8 @@ const VisualCustomizer = ({ gameData, onChange }) => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="border-b border-gray-200 overflow-x-auto">
+      <div className="bg-charcoal-800 rounded-lg border border-white/10">
+        <div className="border-b border-white/10 overflow-x-auto">
           <nav className="flex space-x-8 px-6 min-w-max">
             {sections.map(section => (
               <button
@@ -25,8 +25,8 @@ const VisualCustomizer = ({ gameData, onChange }) => {
                 onClick={() => setActiveSection(section.id)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeSection === section.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-teal-500 text-teal-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300'
                 }`}
               >
                 {section.label}

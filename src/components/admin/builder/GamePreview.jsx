@@ -10,22 +10,22 @@ const GamePreview = ({ gameData, playUrl, embedUrl, isCampaign = false, campaign
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-medium text-blue-900 mb-2">Preview Mode</h3>
-        <p className="text-sm text-blue-700">
+      <div className="bg-teal-500/10 border border-teal-500/30 rounded-lg p-4">
+        <h3 className="font-medium text-teal-300 mb-2">Preview Mode</h3>
+        <p className="text-sm text-teal-200">
           This is how your game will appear to players. Changes made in other tabs will be reflected here automatically.
         </p>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+      <div className="bg-charcoal-800 rounded-lg border border-white/10 overflow-hidden">
+        <div className="bg-charcoal-900 px-4 py-2 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="flex space-x-1">
               <div className="w-3 h-3 bg-red-400 rounded-full"></div>
               <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
               <div className="w-3 h-3 bg-green-400 rounded-full"></div>
             </div>
-            <span className="text-sm text-gray-600 ml-4">
+            <span className="text-sm text-gray-400 ml-4 truncate">
               {url}
             </span>
           </div>
@@ -44,22 +44,22 @@ const GamePreview = ({ gameData, playUrl, embedUrl, isCampaign = false, campaign
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h4 className="font-medium text-gray-900 mb-3">Game URL</h4>
+        <div className="bg-charcoal-800 rounded-lg border border-white/10 p-4">
+          <h4 className="font-medium text-white mb-3">Game URL</h4>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <input
                 type="text"
                 value={url}
                 readOnly
-                className="flex-1 text-sm bg-gray-50 border border-gray-200 rounded px-2 py-1"
+                className="flex-1 text-sm bg-charcoal-900 border border-white/10 rounded px-2 py-1 text-gray-300"
               />
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(url);
                   alert('URL copied!');
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                className="bg-teal-600 hover:bg-teal-500 text-white px-3 py-1 rounded text-sm"
               >
                 Copy
               </button>
@@ -68,27 +68,27 @@ const GamePreview = ({ gameData, playUrl, embedUrl, isCampaign = false, campaign
               href={linkPath}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-700 text-sm"
+              className="text-teal-400 hover:text-teal-300 text-sm"
             >
               Open in new tab
             </a>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h4 className="font-medium text-gray-900 mb-3">Embed Code</h4>
+        <div className="bg-charcoal-800 rounded-lg border border-white/10 p-4">
+          <h4 className="font-medium text-white mb-3">Embed Code</h4>
           <textarea
             value={embedCode}
             readOnly
             rows={4}
-            className="w-full text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1 font-mono"
+            className="w-full text-xs bg-charcoal-900 border border-white/10 rounded px-2 py-1 font-mono text-gray-400"
           />
           <button
             onClick={() => {
               navigator.clipboard.writeText(embedCode);
               alert('Embed code copied!');
             }}
-            className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+            className="mt-2 bg-teal-600 hover:bg-teal-500 text-white px-3 py-1 rounded text-sm"
           >
             Copy Embed Code
           </button>
