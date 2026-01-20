@@ -142,7 +142,7 @@ export default function ProfileSettings() {
                   type="email"
                   value={profile?.email || ''}
                   disabled
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
                 />
                 <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
               </div>
@@ -155,7 +155,7 @@ export default function ProfileSettings() {
                   type="text"
                   value={profileData.full_name}
                   onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -168,7 +168,7 @@ export default function ProfileSettings() {
                   type="text"
                   value={profile?.role?.replace('_', ' ').toUpperCase() || ''}
                   disabled
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
                 />
               </div>
 
@@ -197,7 +197,7 @@ export default function ProfileSettings() {
                   onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
                   required
                   minLength={6}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                   placeholder="Enter new password"
                 />
                 <p className="text-xs text-gray-500 mt-1">Must be at least 6 characters</p>
@@ -213,7 +213,7 @@ export default function ProfileSettings() {
                   onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
                   required
                   minLength={6}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                   placeholder="Confirm new password"
                 />
               </div>
