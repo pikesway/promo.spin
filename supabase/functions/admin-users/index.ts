@@ -60,7 +60,7 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
 
     if (method === 'POST' && url.pathname.endsWith('/create')) {
-      const { email, password, full_name, role } = await req.json();
+      const { email, password, full_name, role, client_id } = await req.json();
 
       const { data: authData, error: createError } = await supabase.auth.admin.createUser({
         email,
@@ -77,6 +77,22 @@ Deno.serve(async (req: Request) => {
           JSON.stringify({ error: createError.message }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
+      }
+
+      // Wait a bit for the trigger to create the profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Update client_id if provided
+      if (client_id) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ client_id })
+          .eq('id', authData.user.id);
+
+        if (updateError) {
+          console.error('Error updating client_id:', updateError);
+          // Don't fail the entire request, user was created successfully
+        }
       }
 
       return new Response(

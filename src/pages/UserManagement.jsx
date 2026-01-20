@@ -92,7 +92,8 @@ export default function UserManagement() {
             email: formData.email,
             password: formData.password,
             full_name: formData.full_name,
-            role: formData.role
+            role: formData.role,
+            client_id: formData.client_id
           })
         });
 
@@ -100,15 +101,6 @@ export default function UserManagement() {
 
         if (!response.ok) {
           throw new Error(result.error || 'Failed to create user');
-        }
-
-        if (formData.client_id) {
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ client_id: formData.client_id })
-            .eq('id', result.data.user.id);
-
-          if (updateError) throw updateError;
         }
 
         setSuccess('User created successfully');
