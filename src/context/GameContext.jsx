@@ -160,6 +160,39 @@ export const GameProvider = ({ children, externalGame = null }) => {
     return games.find(game => String(game.id) === String(gameId));
   };
 
+  const playGame = async (campaignId, sessionId) => {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        throw new Error('Supabase URL not configured');
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/play-game`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          campaignId,
+          sessionId,
+          timestamp: Date.now()
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to play game');
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error calling play-game function:', error);
+      throw error;
+    }
+  };
+
   const value = {
     games,
     currentGame,
@@ -169,6 +202,7 @@ export const GameProvider = ({ children, externalGame = null }) => {
     deleteGame,
     duplicateGame,
     getGame,
+    playGame,
     setExternalGameData,
     isLoading,
     isLocalMode

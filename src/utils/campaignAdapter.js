@@ -11,12 +11,22 @@ export const initializeCampaignConfig = (type, client) => {
     { text: 'Better Luck', probability: 10, color: '#6B7280', isWin: false }
   ];
 
-  return {
+  const defaultPrizes = [
+    { id: 1, name: '10% Off', probability: 25, isWin: true, backgroundImage: '', winHeadline: 'You Won!', winMessage: 'Enjoy 10% off your purchase!' },
+    { id: 2, name: 'Free Shipping', probability: 20, isWin: true, backgroundImage: '', winHeadline: 'Congratulations!', winMessage: 'Free shipping on your order!' },
+    { id: 3, name: 'Try Again', probability: 30, isWin: false, backgroundImage: '', winHeadline: '', winMessage: '' },
+    { id: 4, name: '$5 Credit', probability: 15, isWin: true, backgroundImage: '', winHeadline: 'You Won!', winMessage: '$5 credit added to your account!' },
+    { id: 5, name: 'Better Luck Next Time', probability: 10, isWin: false, backgroundImage: '', winHeadline: '', winMessage: '' }
+  ];
+
+  const isScratch = type === 'scratch';
+
+  const config = {
     screens: {
       start: {
         enabled: true,
-        headline: 'Spin to Win!',
-        subheading: 'Try your luck and win amazing prizes',
+        headline: isScratch ? 'Scratch to Win!' : 'Spin to Win!',
+        subheading: isScratch ? 'Scratch the card to reveal your prize' : 'Try your luck and win amazing prizes',
         logo: client?.logo_url || '',
         buttonText: 'Start Game',
         rulesText: '',
@@ -26,7 +36,7 @@ export const initializeCampaignConfig = (type, client) => {
       },
       game: {
         enabled: true,
-        instructions: 'Tap SPIN to win!',
+        instructions: isScratch ? 'Scratch to reveal your prize!' : 'Tap SPIN to win!',
         spinButtonText: 'SPIN NOW',
         showInstructions: true,
         showSoundToggle: true,
@@ -121,9 +131,24 @@ export const initializeCampaignConfig = (type, client) => {
       timezone: 'UTC',
       startDate: null,
       endDate: null
-    },
-    segments: defaultSegments
+    }
   };
+
+  if (isScratch) {
+    config.visual.scratch = {
+      containerAspectRatio: '4:3',
+      foregroundImage: '',
+      logoOverlay: client?.logo_url || '',
+      logoPosition: 'top-right',
+      scratchThreshold: 50,
+      brushRadius: 40
+    };
+    config.prizes = defaultPrizes;
+  } else {
+    config.segments = defaultSegments;
+  }
+
+  return config;
 };
 
 export const campaignToGame = (campaign, client) => {
@@ -134,6 +159,7 @@ export const campaignToGame = (campaign, client) => {
   return {
     id: campaign.id,
     name: campaign.name,
+    type: campaign.type,
     isActive: campaign.status === 'active',
     createdAt: campaign.created_at,
     screens: config.screens || {},
@@ -143,14 +169,15 @@ export const campaignToGame = (campaign, client) => {
       startDate: campaign.start_date,
       endDate: campaign.end_date
     },
-    segments: config.segments || []
+    segments: config.segments || [],
+    prizes: config.prizes || []
   };
 };
 
 export const gameDataToCampaignConfig = (gameData) => {
   if (!gameData) return {};
 
-  return {
+  const config = {
     screens: gameData.screens || {},
     visual: gameData.visual || {},
     settings: {
@@ -160,8 +187,11 @@ export const gameDataToCampaignConfig = (gameData) => {
       calendarResetDay: gameData.settings?.calendarResetDay,
       timezone: gameData.settings?.timezone
     },
-    segments: gameData.segments || []
+    segments: gameData.segments || [],
+    prizes: gameData.prizes || []
   };
+
+  return config;
 };
 
 export const gameDataToCampaignUpdates = (gameData, originalCampaign) => {

@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import WheelCustomizer from './WheelCustomizer';
+import ScratchCustomizer from './ScratchCustomizer';
 import BackgroundCustomizer from './BackgroundCustomizer';
 import FontCustomizer from './FontCustomizer';
 import ButtonCustomizer from './ButtonCustomizer';
 
 const VisualCustomizer = ({ gameData, onChange }) => {
   const [activeSection, setActiveSection] = useState('background');
+  const isScratch = gameData?.type === 'scratch';
 
   const sections = [
     { id: 'background', label: 'Background' },
-    { id: 'wheel', label: 'Spin Wheel' },
+    { id: 'wheel', label: isScratch ? 'Scratch Card' : 'Spin Wheel' },
     { id: 'buttons', label: 'Buttons' },
     { id: 'fonts', label: 'Typography' }
   ];
@@ -40,7 +42,11 @@ const VisualCustomizer = ({ gameData, onChange }) => {
             <BackgroundCustomizer gameData={gameData} onChange={onChange} />
           )}
           {activeSection === 'wheel' && (
-            <WheelCustomizer gameData={gameData} onChange={onChange} />
+            isScratch ? (
+              <ScratchCustomizer gameData={gameData} onChange={onChange} />
+            ) : (
+              <WheelCustomizer gameData={gameData} onChange={onChange} />
+            )
           )}
           {activeSection === 'buttons' && (
             <ButtonCustomizer gameData={gameData} onChange={onChange} />
