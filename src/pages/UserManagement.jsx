@@ -265,10 +265,10 @@ export default function UserManagement() {
               <tbody>
                 {users.map((user) => (
                   <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4">{user.full_name || '-'}</td>
-                    <td className="py-3 px-4">{user.email}</td>
+                    <td className="py-3 px-4 text-gray-900">{user.full_name || '-'}</td>
+                    <td className="py-3 px-4 text-gray-900">{user.email}</td>
                     <td className="py-3 px-4">{getRoleBadge(user.role)}</td>
-                    <td className="py-3 px-4">{user.clients?.name || '-'}</td>
+                    <td className="py-3 px-4 text-gray-900">{user.clients?.name || '-'}</td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
                         user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -423,7 +423,7 @@ export default function UserManagement() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
