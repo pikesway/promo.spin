@@ -29,8 +29,13 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
       const slug = formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
       const fullConfig = initializeCampaignConfig(formData.type, client);
-      fullConfig.settings.spinLimit = formData.spinLimit;
-      fullConfig.settings.spinDelayHours = formData.spinDelayHours;
+
+      if (formData.type === 'bizgamez') {
+        fullConfig.bizgamez_code = formData.bizgamezCode || '';
+      } else {
+        fullConfig.settings.spinLimit = formData.spinLimit;
+        fullConfig.settings.spinDelayHours = formData.spinDelayHours;
+      }
 
       const newCampaign = await createCampaign({
         clientId,
@@ -104,12 +109,12 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
             <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-4)' }}>
               Step 1: Select Campaign Type
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-3)' }}>
               <button
                 onClick={() => handleTypeSelect('spin')}
                 className="glass-card"
                 style={{
-                  padding: 'var(--space-6)',
+                  padding: 'var(--space-4)',
                   textAlign: 'center',
                   cursor: 'pointer',
                   border: '2px solid var(--border-color)',
@@ -120,22 +125,22 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
                 onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
               >
                 <div style={{
-                  width: '80px',
-                  height: '80px',
-                  margin: '0 auto var(--space-3)',
+                  width: '60px',
+                  height: '60px',
+                  margin: '0 auto var(--space-2)',
                   background: 'var(--brand-primary)',
                   borderRadius: 'var(--radius-full)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 'var(--text-3xl)'
+                  fontSize: 'var(--text-2xl)'
                 }}>
-                  🎡
+                  <FiChevronRight style={{ transform: 'rotate(-45deg)' }} />
                 </div>
-                <h4 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-1)' }}>
+                <h4 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-1)' }}>
                   Spin to Win
                 </h4>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-xs)' }}>
                   Classic prize wheel with customizable segments
                 </p>
               </button>
@@ -144,7 +149,7 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
                 onClick={() => handleTypeSelect('scratch')}
                 className="glass-card"
                 style={{
-                  padding: 'var(--space-6)',
+                  padding: 'var(--space-4)',
                   textAlign: 'center',
                   cursor: 'pointer',
                   border: '2px solid var(--border-color)',
@@ -155,30 +160,67 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
                 onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
               >
                 <div style={{
-                  width: '80px',
-                  height: '80px',
-                  margin: '0 auto var(--space-3)',
+                  width: '60px',
+                  height: '60px',
+                  margin: '0 auto var(--space-2)',
                   background: 'var(--success)',
                   borderRadius: 'var(--radius-full)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 'var(--text-3xl)'
+                  fontSize: 'var(--text-2xl)'
                 }}>
-                  ✨
+                  <FiX style={{ transform: 'rotate(45deg)' }} />
                 </div>
-                <h4 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-1)' }}>
+                <h4 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-1)' }}>
                   Scratch to Win
                 </h4>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-xs)' }}>
                   Interactive scratch-off card experience
+                </p>
+              </button>
+
+              <button
+                onClick={() => handleTypeSelect('bizgamez')}
+                className="glass-card"
+                style={{
+                  padding: 'var(--space-4)',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  border: '2px solid var(--border-color)',
+                  background: 'var(--bg-tertiary)',
+                  transition: 'all var(--transition-fast)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#F97316'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
+              >
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  margin: '0 auto var(--space-2)',
+                  background: '#F97316',
+                  borderRadius: 'var(--radius-full)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 'var(--text-2xl)',
+                  color: 'white',
+                  fontWeight: 'bold'
+                }}>
+                  BG
+                </div>
+                <h4 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-1)' }}>
+                  BizGamez
+                </h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-xs)' }}>
+                  External game with webhook integration
                 </p>
               </button>
             </div>
           </div>
         )}
 
-        {step === 2 && formData.type && (
+        {step === 2 && formData.type && formData.type !== 'bizgamez' && (
           <div>
             <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-4)' }}>
               Step 2: Basic Settings
@@ -263,6 +305,69 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
                 className="btn btn-primary"
                 onClick={handleSubmit}
                 disabled={!formData.name}
+                style={{ flex: 1 }}
+              >
+                Create & Open Editor
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && formData.type === 'bizgamez' && (
+          <div>
+            <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-4)' }}>
+              Step 2: BizGamez Settings
+            </h3>
+
+            <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+                  Game Name *
+                </label>
+                <input
+                  className="input"
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Fossil Creek Title 1"
+                  required
+                />
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 'var(--space-1)' }}>
+                  Internal name for this campaign
+                </p>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+                  BizGamez Code *
+                </label>
+                <input
+                  className="input"
+                  type="text"
+                  value={formData.bizgamezCode || ''}
+                  onChange={(e) => setFormData({ ...formData, bizgamezCode: e.target.value })}
+                  placeholder="fossil-creek-title-1"
+                />
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 'var(--space-1)' }}>
+                  This must match the game_code sent in the webhook from BizGamez/Playzo
+                </p>
+              </div>
+
+              <div className="glass-card" style={{ padding: 'var(--space-4)', background: 'var(--bg-tertiary)', borderLeft: '3px solid #F97316' }}>
+                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-2)' }}>
+                  <strong>How it works:</strong> When a player completes a game in BizGamez/Playzo, the webhook will send their score and contact info to this campaign. You can configure prizes and win/lose outcomes in the editor.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-6)' }}>
+              <button className="btn btn-ghost" onClick={() => setStep(1)}>
+                <FiChevronLeft /> Back
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleSubmit}
+                disabled={!formData.name || !formData.bizgamezCode}
                 style={{ flex: 1 }}
               >
                 Create & Open Editor

@@ -5,6 +5,7 @@ import { usePlatform } from '../context/PlatformContext';
 import { useAuth } from '../context/AuthContext';
 import CampaignWizard from '../components/CampaignWizard';
 import CampaignBuilder from '../components/admin/CampaignBuilder';
+import BizGamezCampaignBuilder from '../components/admin/BizGamezCampaignBuilder';
 import CampaignList from '../components/admin/CampaignList';
 import QRCode from 'qrcode.react';
 import StatusBadge from '../components/StatusBadge';
@@ -136,6 +137,15 @@ export default function ClientDashboard() {
   }
 
   if (editingCampaign) {
+    if (editingCampaign.type === 'bizgamez') {
+      return (
+        <BizGamezCampaignBuilder
+          campaign={editingCampaign}
+          client={client}
+          onBack={() => setEditingCampaign(null)}
+        />
+      );
+    }
     return (
       <CampaignBuilder
         campaign={editingCampaign}

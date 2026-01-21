@@ -20,6 +20,23 @@ export const initializeCampaignConfig = (type, client) => {
   ];
 
   const isScratch = type === 'scratch';
+  const isBizGamez = type === 'bizgamez';
+
+  if (isBizGamez) {
+    return {
+      bizgamez_code: '',
+      game_url: '',
+      qr_code_image: '',
+      embed_code: '',
+      prizes: [
+        { score: 1, name: 'Grand Prize', isWin: true, winHeadline: 'You Won!', winMessage: 'Congratulations on winning the grand prize!' },
+        { score: 0, name: 'Try Again', isWin: false, winHeadline: '', winMessage: '' }
+      ],
+      redemption: {
+        expirationDays: 30
+      }
+    };
+  }
 
   const config = {
     screens: {

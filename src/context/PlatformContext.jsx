@@ -370,6 +370,16 @@ export const PlatformProvider = ({ children }) => {
     const campaign = campaigns.find(c => c.id === campaignId);
     const storedAnalytics = campaign?.analytics || {};
 
+    if (campaign?.type === 'bizgamez') {
+      return {
+        views: storedAnalytics.views || 0,
+        leads: campaignLeads.length,
+        wins: storedAnalytics.wins || 0,
+        totalPlays: storedAnalytics.views || 0,
+        win_rate: 0
+      };
+    }
+
     const wins = campaignRedemptions.length;
     const totalPlays = storedAnalytics.spins || storedAnalytics.plays || wins || 0;
     const winRate = totalPlays > 0 ? Math.round((wins / totalPlays) * 100) : 0;

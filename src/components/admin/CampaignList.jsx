@@ -59,9 +59,16 @@ const CampaignList = ({
           >
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors line-clamp-1">
-                  {campaign.name}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors line-clamp-1">
+                    {campaign.name}
+                  </h3>
+                  {campaign.type === 'bizgamez' && (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                      BG
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-500 font-mono mt-1">ID: {campaign.id.substring(0, 8)}...</p>
               </div>
               <div className={`
@@ -86,7 +93,9 @@ const CampaignList = ({
               </div>
               <div className="bg-white/5 rounded-lg p-2 text-center">
                 <div className="text-xs text-gray-400">Win Rate</div>
-                <div className="text-sm font-bold text-green-400">{winRate}%</div>
+                <div className={`text-sm font-bold ${campaign.type === 'bizgamez' ? 'text-gray-500' : 'text-green-400'}`}>
+                  {campaign.type === 'bizgamez' ? 'Unknown' : `${winRate}%`}
+                </div>
               </div>
             </div>
 
@@ -108,23 +117,27 @@ const CampaignList = ({
                 >
                   <FiCopy className="w-4 h-4" />
                 </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onShowQR(campaign); }}
-                  className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
-                  title="QR Code & Share"
-                >
-                  <FiGrid className="w-4 h-4" />
-                </button>
-                <a
-                  href={getCampaignUrl(campaign)}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
-                  title="Open Live"
-                >
-                  <FiExternalLink className="w-4 h-4" />
-                </a>
+                {campaign.type !== 'bizgamez' && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onShowQR(campaign); }}
+                    className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                    title="QR Code & Share"
+                  >
+                    <FiGrid className="w-4 h-4" />
+                  </button>
+                )}
+                {campaign.type !== 'bizgamez' && (
+                  <a
+                    href={getCampaignUrl(campaign)}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                    title="Open Live"
+                  >
+                    <FiExternalLink className="w-4 h-4" />
+                  </a>
+                )}
               </div>
 
               <button
