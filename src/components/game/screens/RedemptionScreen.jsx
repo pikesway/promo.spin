@@ -82,8 +82,8 @@ const RedemptionScreen = ({ game, redemptionId }) => {
   const statusColor = getStatusColor();
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-100">
-      <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-sm w-full relative">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden max-w-sm w-full relative">
         {/* Header Status Bar */}
         <div className={`py-4 px-6 text-center text-white font-bold text-lg uppercase tracking-wide bg-${statusColor}-600 transition-colors duration-500`}>
           {isActiveStatus ? 'Valid Coupon' :

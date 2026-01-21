@@ -47,7 +47,7 @@ const WinScreen = ({ game, result, onNext }) => {
         </div>
       )}
       
-      <div className="bg-white rounded-lg shadow-lg p-8 text-center max-w-md w-full relative z-10">
+      <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-8 text-center max-w-md w-full relative z-10">
         <h1 className="text-4xl font-bold text-green-600 mb-6" style={{ fontFamily: fonts.primary }}>
           {screenData.headline || 'Congratulations!'}
         </h1>

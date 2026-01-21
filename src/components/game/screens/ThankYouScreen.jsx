@@ -44,7 +44,7 @@ const ThankYouScreen = ({ game, result, leadData }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-lg p-8 text-center max-w-md w-full">
+      <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-8 text-center max-w-md w-full">
         <h1 className="text-3xl font-bold text-green-600 mb-4" style={{ fontFamily: fonts.primary }}>
           {screenData.headline || 'Thank You!'}
         </h1>

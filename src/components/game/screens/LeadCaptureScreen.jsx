@@ -100,7 +100,7 @@ const LeadCaptureScreen = ({ game, result, onSubmit }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 py-8">
-      <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 w-full max-w-md mx-auto relative overflow-hidden">
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 md:p-8 w-full max-w-md mx-auto relative overflow-hidden">
         {/* Decorative header background */}
         <div className="absolute top-0 left-0 w-full h-2" style={{ backgroundColor: buttonStyle.backgroundColor }}></div>
         
