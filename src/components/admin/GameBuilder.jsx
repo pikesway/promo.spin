@@ -8,7 +8,7 @@ import SafeIcon from '../../common/SafeIcon';
 import GlassCard from '../../common/GlassCard';
 import * as FiIcons from 'react-icons/fi';
 
-const { FiArrowLeft, FiSettings, FiPalette, FiMonitor, FiEye, FiSave } = FiIcons;
+const { FiArrowLeft, FiSettings, FiLayout, FiMonitor, FiEye, FiSave } = FiIcons;
 
 const GameBuilder = ({ game, onBack }) => {
   const { updateGame } = useGame();
@@ -28,7 +28,7 @@ const GameBuilder = ({ game, onBack }) => {
 
   const tabs = [
     { id: 'settings', label: 'Settings', icon: FiSettings },
-    { id: 'visual', label: 'Design', icon: FiPalette },
+    { id: 'visual', label: 'Design', icon: FiLayout },
     { id: 'screens', label: 'Screens', icon: FiMonitor },
     { id: 'preview', label: 'Preview', icon: FiEye }
   ];

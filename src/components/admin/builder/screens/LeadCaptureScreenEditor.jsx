@@ -58,56 +58,56 @@ const LeadCaptureScreenEditor = ({ screenData, onChange }) => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Form Headline
           </label>
-          <input 
-            type="text" 
-            value={screenData.headline || ''} 
+          <input
+            type="text"
+            value={screenData.headline || ''}
             onChange={(e) => handleChange('headline', e.target.value)}
             placeholder="Claim Your Prize"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
         </div>
-        
+
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Submit Button Text
           </label>
-          <input 
-            type="text" 
-            value={screenData.submitButtonText || ''} 
+          <input
+            type="text"
+            value={screenData.submitButtonText || ''}
             onChange={(e) => handleChange('submitButtonText', e.target.value)}
             placeholder="Submit"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
         </div>
       </div>
 
-      <ButtonStyleSelector 
-        data={screenData} 
-        onChange={handleButtonChange} 
+      <ButtonStyleSelector
+        data={screenData}
+        onChange={handleButtonChange}
       />
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-300 mb-2">
           Form Description (Optional)
         </label>
-        <textarea 
-          value={screenData.description || ''} 
+        <textarea
+          value={screenData.description || ''}
           onChange={(e) => handleChange('description', e.target.value)}
           placeholder="Please fill out the form below to claim your prize..."
           rows={3}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
         />
       </div>
 
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h4 className="font-medium text-gray-900">Form Fields</h4>
-          <button 
+          <h4 className="font-medium text-white">Form Fields</h4>
+          <button
             onClick={addField}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors"
+            className="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors"
           >
             <SafeIcon icon={FiPlus} className="w-4 h-4" />
             <span>Add Field</span>
@@ -116,15 +116,15 @@ const LeadCaptureScreenEditor = ({ screenData, onChange }) => {
 
         <div className="space-y-4">
           {(screenData.fields || []).map((field, index) => (
-            <div key={field.id} className="border border-gray-200 rounded-lg p-4">
+            <div key={field.id} className="border border-white/10 rounded-lg p-4 bg-charcoal-800">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-2">
-                  <SafeIcon icon={FiMove} className="w-4 h-4 text-gray-400" />
-                  <span className="font-medium text-gray-900">Field {index + 1}</span>
+                  <SafeIcon icon={FiMove} className="w-4 h-4 text-gray-500" />
+                  <span className="font-medium text-gray-300">Field {index + 1}</span>
                 </div>
-                <button 
+                <button
                   onClick={() => removeField(index)}
-                  className="text-red-600 hover:text-red-700 p-1"
+                  className="text-red-400 hover:text-red-300 p-1"
                 >
                   <SafeIcon icon={FiTrash2} className="w-4 h-4" />
                 </button>
@@ -132,68 +132,68 @@ const LeadCaptureScreenEditor = ({ screenData, onChange }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Field Type
                   </label>
-                  <select 
+                  <select
                     value={field.type}
                     onChange={(e) => handleFieldChange(index, 'type', e.target.value)}
-                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                    className="w-full bg-charcoal-900 border border-white/10 rounded px-2 py-1 text-sm text-white"
                   >
                     {fieldTypes.map(type => (
                       <option key={type.value} value={type.value}>{type.label}</option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Label
                   </label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={field.label}
                     onChange={(e) => handleFieldChange(index, 'label', e.target.value)}
-                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                    className="w-full bg-charcoal-900 border border-white/10 rounded px-2 py-1 text-sm text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Placeholder
                   </label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={field.placeholder || ''}
                     onChange={(e) => handleFieldChange(index, 'placeholder', e.target.value)}
-                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                    className="w-full bg-charcoal-900 border border-white/10 rounded px-2 py-1 text-sm text-white"
                   />
                 </div>
 
                 <div className="flex items-center">
                   <label className="flex items-center space-x-2 mt-5">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={field.required || false}
                       onChange={(e) => handleFieldChange(index, 'required', e.target.checked)}
                       className="rounded"
                     />
-                    <span className="text-sm text-gray-700">Required</span>
+                    <span className="text-sm text-gray-300">Required</span>
                   </label>
                 </div>
               </div>
 
               {field.type === 'select' && (
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Options (one per line)
                   </label>
-                  <textarea 
+                  <textarea
                     value={field.options || ''}
                     onChange={(e) => handleFieldChange(index, 'options', e.target.value)}
                     placeholder="Option 1&#10;Option 2&#10;Option 3"
                     rows={3}
-                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                    className="w-full bg-charcoal-900 border border-white/10 rounded px-2 py-1 text-sm text-white"
                   />
                 </div>
               )}
@@ -209,57 +209,57 @@ const LeadCaptureScreenEditor = ({ screenData, onChange }) => {
       </div>
 
       <div>
-        <h4 className="font-medium text-gray-900 mb-4">Privacy & Consent</h4>
+        <h4 className="font-medium text-white mb-4">Privacy & Consent</h4>
         <div className="space-y-4">
           <label className="flex items-start space-x-3">
-            <input 
-              type="checkbox" 
-              checked={screenData.requireConsent || false} 
+            <input
+              type="checkbox"
+              checked={screenData.requireConsent || false}
               onChange={(e) => handleChange('requireConsent', e.target.checked)}
               className="rounded mt-1"
             />
             <div>
-              <span className="text-sm font-medium text-gray-700">Require consent checkbox</span>
-              <p className="text-xs text-gray-500">Users must agree to terms before submitting</p>
+              <span className="text-sm font-medium text-gray-300">Require consent checkbox</span>
+              <p className="text-xs text-gray-400">Users must agree to terms before submitting</p>
             </div>
           </label>
-          
+
           {screenData.requireConsent && (
             <div className="ml-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Consent Text
               </label>
-              <input 
-                type="text" 
-                value={screenData.consentText || ''} 
+              <input
+                type="text"
+                value={screenData.consentText || ''}
                 onChange={(e) => handleChange('consentText', e.target.value)}
                 placeholder="I agree to receive promotional emails"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
               />
             </div>
           )}
         </div>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="font-medium text-gray-900 mb-3">Preview</h4>
-        <div className="bg-white rounded-lg p-6 border border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2 text-center">
+      <div className="bg-charcoal-800 rounded-lg p-4">
+        <h4 className="font-medium text-white mb-3">Preview</h4>
+        <div className="bg-charcoal-800 rounded-lg p-6 border border-white/10">
+          <h1 className="text-2xl font-bold text-white mb-2 text-center">
             {screenData.headline || 'Claim Your Prize'}
           </h1>
           {screenData.description && (
-            <p className="text-gray-600 mb-6 text-center">
+            <p className="text-gray-300 mb-6 text-center">
               {screenData.description}
             </p>
           )}
           <form className="space-y-4">
             {(screenData.fields || []).map((field, index) => (
               <div key={field.id}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {field.label} {field.required && <span className="text-red-500">*</span>}
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  {field.label} {field.required && <span className="text-red-400">*</span>}
                 </label>
                 {field.type === 'select' ? (
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2" disabled>
+                  <select className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-gray-300" disabled>
                     <option>Select an option...</option>
                     {(field.options || '').split('\n').filter(opt => opt.trim()).map((option, i) => (
                       <option key={i}>{option.trim()}</option>
@@ -268,23 +268,23 @@ const LeadCaptureScreenEditor = ({ screenData, onChange }) => {
                 ) : field.type === 'checkbox' ? (
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" disabled className="rounded" />
-                    <span className="text-sm">{field.placeholder || field.label}</span>
+                    <span className="text-sm text-gray-300">{field.placeholder || field.label}</span>
                   </label>
                 ) : (
-                  <input 
-                    type={field.type} 
-                    placeholder={field.placeholder || field.label} 
-                    disabled 
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50"
+                  <input
+                    type={field.type}
+                    placeholder={field.placeholder || field.label}
+                    disabled
+                    className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-gray-400"
                   />
                 )}
               </div>
             ))}
-            
+
             {screenData.requireConsent && (
               <label className="flex items-center space-x-2">
                 <input type="checkbox" disabled className="rounded" />
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-gray-300">
                   {screenData.consentText || 'I agree to receive promotional emails'}
                 </span>
               </label>

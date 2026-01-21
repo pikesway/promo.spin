@@ -1,28 +1,77 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import AdminDashboard from './components/admin/AdminDashboard';
-import GamePlayer from './components/game/GamePlayer';
-import { GameProvider } from './context/GameContext';
-import { LeadProvider } from './context/LeadContext';
-import { RedemptionProvider } from './context/RedemptionContext';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { PlatformProvider } from './context/PlatformContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Dashboard from './pages/Dashboard';
+import ProfileSettings from './pages/ProfileSettings';
+import UserManagement from './pages/UserManagement';
+import AgencyDashboard from './pages/AgencyDashboard';
+import ClientDashboard from './pages/ClientDashboard';
+import CampaignPlayer from './pages/CampaignPlayer';
+import RedemptionPage from './pages/RedemptionPage';
 
 function App() {
   return (
-    <GameProvider>
-      <LeadProvider>
-        <RedemptionProvider>
-          <Router>
-            <div className="min-h-screen bg-gray-50">
-              <Routes>
-                <Route path="/" element={<AdminDashboard />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/game/:gameId" element={<GamePlayer />} />
-              </Routes>
-            </div>
-          </Router>
-        </RedemptionProvider>
-      </LeadProvider>
-    </GameProvider>
+    <AuthProvider>
+      <PlatformProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/play/:slug" element={<CampaignPlayer />} />
+            <Route path="/redeem/:shortCode" element={<RedemptionPage />} />
+
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfileSettings />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute requireAdmin={true}>
+                  <UserManagement />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/agency"
+              element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AgencyDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/client/:clientId"
+              element={
+                <ProtectedRoute>
+                  <ClientDashboard />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Router>
+      </PlatformProvider>
+    </AuthProvider>
   );
 }
 

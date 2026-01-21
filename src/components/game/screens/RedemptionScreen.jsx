@@ -31,7 +31,8 @@ const RedemptionScreen = ({ game, redemptionId }) => {
 
   // Timer effect
   useEffect(() => {
-    if (!redemption || redemption.status !== 'active' || !redemption.expiresAt) return;
+    const isActive = redemption?.status === 'active' || redemption?.status === 'valid';
+    if (!redemption || !isActive || !redemption.expiresAt) return;
 
     const timer = setInterval(() => {
       const now = new Date();
@@ -67,13 +68,16 @@ const RedemptionScreen = ({ game, redemptionId }) => {
 
   const getStatusColor = () => {
     switch (redemption.status) {
-      case 'active': return 'blue';
+      case 'active':
+      case 'valid': return 'blue';
       case 'redeemed': return 'green';
       case 'expired': return 'gray';
       case 'voided': return 'red';
       default: return 'gray';
     }
   };
+
+  const isActiveStatus = redemption.status === 'active' || redemption.status === 'valid';
 
   const statusColor = getStatusColor();
 
@@ -82,8 +86,8 @@ const RedemptionScreen = ({ game, redemptionId }) => {
       <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-sm w-full relative">
         {/* Header Status Bar */}
         <div className={`py-4 px-6 text-center text-white font-bold text-lg uppercase tracking-wide bg-${statusColor}-600 transition-colors duration-500`}>
-          {redemption.status === 'active' ? 'Valid Coupon' : 
-           redemption.status === 'redeemed' ? 'Redeemed' : 
+          {isActiveStatus ? 'Valid Coupon' :
+           redemption.status === 'redeemed' ? 'Redeemed' :
            redemption.status === 'expired' ? 'Expired' : 'Voided'}
         </div>
 
@@ -101,7 +105,7 @@ const RedemptionScreen = ({ game, redemptionId }) => {
 
           {/* Status Icon/Visual */}
           <div className="mb-8 flex justify-center">
-            {redemption.status === 'active' && (
+            {isActiveStatus && (
               <div className="w-32 h-32 rounded-full bg-blue-50 flex items-center justify-center border-4 border-blue-100 animate-pulse">
                 <SafeIcon icon={FiLock} className="w-12 h-12 text-blue-500" />
               </div>
@@ -119,7 +123,7 @@ const RedemptionScreen = ({ game, redemptionId }) => {
           </div>
 
           {/* Timer */}
-          {redemption.status === 'active' && redemption.expiresAt && (
+          {isActiveStatus && redemption.expiresAt && (
             <div className="mb-8">
               <p className="text-red-500 font-bold text-xl tabular-nums animate-pulse">
                 Expires in: {timeLeft || '...'}
@@ -128,17 +132,17 @@ const RedemptionScreen = ({ game, redemptionId }) => {
           )}
 
           {/* Instructions */}
-          {redemption.status === 'active' && (
+          {isActiveStatus && (
             <p className="text-gray-600 mb-6 text-sm" style={{ fontFamily: fonts.secondary }}>
-              {confirming 
-                ? "⚠️ Staff member: Please confirm you are redeeming this coupon now. This cannot be undone." 
+              {confirming
+                ? "Staff member: Please confirm you are redeeming this coupon now. This cannot be undone."
                 : (settings.instructions || "Show this screen to a staff member to redeem your prize.")}
             </p>
           )}
 
           {/* Action Button */}
           <div className="space-y-3">
-            {redemption.status === 'active' ? (
+            {isActiveStatus ? (
               <>
                 <button 
                   onClick={handleRedeem}

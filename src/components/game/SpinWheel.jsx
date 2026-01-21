@@ -1,6 +1,6 @@
 import React, { useRef, useImperativeHandle, forwardRef, useEffect, useState } from 'react';
 
-const SpinWheel = forwardRef(({ game, onSpinEnd, soundEnabled = true }, ref) => {
+const SpinWheel = forwardRef(({ game, onSpinEnd, soundEnabled = true, predeterminedPrize = null }, ref) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const wheelData = game.visual?.wheel || {};
@@ -18,9 +18,9 @@ const SpinWheel = forwardRef(({ game, onSpinEnd, soundEnabled = true }, ref) => 
   const INTERNAL_SIZE = 800;
 
   useImperativeHandle(ref, () => ({
-    spin: () => {
+    spin: (targetPrize = null) => {
       if (isSpinning) return;
-      performSpin();
+      performSpin(targetPrize || predeterminedPrize);
     }
   }));
 
@@ -251,29 +251,64 @@ const SpinWheel = forwardRef(({ game, onSpinEnd, soundEnabled = true }, ref) => 
     ctx.restore();
   };
 
-  const performSpin = () => {
+  const performSpin = (targetPrize = null) => {
     if (segments.length === 0) return;
-    
+
     isSpinning = true;
-    const spinAmount = Math.random() * 360 + 1440; 
+    let targetIndex = -1;
+    let finalResult = null;
+
+    if (targetPrize) {
+      targetIndex = segments.findIndex(seg => seg.text === targetPrize.name || seg.text === targetPrize.text);
+      if (targetIndex === -1) {
+        targetIndex = 0;
+      }
+      finalResult = {
+        ...segments[targetIndex],
+        ...targetPrize,
+        segmentIndex: targetIndex
+      };
+    }
+
     const spinDuration = 3000;
     const startTime = Date.now();
     const startRotation = rotationRef.current;
+    const minSpins = 4;
+
+    let spinAmount;
+    if (targetIndex >= 0) {
+      const anglePerSegment = (2 * Math.PI) / segments.length;
+      const targetAngle = targetIndex * anglePerSegment;
+      const randomOffsetInSegment = (Math.random() * 0.6 + 0.2) * anglePerSegment;
+      const targetRotation = targetAngle + randomOffsetInSegment;
+      const fullSpins = minSpins * 2 * Math.PI;
+      spinAmount = (fullSpins + targetRotation - (startRotation % (2 * Math.PI))) * 180 / Math.PI;
+
+      if (spinAmount < minSpins * 360) {
+        spinAmount += 360;
+      }
+    } else {
+      spinAmount = Math.random() * 360 + 1440;
+    }
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / spinDuration, 1);
-      
+
       const easeOut = 1 - Math.pow(1 - progress, 3);
       rotationRef.current = startRotation + (spinAmount * easeOut * Math.PI / 180);
-      
+
       drawWheel();
 
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
         isSpinning = false;
-        determineWinner();
+        if (finalResult) {
+          onSpinEnd(finalResult);
+        } else {
+          determineWinner();
+        }
       }
     };
 
@@ -282,25 +317,23 @@ const SpinWheel = forwardRef(({ game, onSpinEnd, soundEnabled = true }, ref) => 
 
   const determineWinner = () => {
     const currentRot = rotationRef.current;
-    
+
     const normalizedRotation = ((currentRot % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
     const pointerAngle = (2 * Math.PI - normalizedRotation + Math.PI / 2) % (2 * Math.PI);
-    
+
     const anglePerSegment = (2 * Math.PI) / segments.length;
     let winningIndex = Math.floor(pointerAngle / anglePerSegment) % segments.length;
-    
+
     if (winningIndex < 0) winningIndex += segments.length;
-    
+
     const winningSegment = segments[winningIndex];
-    
-    const shouldWin = Math.random() * 100 <= (winningSegment.probability || 0);
-    
+
     const result = {
       ...winningSegment,
-      isWin: shouldWin && winningSegment.isWin,
+      isWin: winningSegment.isWin,
       segmentIndex: winningIndex
     };
-    
+
     onSpinEnd(result);
   };
 

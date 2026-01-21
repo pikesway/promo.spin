@@ -269,27 +269,24 @@ const GamePlayer = ({ gameId: propGameId, isPreview = false }) => {
     }
   };
 
-  const handleGenerateRedemption = (result) => {
+  const handleGenerateRedemption = async (result, formData = {}) => {
     if (!isPreview) {
-      const redemption = generateRedemption(game.id, result, game.screens?.redemption || {});
+      const redemption = await generateRedemption(
+        game.id,
+        result,
+        game.screens?.redemption || {},
+        formData
+      );
       setRedemptionId(redemption.id);
     }
     setCurrentScreen('redemption');
   };
 
-  const handleLeadSubmit = (formData) => {
-    if (!isPreview) {
-      addLead({
-        gameId: gameId,
-        formData: formData,
-        outcome: gameResult?.text || 'Unknown',
-        isWin: gameResult?.isWin || false
-      });
-    }
+  const handleLeadSubmit = async (formData) => {
     setLeadData(formData);
-    
+
     if (gameResult?.isWin && game.screens?.redemption?.enabled) {
-      handleGenerateRedemption(gameResult);
+      await handleGenerateRedemption(gameResult, formData);
     } else if (game.screens?.thankYou?.enabled) {
       setCurrentScreen('thankYou');
     }

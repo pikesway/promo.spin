@@ -21,73 +21,73 @@ const GameScreenEditor = ({ screenData, onChange }) => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Instructions Text
           </label>
-          <input 
-            type="text" 
-            value={screenData.instructions || ''} 
+          <input
+            type="text"
+            value={screenData.instructions || ''}
             onChange={(e) => handleChange('instructions', e.target.value)}
             placeholder="Click the button to spin the wheel!"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
         </div>
-        
+
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Spin Button Text
           </label>
-          <input 
-            type="text" 
-            value={screenData.spinButtonText || ''} 
+          <input
+            type="text"
+            value={screenData.spinButtonText || ''}
             onChange={(e) => handleChange('spinButtonText', e.target.value)}
             placeholder="SPIN NOW"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
         </div>
       </div>
 
-      <ButtonStyleSelector 
-        data={screenData} 
-        onChange={handleButtonChange} 
+      <ButtonStyleSelector
+        data={screenData}
+        onChange={handleButtonChange}
       />
 
       <div className="space-y-4">
-        <h4 className="font-medium text-gray-900">Game Options</h4>
-        
+        <h4 className="font-medium text-white">Game Options</h4>
+
         <label className="flex items-center space-x-3">
-          <input 
-            type="checkbox" 
-            checked={screenData.showSoundToggle || false} 
+          <input
+            type="checkbox"
+            checked={screenData.showSoundToggle || false}
             onChange={(e) => handleChange('showSoundToggle', e.target.checked)}
             className="rounded"
           />
-          <span className="text-sm text-gray-700">Show sound toggle button</span>
+          <span className="text-sm text-gray-300">Show sound toggle button</span>
         </label>
 
         <label className="flex items-center space-x-3">
-          <input 
-            type="checkbox" 
-            checked={screenData.showInstructions || true} 
+          <input
+            type="checkbox"
+            checked={screenData.showInstructions || true}
             onChange={(e) => handleChange('showInstructions', e.target.checked)}
             className="rounded"
           />
-          <span className="text-sm text-gray-700">Show instructions text</span>
+          <span className="text-sm text-gray-300">Show instructions text</span>
         </label>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="font-medium text-gray-900 mb-3">Preview</h4>
-        <div className="bg-white rounded-lg p-6 border border-gray-200 text-center">
+      <div className="bg-charcoal-800 rounded-lg p-4">
+        <h4 className="font-medium text-white mb-3">Preview</h4>
+        <div className="bg-charcoal-800 rounded-lg p-6 border border-white/10 text-center">
           {screenData.showInstructions !== false && (
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-300 mb-6">
               {screenData.instructions || 'Click the button to spin the wheel!'}
             </p>
           )}
-          
+
           <div className="mb-6">
-            <div className="w-48 h-48 bg-gray-200 rounded-full mx-auto flex items-center justify-center">
-              <span className="text-gray-500">Wheel Preview</span>
+            <div className="w-48 h-48 bg-charcoal-700 rounded-full mx-auto flex items-center justify-center">
+              <span className="text-gray-400">Wheel Preview</span>
             </div>
           </div>
           
