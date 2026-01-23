@@ -70,30 +70,30 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2">
         <button
           type="button"
           onClick={() => onLogoChange('upload', null)}
-          className={`flex-1 px-4 py-2 rounded-lg text-sm transition-colors ${
+          className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
             logoType === 'upload'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white/5 text-gray-400 hover:bg-white/10'
+              ? 'bg-teal-600 text-white'
+              : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'
           }`}
         >
-          <FaUpload className="inline mr-2" />
-          Upload Image
+          <FaUpload className="w-4 h-4" />
+          <span>Upload</span>
         </button>
         <button
           type="button"
           onClick={() => onLogoChange('url', logoUrl || '')}
-          className={`flex-1 px-4 py-2 rounded-lg text-sm transition-colors ${
+          className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
             logoType === 'url'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white/5 text-gray-400 hover:bg-white/10'
+              ? 'bg-teal-600 text-white'
+              : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'
           }`}
         >
-          <FaImage className="inline mr-2" />
-          Use URL
+          <FaImage className="w-4 h-4" />
+          <span>Use URL</span>
         </button>
       </div>
 
@@ -104,10 +104,11 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
-            className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            onClick={() => !preview && fileInputRef.current?.click()}
+            className={`relative border-2 border-dashed rounded-xl p-6 md:p-8 text-center transition-colors cursor-pointer ${
               dragActive
-                ? 'border-blue-500 bg-blue-500/10'
-                : 'border-white/20 bg-white/5 hover:bg-white/10'
+                ? 'border-teal-500 bg-teal-500/10'
+                : 'border-white/20 bg-zinc-800/50 hover:bg-zinc-800'
             }`}
           >
             <input
@@ -123,30 +124,29 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
                 <img
                   src={preview}
                   alt={`${clientName} logo`}
-                  className="max-h-32 mx-auto rounded-lg"
+                  className="max-h-28 md:max-h-32 mx-auto rounded-lg"
                 />
                 <button
                   type="button"
-                  onClick={clearLogo}
-                  className="absolute top-0 right-0 -mt-2 -mr-2 p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearLogo();
+                  }}
+                  className="absolute -top-2 -right-2 p-2.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors shadow-lg"
                 >
-                  <FaTimes />
+                  <FaTimes className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
               <div className="space-y-3">
-                <FaUpload className="mx-auto text-4xl text-gray-400" />
+                <div className="w-14 h-14 md:w-16 md:h-16 mx-auto rounded-full bg-zinc-700 flex items-center justify-center">
+                  <FaUpload className="w-6 h-6 md:w-7 md:h-7 text-gray-400" />
+                </div>
                 <div>
                   <p className="text-sm text-gray-300 mb-1">
-                    Drag and drop your logo here, or
+                    <span className="hidden md:inline">Drag and drop your logo here, or </span>
+                    <span className="text-teal-400 font-medium">tap to upload</span>
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-blue-500 hover:text-blue-400 text-sm font-medium"
-                  >
-                    browse files
-                  </button>
                 </div>
                 <p className="text-xs text-gray-500">
                   PNG, JPEG, SVG, or WebP (max 2MB)
@@ -162,7 +162,7 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
             value={logoUrl || ''}
             onChange={(e) => handleUrlChange(e.target.value)}
             placeholder="https://example.com/logo.png"
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            className="w-full px-4 py-3 bg-zinc-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-teal-500"
           />
           {preview && preview.startsWith('http') && (
             <div className="mt-4 relative">
@@ -171,7 +171,7 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
                 <img
                   src={preview}
                   alt={`${clientName} logo`}
-                  className="max-h-32 rounded-lg"
+                  className="max-h-28 md:max-h-32 rounded-lg"
                   onError={() => {
                     setError('Failed to load image from URL');
                     setPreview('');
@@ -180,9 +180,9 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
                 <button
                   type="button"
                   onClick={clearLogo}
-                  className="absolute top-0 right-0 -mt-2 -mr-2 p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                  className="absolute -top-2 -right-2 p-2.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors shadow-lg"
                 >
-                  <FaTimes />
+                  <FaTimes className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import LogoUploader from './LogoUploader';
 import BrandColorPicker from './BrandColorPicker';
 import StatusSelector from './StatusSelector';
@@ -77,8 +77,8 @@ const ClientBrandingForm = ({ client, onSave, onCancel }) => {
   });
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-white mb-2">
             Client Name *
@@ -88,7 +88,7 @@ const ClientBrandingForm = ({ client, onSave, onCancel }) => {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="Acme Corporation"
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            className="w-full px-4 py-3 bg-zinc-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-teal-500"
             required
           />
         </div>
@@ -102,7 +102,7 @@ const ClientBrandingForm = ({ client, onSave, onCancel }) => {
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             placeholder="contact@acme.com"
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            className="w-full px-4 py-3 bg-zinc-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-teal-500"
             required
           />
         </div>
@@ -124,8 +124,8 @@ const ClientBrandingForm = ({ client, onSave, onCancel }) => {
         )}
       </div>
 
-      <div className="border-t border-white/10 pt-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Client Logo</h3>
+      <div className="border-t border-white/10 pt-5">
+        <h3 className="text-base font-semibold text-white mb-3">Client Logo</h3>
         <LogoUploader
           logoType={formData.logo_type}
           logoUrl={formData.logo_url}
@@ -134,8 +134,8 @@ const ClientBrandingForm = ({ client, onSave, onCancel }) => {
         />
       </div>
 
-      <div className="border-t border-white/10 pt-6">
-        <h3 className="text-lg font-semibold text-white mb-2">Brand Colors</h3>
+      <div className="border-t border-white/10 pt-5">
+        <h3 className="text-base font-semibold text-white mb-1">Brand Colors</h3>
         <p className="text-sm text-gray-400 mb-4">
           These colors will be used as defaults in all campaigns for this client
         </p>
@@ -163,24 +163,24 @@ const ClientBrandingForm = ({ client, onSave, onCancel }) => {
           />
         </div>
 
-        <div className="mt-6 p-4 rounded-lg bg-white/5 border border-white/10">
+        <div className="mt-5 p-4 rounded-lg bg-zinc-800/50 border border-white/10">
           <p className="text-sm font-medium text-white mb-3">Brand Preview</p>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div
-              className="h-20 flex-1 rounded-lg"
+              className="h-16 sm:h-20 flex-1 rounded-lg"
               style={{ background: brandingPreview.gradient }}
             />
-            <div className="space-y-2">
-              <div className="flex gap-2">
+            <div className="flex sm:flex-col gap-2 justify-center">
+              <div className="flex items-center gap-2">
                 <div
-                  className="w-16 h-8 rounded border border-white/20"
+                  className="w-10 h-10 sm:w-12 sm:h-8 rounded border border-white/20"
                   style={{ backgroundColor: formData.primary_color }}
                 />
                 <span className="text-xs text-gray-400">Primary</span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <div
-                  className="w-16 h-8 rounded border border-white/20"
+                  className="w-10 h-10 sm:w-12 sm:h-8 rounded border border-white/20"
                   style={{ backgroundColor: formData.secondary_color }}
                 />
                 <span className="text-xs text-gray-400">Secondary</span>
@@ -196,19 +196,19 @@ const ClientBrandingForm = ({ client, onSave, onCancel }) => {
         </div>
       )}
 
-      <div className="flex gap-3 pt-4 border-t border-white/10">
+      <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-white/10">
         <button
           type="button"
           onClick={onCancel}
           disabled={isSaving}
-          className="flex-1 px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSaving}
-          className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
         >
           {isSaving ? 'Saving...' : client ? 'Update Client' : 'Create Client'}
         </button>

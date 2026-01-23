@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiArrowLeft, FiSettings, FiLink, FiGift, FiSave, FiPlus, FiTrash2, FiCopy } from 'react-icons/fi';
+import { FiArrowLeft, FiSettings, FiLink, FiGift, FiSave, FiPlus, FiTrash2, FiCopy, FiCheck } from 'react-icons/fi';
 import { usePlatform } from '../../context/PlatformContext';
 import GlassCard from '../common/GlassCard';
 import ImageUploader from '../../common/ImageUploader';
@@ -83,23 +83,23 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
 
   const tabs = [
     { id: 'settings', label: 'Settings', icon: FiSettings },
-    { id: 'sharing', label: 'Game URL & Sharing', icon: FiLink },
-    { id: 'prizes', label: 'Prize Configuration', icon: FiGift }
+    { id: 'sharing', label: 'Sharing', icon: FiLink },
+    { id: 'prizes', label: 'Prizes', icon: FiGift }
   ];
 
   return (
-    <div className="h-full flex flex-col bg-charcoal-900 text-white">
-      <header className="h-16 border-b border-white/10 bg-charcoal-800 flex items-center justify-between px-6 flex-shrink-0">
-        <div className="flex items-center space-x-4">
+    <div className="h-full flex flex-col bg-zinc-900 text-white">
+      <header className="h-14 md:h-16 border-b border-white/10 bg-zinc-800 flex items-center justify-between px-3 md:px-6 flex-shrink-0">
+        <div className="flex items-center gap-2 md:gap-4 min-w-0">
           <button
             onClick={onBack}
-            className="p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors"
+            className="p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors flex-shrink-0"
           >
             <FiArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <h1 className="text-lg font-bold text-white">{campaign.name}</h1>
-            <div className="flex items-center space-x-2">
+          <div className="min-w-0">
+            <h1 className="text-base md:text-lg font-bold text-white truncate">{campaign.name}</h1>
+            <div className="hidden md:flex items-center gap-2">
               <span className="px-2 py-0.5 rounded text-xs font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30">
                 BizGamez
               </span>
@@ -114,38 +114,45 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
         <button
           onClick={handleSave}
           disabled={isSaving || !hasChanges}
-          className="bg-teal-600 hover:bg-teal-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium flex items-center space-x-2 shadow-lg shadow-teal-500/20 transition-colors"
+          className="hidden md:flex bg-orange-600 hover:bg-orange-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium items-center gap-2 shadow-lg shadow-orange-500/20 transition-colors"
         >
           <FiSave className="w-4 h-4" />
           <span>{isSaving ? 'Saving...' : 'Save'}</span>
         </button>
+
+        {hasChanges && (
+          <div className="md:hidden flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span className="text-xs text-amber-400">Unsaved</span>
+          </div>
+        )}
       </header>
 
-      <div className="flex-1 flex overflow-hidden">
-        <nav className="w-20 md:w-64 border-r border-white/5 bg-charcoal-800/50 flex flex-col">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        <nav className="hidden md:flex w-64 border-r border-white/5 bg-zinc-800/50 flex-col">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`
-                flex items-center md:space-x-3 p-4 md:px-6 hover:bg-white/5 transition-colors border-l-2
+                flex items-center gap-3 p-4 px-6 hover:bg-white/5 transition-colors border-l-2
                 ${activeTab === tab.id ? 'border-orange-500 bg-white/5 text-orange-400' : 'border-transparent text-gray-500'}
               `}
             >
               <tab.icon className="w-5 h-5" />
-              <span className="hidden md:block font-medium text-sm">{tab.label}</span>
+              <span className="font-medium text-sm">{tab.label}</span>
             </button>
           ))}
         </nav>
 
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-charcoal-900 admin-scroll">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-zinc-900 pb-24 md:pb-8">
           <div className="max-w-4xl mx-auto">
             {activeTab === 'settings' && (
-              <div className="space-y-6">
-                <h2 className="text-xl font-bold text-white mb-6">Campaign Settings</h2>
+              <div className="space-y-4 md:space-y-6">
+                <h2 className="text-lg md:text-xl font-bold text-white">Campaign Settings</h2>
 
-                <GlassCard className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Basic Information</h3>
+                <GlassCard className="p-4 md:p-6">
+                  <h3 className="text-base md:text-lg font-semibold text-white mb-4">Basic Information</h3>
 
                   <div className="space-y-4">
                     <div>
@@ -156,7 +163,7 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                         type="text"
                         value={campaign.name}
                         disabled
-                        className="w-full bg-charcoal-800 border border-white/10 rounded-lg px-3 py-2 text-gray-400"
+                        className="w-full bg-zinc-800 border border-white/10 rounded-lg px-4 py-3 text-gray-400"
                       />
                       <p className="text-xs text-gray-500 mt-1">Campaign name cannot be changed here</p>
                     </div>
@@ -170,7 +177,7 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                         value={config.bizgamez_code}
                         onChange={(e) => handleConfigChange('bizgamez_code', e.target.value)}
                         placeholder="fossil-creek-title-1"
-                        className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-orange-500 focus:outline-none"
+                        className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:outline-none"
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         This must match the game_code field sent in the webhook
@@ -179,8 +186,8 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Webhook Configuration</h3>
+                <GlassCard className="p-4 md:p-6">
+                  <h3 className="text-base md:text-lg font-semibold text-white mb-4">Webhook Configuration</h3>
 
                   <div className="space-y-4">
                     <div>
@@ -192,11 +199,11 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                           type="text"
                           value={webhookUrl}
                           readOnly
-                          className="flex-1 bg-charcoal-800 border border-white/10 rounded-lg px-3 py-2 text-gray-300 font-mono text-sm"
+                          className="flex-1 bg-zinc-800 border border-white/10 rounded-lg px-4 py-3 text-gray-300 font-mono text-xs md:text-sm overflow-x-auto"
                         />
                         <button
                           onClick={() => copyToClipboard(webhookUrl)}
-                          className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                          className="px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0"
                         >
                           <FiCopy className="w-4 h-4" />
                         </button>
@@ -206,9 +213,9 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                       </p>
                     </div>
 
-                    <div className="bg-charcoal-800 rounded-lg p-4 border border-white/10">
+                    <div className="bg-zinc-800 rounded-lg p-4 border border-white/10 overflow-x-auto">
                       <h4 className="text-sm font-medium text-gray-300 mb-2">Expected Webhook Payload</h4>
-                      <pre className="text-xs text-gray-400 font-mono overflow-x-auto">
+                      <pre className="text-xs text-gray-400 font-mono whitespace-pre-wrap">
 {`{
   "score": 1,
   "game_code": "${config.bizgamez_code || 'your-game-code'}",
@@ -222,8 +229,8 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Redemption Settings</h3>
+                <GlassCard className="p-4 md:p-6">
+                  <h3 className="text-base md:text-lg font-semibold text-white mb-4">Redemption Settings</h3>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -235,7 +242,7 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                       onChange={(e) => handleConfigChange('redemption', { ...config.redemption, expirationDays: parseInt(e.target.value) })}
                       min="1"
                       max="365"
-                      className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-orange-500 focus:outline-none"
+                      className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:outline-none"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       How many days until the prize redemption code expires
@@ -246,11 +253,11 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
             )}
 
             {activeTab === 'sharing' && (
-              <div className="space-y-6">
-                <h2 className="text-xl font-bold text-white mb-6">Game URL & Sharing</h2>
+              <div className="space-y-4 md:space-y-6">
+                <h2 className="text-lg md:text-xl font-bold text-white">Game URL & Sharing</h2>
 
-                <GlassCard className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Public Game URL</h3>
+                <GlassCard className="p-4 md:p-6">
+                  <h3 className="text-base md:text-lg font-semibold text-white mb-4">Public Game URL</h3>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -261,7 +268,7 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                       value={config.game_url}
                       onChange={(e) => handleConfigChange('game_url', e.target.value)}
                       placeholder="https://games.playzo.io/games/fossil-creek-title-1"
-                      className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-orange-500 focus:outline-none"
+                      className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:outline-none"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       The public URL where players can access this game
@@ -269,8 +276,8 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">QR Code</h3>
+                <GlassCard className="p-4 md:p-6">
+                  <h3 className="text-base md:text-lg font-semibold text-white mb-4">QR Code</h3>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -292,15 +299,15 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                         <img
                           src={config.qr_code_image}
                           alt="QR Code"
-                          className="w-48 h-48 object-contain"
+                          className="w-40 h-40 md:w-48 md:h-48 object-contain"
                         />
                       </div>
                     </div>
                   )}
                 </GlassCard>
 
-                <GlassCard className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Embed Code</h3>
+                <GlassCard className="p-4 md:p-6">
+                  <h3 className="text-base md:text-lg font-semibold text-white mb-4">Embed Code</h3>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -311,7 +318,7 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                       onChange={(e) => handleConfigChange('embed_code', e.target.value)}
                       placeholder='<iframe src="https://games.playzo.io/embed/fossil-creek" width="100%" height="600" frameborder="0"></iframe>'
                       rows={4}
-                      className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-orange-500 focus:outline-none"
+                      className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm focus:border-orange-500 focus:outline-none resize-none"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Paste the iFrame embed code provided by BizGamez/Playzo
@@ -334,22 +341,22 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
             )}
 
             {activeTab === 'prizes' && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-white">Prize Configuration</h2>
+              <div className="space-y-4 md:space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                  <h2 className="text-lg md:text-xl font-bold text-white">Prize Configuration</h2>
                   <button
                     onClick={addPrize}
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg transition-colors text-sm font-medium"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-orange-600 hover:bg-orange-500 rounded-lg transition-colors text-sm font-medium w-full sm:w-auto justify-center"
                   >
                     <FiPlus className="w-4 h-4" />
                     Add Prize
                   </button>
                 </div>
 
-                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4">
                   <p className="text-sm text-orange-200">
                     <strong>Score Matching:</strong> Each prize is tied to a specific score value. When the webhook sends a score,
-                    it will be matched to the prize with that exact score value. Make sure each prize has a unique score.
+                    it will be matched to the prize with that exact score value.
                   </p>
                 </div>
 
@@ -360,7 +367,7 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                     <p className="text-gray-400 mb-4">Add prizes that players can win based on their game score</p>
                     <button
                       onClick={addPrize}
-                      className="px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg transition-colors text-sm font-medium"
+                      className="px-4 py-2.5 bg-orange-600 hover:bg-orange-500 rounded-lg transition-colors text-sm font-medium"
                     >
                       Add First Prize
                     </button>
@@ -368,13 +375,13 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                 ) : (
                   <div className="space-y-4">
                     {config.prizes.map((prize, index) => (
-                      <GlassCard key={index} className="p-6">
+                      <GlassCard key={index} className="p-4 md:p-6">
                         <div className="flex justify-between items-start mb-4">
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3 flex-wrap">
                             <span className={`px-3 py-1 rounded-full text-xs font-bold ${prize.isWin ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                               {prize.isWin ? 'WIN' : 'LOSE'}
                             </span>
-                            <h3 className="text-lg font-semibold text-white">{prize.name || 'Unnamed Prize'}</h3>
+                            <h3 className="text-base md:text-lg font-semibold text-white">{prize.name || 'Unnamed Prize'}</h3>
                           </div>
                           <button
                             onClick={() => removePrize(index)}
@@ -393,7 +400,7 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                               type="number"
                               value={prize.score}
                               onChange={(e) => handlePrizeChange(index, 'score', parseInt(e.target.value))}
-                              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-orange-500 focus:outline-none"
+                              className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:outline-none"
                             />
                             <p className="text-xs text-gray-500 mt-1">Score value from webhook</p>
                           </div>
@@ -407,7 +414,7 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                               value={prize.name}
                               onChange={(e) => handlePrizeChange(index, 'name', e.target.value)}
                               placeholder="Grand Prize"
-                              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-orange-500 focus:outline-none"
+                              className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:outline-none"
                             />
                           </div>
 
@@ -418,7 +425,7 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                             <select
                               value={prize.isWin ? 'win' : 'lose'}
                               onChange={(e) => handlePrizeChange(index, 'isWin', e.target.value === 'win')}
-                              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-orange-500 focus:outline-none"
+                              className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:outline-none"
                             >
                               <option value="win">Win - Player receives prize</option>
                               <option value="lose">Lose - No prize awarded</option>
@@ -436,7 +443,7 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                                   value={prize.winHeadline || ''}
                                   onChange={(e) => handlePrizeChange(index, 'winHeadline', e.target.value)}
                                   placeholder="You Won!"
-                                  className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-orange-500 focus:outline-none"
+                                  className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:outline-none"
                                 />
                               </div>
 
@@ -449,7 +456,7 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
                                   onChange={(e) => handlePrizeChange(index, 'winMessage', e.target.value)}
                                   placeholder="Congratulations on winning the grand prize!"
                                   rows={2}
-                                  className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-orange-500 focus:outline-none"
+                                  className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:outline-none resize-none"
                                 />
                               </div>
                             </>
@@ -464,6 +471,36 @@ const BizGamezCampaignBuilder = ({ campaign, client, onBack }) => {
           </div>
         </main>
       </div>
+
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-white/10 flex safe-area-bottom">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`
+              flex-1 flex flex-col items-center gap-1 py-3 transition-colors
+              ${activeTab === tab.id ? 'text-orange-400' : 'text-gray-500'}
+            `}
+          >
+            <tab.icon className="w-5 h-5" />
+            <span className="text-xs font-medium">{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {hasChanges && (
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="md:hidden fixed bottom-20 right-4 w-14 h-14 bg-orange-600 hover:bg-orange-500 disabled:bg-orange-600/50 text-white rounded-full shadow-lg shadow-orange-500/30 flex items-center justify-center transition-all active:scale-95 z-20"
+        >
+          {isSaving ? (
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <FiCheck className="w-6 h-6" />
+          )}
+        </button>
+      )}
     </div>
   );
 };

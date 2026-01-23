@@ -59,316 +59,254 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
     }
   };
 
+  const campaignTypes = [
+    {
+      id: 'spin',
+      name: 'Spin to Win',
+      description: 'Classic prize wheel with customizable segments',
+      icon: <FiChevronRight className="transform -rotate-45" />,
+      color: 'bg-teal-500',
+      hoverBorder: 'hover:border-teal-500'
+    },
+    {
+      id: 'scratch',
+      name: 'Scratch to Win',
+      description: 'Interactive scratch-off card experience',
+      icon: <FiX className="transform rotate-45" />,
+      color: 'bg-emerald-500',
+      hoverBorder: 'hover:border-emerald-500'
+    },
+    {
+      id: 'bizgamez',
+      name: 'BizGamez',
+      description: 'External game with webhook integration',
+      icon: <span className="font-bold text-white">BG</span>,
+      color: 'bg-orange-500',
+      hoverBorder: 'hover:border-orange-500'
+    }
+  ];
+
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'rgba(0, 0, 0, 0.9)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 'var(--z-modal)',
-      padding: 'var(--space-3)',
-      overflowY: 'auto'
-    }}>
-      <div className="glass-card" style={{
-        maxWidth: '700px',
-        width: '100%',
-        padding: 'var(--space-6)',
-        background: 'var(--bg-secondary)',
-        border: '1px solid var(--border-color)',
-        maxHeight: '90vh',
-        overflowY: 'auto'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
-          <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--font-semibold)' }}>
-            Create New Campaign
-          </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-            <FiX size={24} />
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-6)' }}>
-          {[1, 2].map(s => (
-            <div key={s} style={{
-              flex: 1,
-              height: '4px',
-              background: s <= step ? 'var(--brand-primary)' : 'var(--bg-tertiary)',
-              borderRadius: 'var(--radius-full)',
-              transition: 'background var(--transition-fast)'
-            }} />
-          ))}
-        </div>
-
-        {step === 1 && (
-          <div>
-            <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-4)' }}>
-              Step 1: Select Campaign Type
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-3)' }}>
-              <button
-                onClick={() => handleTypeSelect('spin')}
-                className="glass-card"
-                style={{
-                  padding: 'var(--space-4)',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  border: '2px solid var(--border-color)',
-                  background: 'var(--bg-tertiary)',
-                  transition: 'all var(--transition-fast)'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--brand-primary)'}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
-              >
-                <div style={{
-                  width: '60px',
-                  height: '60px',
-                  margin: '0 auto var(--space-2)',
-                  background: 'var(--brand-primary)',
-                  borderRadius: 'var(--radius-full)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 'var(--text-2xl)'
-                }}>
-                  <FiChevronRight style={{ transform: 'rotate(-45deg)' }} />
-                </div>
-                <h4 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-1)' }}>
-                  Spin to Win
-                </h4>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-xs)' }}>
-                  Classic prize wheel with customizable segments
-                </p>
-              </button>
-
-              <button
-                onClick={() => handleTypeSelect('scratch')}
-                className="glass-card"
-                style={{
-                  padding: 'var(--space-4)',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  border: '2px solid var(--border-color)',
-                  background: 'var(--bg-tertiary)',
-                  transition: 'all var(--transition-fast)'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--brand-primary)'}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
-              >
-                <div style={{
-                  width: '60px',
-                  height: '60px',
-                  margin: '0 auto var(--space-2)',
-                  background: 'var(--success)',
-                  borderRadius: 'var(--radius-full)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 'var(--text-2xl)'
-                }}>
-                  <FiX style={{ transform: 'rotate(45deg)' }} />
-                </div>
-                <h4 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-1)' }}>
-                  Scratch to Win
-                </h4>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-xs)' }}>
-                  Interactive scratch-off card experience
-                </p>
-              </button>
-
-              <button
-                onClick={() => handleTypeSelect('bizgamez')}
-                className="glass-card"
-                style={{
-                  padding: 'var(--space-4)',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  border: '2px solid var(--border-color)',
-                  background: 'var(--bg-tertiary)',
-                  transition: 'all var(--transition-fast)'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#F97316'}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
-              >
-                <div style={{
-                  width: '60px',
-                  height: '60px',
-                  margin: '0 auto var(--space-2)',
-                  background: '#F97316',
-                  borderRadius: 'var(--radius-full)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 'var(--text-2xl)',
-                  color: 'white',
-                  fontWeight: 'bold'
-                }}>
-                  BG
-                </div>
-                <h4 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-1)' }}>
-                  BizGamez
-                </h4>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-xs)' }}>
-                  External game with webhook integration
-                </p>
-              </button>
-            </div>
+    <div className="fixed inset-0 bg-black/90 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
+      <div className="bg-zinc-900 border border-white/10 rounded-t-2xl md:rounded-xl w-full md:max-w-2xl max-h-[90vh] md:max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="sticky top-0 bg-zinc-900 border-b border-white/10 p-4 md:p-6 flex-shrink-0">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg md:text-xl font-semibold text-white">
+              Create New Campaign
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 -mr-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+            >
+              <FiX size={24} />
+            </button>
           </div>
-        )}
 
-        {step === 2 && formData.type && formData.type !== 'bizgamez' && (
-          <div>
-            <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-4)' }}>
-              Step 2: Basic Settings
-            </h3>
-
-            <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                  Campaign Name *
-                </label>
-                <input
-                  className="input"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Summer Sale 2026"
-                  required
-                />
+          <div className="flex gap-2">
+            {[1, 2].map(s => (
+              <div key={s} className="flex-1 flex items-center gap-2">
+                <div className={`
+                  w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium transition-colors
+                  ${s <= step ? 'bg-teal-500 text-white' : 'bg-zinc-700 text-gray-400'}
+                `}>
+                  {s}
+                </div>
+                <div className={`flex-1 h-1 rounded-full transition-colors ${s <= step ? 'bg-teal-500' : 'bg-zinc-700'}`} />
               </div>
+            ))}
+          </div>
+        </div>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                  Campaign Slug (URL path)
-                </label>
-                <input
-                  className="input"
-                  type="text"
-                  value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                  placeholder={formData.name ? formData.name.toLowerCase().replace(/\s+/g, '-') : 'summer-sale-2026'}
-                />
-                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 'var(--space-1)' }}>
-                  Players will access this at: /play/{formData.slug || 'your-campaign-slug'}
-                </p>
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+          {step === 1 && (
+            <div>
+              <h3 className="text-base md:text-lg font-semibold text-white mb-4">
+                Select Campaign Type
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {campaignTypes.map((type) => (
+                  <button
+                    key={type.id}
+                    onClick={() => handleTypeSelect(type.id)}
+                    className={`
+                      p-4 md:p-5 rounded-xl text-left md:text-center border-2 border-white/10
+                      bg-zinc-800/50 transition-all active:scale-[0.98]
+                      ${type.hoverBorder}
+                    `}
+                  >
+                    <div className="flex md:flex-col items-center gap-4 md:gap-3">
+                      <div className={`
+                        w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl text-white
+                        ${type.color}
+                      `}>
+                        {type.icon}
+                      </div>
+                      <div className="flex-1 md:flex-none">
+                        <h4 className="text-base font-semibold text-white mb-1">
+                          {type.name}
+                        </h4>
+                        <p className="text-sm text-gray-400">
+                          {type.description}
+                        </p>
+                      </div>
+                      <FiChevronRight className="w-5 h-5 text-gray-500 md:hidden" />
+                    </div>
+                  </button>
+                ))}
               </div>
+            </div>
+          )}
 
-              <div>
-                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                  Spin Limit *
-                </label>
-                <select
-                  className="input"
-                  value={formData.spinLimit}
-                  onChange={(e) => setFormData({ ...formData, spinLimit: e.target.value })}
-                >
-                  <option value="unlimited">Unlimited - Players can spin as many times as they want</option>
-                  <option value="one-per-user">One Per User - Each player can only spin once ever</option>
-                  <option value="one-per-session">One Per Session - One spin per browser session</option>
-                  <option value="time-limit">Time Limit - Wait between spins</option>
-                  <option value="calendar-limit">Calendar Limit - Reset weekly or monthly</option>
-                </select>
-              </div>
+          {step === 2 && formData.type && formData.type !== 'bizgamez' && (
+            <div>
+              <h3 className="text-base md:text-lg font-semibold text-white mb-4">
+                Basic Settings
+              </h3>
 
-              {formData.spinLimit === 'time-limit' && (
+              <div className="space-y-4">
                 <div>
-                  <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                    Hours Between Spins
+                  <label className="block mb-2 text-sm text-gray-300">
+                    Campaign Name *
                   </label>
                   <input
-                    className="input"
-                    type="number"
-                    min="1"
-                    max="168"
-                    value={formData.spinDelayHours}
-                    onChange={(e) => setFormData({ ...formData, spinDelayHours: parseInt(e.target.value) })}
+                    className="w-full px-4 py-3 bg-zinc-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-teal-500"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Summer Sale 2026"
+                    required
                   />
                 </div>
-              )}
 
-              <div className="glass-card" style={{ padding: 'var(--space-4)', background: 'var(--bg-tertiary)' }}>
-                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-2)' }}>
-                  Campaign will inherit {client?.name}'s branding (logo and colors). You can customize all screens, prizes, and settings in the editor after creation.
-                </p>
+                <div>
+                  <label className="block mb-2 text-sm text-gray-300">
+                    Campaign Slug (URL path)
+                  </label>
+                  <input
+                    className="w-full px-4 py-3 bg-zinc-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-teal-500"
+                    type="text"
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                    placeholder={formData.name ? formData.name.toLowerCase().replace(/\s+/g, '-') : 'summer-sale-2026'}
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Players will access this at: /play/{formData.slug || 'your-campaign-slug'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm text-gray-300">
+                    Play Limit *
+                  </label>
+                  <select
+                    className="w-full px-4 py-3 bg-zinc-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-teal-500"
+                    value={formData.spinLimit}
+                    onChange={(e) => setFormData({ ...formData, spinLimit: e.target.value })}
+                  >
+                    <option value="unlimited">Unlimited plays</option>
+                    <option value="one-per-user">One per user</option>
+                    <option value="one-per-session">One per session</option>
+                    <option value="time-limit">Time limit between plays</option>
+                    <option value="calendar-limit">Reset weekly/monthly</option>
+                  </select>
+                </div>
+
+                {formData.spinLimit === 'time-limit' && (
+                  <div>
+                    <label className="block mb-2 text-sm text-gray-300">
+                      Hours Between Plays
+                    </label>
+                    <input
+                      className="w-full px-4 py-3 bg-zinc-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-teal-500"
+                      type="number"
+                      min="1"
+                      max="168"
+                      value={formData.spinDelayHours}
+                      onChange={(e) => setFormData({ ...formData, spinDelayHours: parseInt(e.target.value) })}
+                    />
+                  </div>
+                )}
+
+                <div className="p-4 bg-zinc-800/50 border border-white/10 rounded-lg">
+                  <p className="text-sm text-gray-400">
+                    Campaign will inherit <span className="text-white font-medium">{client?.name}'s</span> branding. You can customize all screens, prizes, and settings in the editor after creation.
+                  </p>
+                </div>
               </div>
             </div>
+          )}
 
-            <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-6)' }}>
-              <button className="btn btn-ghost" onClick={() => setStep(1)}>
-                <FiChevronLeft /> Back
-              </button>
+          {step === 2 && formData.type === 'bizgamez' && (
+            <div>
+              <h3 className="text-base md:text-lg font-semibold text-white mb-4">
+                BizGamez Settings
+              </h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block mb-2 text-sm text-gray-300">
+                    Game Name *
+                  </label>
+                  <input
+                    className="w-full px-4 py-3 bg-zinc-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Fossil Creek Title 1"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Internal name for this campaign
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm text-gray-300">
+                    BizGamez Code *
+                  </label>
+                  <input
+                    className="w-full px-4 py-3 bg-zinc-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                    type="text"
+                    value={formData.bizgamezCode || ''}
+                    onChange={(e) => setFormData({ ...formData, bizgamezCode: e.target.value })}
+                    placeholder="fossil-creek-title-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    This must match the game_code sent in the webhook from BizGamez/Playzo
+                  </p>
+                </div>
+
+                <div className="p-4 bg-orange-500/10 border-l-4 border-orange-500 rounded-r-lg">
+                  <p className="text-sm text-gray-300">
+                    <strong className="text-white">How it works:</strong> When a player completes a game in BizGamez/Playzo, the webhook will send their score and contact info to this campaign. You can configure prizes and win/lose outcomes in the editor.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {step === 2 && (
+          <div className="sticky bottom-0 bg-zinc-900 border-t border-white/10 p-4 md:p-6 flex-shrink-0">
+            <div className="flex gap-3">
               <button
-                className="btn btn-primary"
-                onClick={handleSubmit}
-                disabled={!formData.name}
-                style={{ flex: 1 }}
+                className="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                onClick={() => setStep(1)}
               >
-                Create & Open Editor
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 2 && formData.type === 'bizgamez' && (
-          <div>
-            <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-4)' }}>
-              Step 2: BizGamez Settings
-            </h3>
-
-            <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                  Game Name *
-                </label>
-                <input
-                  className="input"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Fossil Creek Title 1"
-                  required
-                />
-                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 'var(--space-1)' }}>
-                  Internal name for this campaign
-                </p>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                  BizGamez Code *
-                </label>
-                <input
-                  className="input"
-                  type="text"
-                  value={formData.bizgamezCode || ''}
-                  onChange={(e) => setFormData({ ...formData, bizgamezCode: e.target.value })}
-                  placeholder="fossil-creek-title-1"
-                />
-                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 'var(--space-1)' }}>
-                  This must match the game_code sent in the webhook from BizGamez/Playzo
-                </p>
-              </div>
-
-              <div className="glass-card" style={{ padding: 'var(--space-4)', background: 'var(--bg-tertiary)', borderLeft: '3px solid #F97316' }}>
-                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-2)' }}>
-                  <strong>How it works:</strong> When a player completes a game in BizGamez/Playzo, the webhook will send their score and contact info to this campaign. You can configure prizes and win/lose outcomes in the editor.
-                </p>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-6)' }}>
-              <button className="btn btn-ghost" onClick={() => setStep(1)}>
-                <FiChevronLeft /> Back
+                <FiChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Back</span>
               </button>
               <button
-                className="btn btn-primary"
+                className={`
+                  flex-1 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2
+                  ${formData.type === 'bizgamez'
+                    ? 'bg-orange-600 hover:bg-orange-500 disabled:bg-orange-600/50'
+                    : 'bg-teal-600 hover:bg-teal-500 disabled:bg-teal-600/50'
+                  }
+                  text-white disabled:cursor-not-allowed
+                `}
                 onClick={handleSubmit}
-                disabled={!formData.name || !formData.bizgamezCode}
-                style={{ flex: 1 }}
+                disabled={formData.type === 'bizgamez' ? !formData.name || !formData.bizgamezCode : !formData.name}
               >
                 Create & Open Editor
               </button>
