@@ -247,7 +247,7 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
             </div>
           )}
 
-          {step === 2 && formData.type && formData.type !== 'bizgamez' && (
+          {step === 2 && formData.type && formData.type !== 'bizgamez' && formData.type !== 'loyalty' && (
             <div>
               <h3 className="text-base md:text-lg font-semibold text-white mb-4">
                 Basic Settings
@@ -384,7 +384,7 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
               <div className="space-y-4">
                 <div>
                   <label className="block mb-2 text-sm text-gray-300">
-                    Program Name *
+                    Campaign Name *
                   </label>
                   <input
                     className="w-full px-4 py-3 bg-zinc-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-rose-500"
@@ -394,6 +394,22 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
                     placeholder="Coffee Rewards"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm text-gray-300">
+                    Campaign Slug (URL path)
+                  </label>
+                  <input
+                    className="w-full px-4 py-3 bg-zinc-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-rose-500"
+                    type="text"
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                    placeholder={formData.name ? formData.name.toLowerCase().replace(/\s+/g, '-') : 'coffee-rewards'}
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Members will access this at: /loyalty/{formData.slug || 'your-program-slug'}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
