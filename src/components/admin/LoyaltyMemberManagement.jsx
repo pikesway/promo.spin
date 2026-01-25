@@ -15,19 +15,17 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
   });
 
   const loyaltyCampaigns = (campaigns || []).filter(c => c.type === 'loyalty');
+  const campaignIds = loyaltyCampaigns.map(c => c.id);
 
   const fetchMembers = useCallback(async () => {
-    if (!clientId) return;
+    if (!clientId || campaignIds.length === 0) {
+      setMembers([]);
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
-
-      const campaignIds = loyaltyCampaigns.map(c => c.id);
-      if (campaignIds.length === 0) {
-        setMembers([]);
-        setLoading(false);
-        return;
-      }
 
       const { data: memberData, error } = await supabase
         .from('loyalty_accounts')
@@ -60,7 +58,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
     } finally {
       setLoading(false);
     }
-  }, [clientId, loyaltyCampaigns]);
+  }, [clientId, campaignIds.join(',')]);
 
   useEffect(() => {
     fetchMembers();
