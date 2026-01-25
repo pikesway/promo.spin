@@ -21,6 +21,7 @@ export const initializeCampaignConfig = (type, client) => {
 
   const isScratch = type === 'scratch';
   const isBizGamez = type === 'bizgamez';
+  const isLoyalty = type === 'loyalty';
 
   if (isBizGamez) {
     return {
@@ -34,6 +35,51 @@ export const initializeCampaignConfig = (type, client) => {
       ],
       redemption: {
         expirationDays: 30
+      }
+    };
+  }
+
+  if (isLoyalty) {
+    return {
+      loyalty: {
+        programType: 'visit',
+        threshold: 10,
+        validationMethod: 'pin',
+        validationConfig: {},
+        rewardName: 'Free Reward',
+        rewardDescription: '',
+        resetBehavior: 'reset',
+        lockoutThreshold: 3
+      },
+      visual: {
+        background: {
+          type: 'color',
+          color: backgroundColor,
+          gradientStart: primaryColor,
+          gradientEnd: secondaryColor,
+          gradientDirection: 'to bottom'
+        },
+        stampImage: '',
+        emptyStampImage: ''
+      },
+      screens: {
+        card: {
+          headline: 'Your Loyalty Card',
+          subheading: 'Collect stamps and earn rewards!',
+          logo: client?.logo_url || '',
+          showProgress: true,
+          showQRCode: true
+        },
+        reward: {
+          headline: 'Reward Unlocked!',
+          message: 'You have earned your reward!',
+          buttonText: 'Redeem Now'
+        },
+        redemption: {
+          headline: 'Your Reward',
+          instructions: 'Show this code to redeem',
+          expiryDays: 30
+        }
       }
     };
   }

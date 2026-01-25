@@ -135,6 +135,14 @@ export const AuthProvider = ({ children }) => {
     return profile?.role === 'client';
   };
 
+  const isStaff = () => {
+    return profile?.role === 'staff';
+  };
+
+  const canManageStaff = () => {
+    return profile?.role === 'super_admin' || profile?.role === 'admin' || profile?.role === 'client';
+  };
+
   const value = {
     user,
     profile,
@@ -146,6 +154,8 @@ export const AuthProvider = ({ children }) => {
     isAdmin,
     isSuperAdmin,
     isClient,
+    isStaff,
+    canManageStaff,
     refreshProfile: () => user ? fetchProfile(user.id) : null
   };
 

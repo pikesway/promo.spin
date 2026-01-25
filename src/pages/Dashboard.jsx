@@ -2,10 +2,10 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GlassCard from '../common/GlassCard';
-import { FiUsers, FiSettings, FiLogOut, FiGrid } from 'react-icons/fi';
+import { FiUsers, FiSettings, FiLogOut, FiGrid, FiHeart } from 'react-icons/fi';
 
 export default function Dashboard() {
-  const { profile, signOut, isAdmin, isClient, loading } = useAuth();
+  const { profile, signOut, isAdmin, isClient, isStaff, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -13,10 +13,12 @@ export default function Dashboard() {
 
     if (isAdmin()) {
       navigate('/agency', { replace: true });
+    } else if (isStaff() && profile.client_id) {
+      navigate('/staff', { replace: true });
     } else if (isClient() && profile.client_id) {
       navigate(`/client/${profile.client_id}`, { replace: true });
     }
-  }, [profile, loading, isAdmin, isClient, navigate]);
+  }, [profile, loading, isAdmin, isClient, isStaff, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -113,6 +115,23 @@ export default function Dashboard() {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">My Client Portal</h3>
                   <p className="text-gray-600 text-sm">View and manage your campaigns</p>
+                </div>
+              </div>
+            </GlassCard>
+          )}
+
+          {isStaff() && profile?.client_id && (
+            <GlassCard
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => navigate('/staff')}
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-rose-100 rounded-lg">
+                  <FiHeart className="text-2xl text-rose-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Staff Dashboard</h3>
+                  <p className="text-gray-600 text-sm">Manage loyalty members and rewards</p>
                 </div>
               </div>
             </GlassCard>

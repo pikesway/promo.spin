@@ -13,6 +13,9 @@ import AgencyDashboard from './pages/AgencyDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import CampaignPlayer from './pages/CampaignPlayer';
 import RedemptionPage from './pages/RedemptionPage';
+import LoyaltyCardPage from './pages/LoyaltyCardPage';
+import LoyaltyEnrollmentPage from './pages/LoyaltyEnrollmentPage';
+import StaffDashboard from './pages/StaffDashboard';
 
 function App() {
   return (
@@ -25,6 +28,8 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/play/:slug" element={<CampaignPlayer />} />
               <Route path="/redeem/:shortCode" element={<RedemptionPage />} />
+              <Route path="/loyalty/:campaignSlug" element={<LoyaltyEnrollmentPage />} />
+              <Route path="/loyalty/:campaignSlug/:memberCode" element={<LoyaltyCardPage />} />
 
               <Route
                 path="/"
@@ -67,6 +72,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ClientDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/staff"
+                element={
+                  <ProtectedRoute>
+                    <StaffDashboard />
                   </ProtectedRoute>
                 }
               />

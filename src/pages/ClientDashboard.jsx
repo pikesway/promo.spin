@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar, FiHeart } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
 import { useAuth } from '../context/AuthContext';
 import CampaignWizard from '../components/CampaignWizard';
 import CampaignBuilder from '../components/admin/CampaignBuilder';
 import BizGamezCampaignBuilder from '../components/admin/BizGamezCampaignBuilder';
 import CampaignList from '../components/admin/CampaignList';
+import LoyaltyMemberManagement from '../components/admin/LoyaltyMemberManagement';
 import QRCode from 'qrcode.react';
 import StatusBadge from '../components/StatusBadge';
 import ClientBrandingForm from '../components/ClientBrandingForm';
@@ -233,6 +234,17 @@ export default function ClientDashboard() {
               {clientLeads.length}
             </span>
           </button>
+          <button
+            onClick={() => setActiveTab('loyalty')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${
+              activeTab === 'loyalty'
+                ? 'bg-rose-500 text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <FiHeart size={14} />
+            Loyalty
+          </button>
         </div>
 
         {activeTab === 'campaigns' && (
@@ -361,6 +373,13 @@ export default function ClientDashboard() {
               </>
             )}
           </div>
+        )}
+
+        {activeTab === 'loyalty' && (
+          <LoyaltyMemberManagement
+            clientId={clientId}
+            campaigns={clientCampaigns}
+          />
         )}
       </div>
 
