@@ -5,6 +5,7 @@ import { supabase } from '../supabase/client';
 import QRCode from 'qrcode.react';
 import StaffValidationModal from '../components/loyalty/StaffValidationModal';
 import ManagerOverrideModal from '../components/loyalty/ManagerOverrideModal';
+import { LOYALTY_ICONS, getIconById } from '../constants/loyaltyIcons';
 
 export default function LoyaltyCardPage() {
   const { campaignSlug, memberCode } = useParams();
@@ -262,6 +263,13 @@ export default function LoyaltyCardPage() {
   const validationMethod = loyaltyConfig.validation_method || loyaltyConfig.validationMethod || 'pin';
   const validationConfig = loyaltyConfig.validation_config || loyaltyConfig.validationConfig || {};
 
+  const cardConfig = loyaltyConfig.card || {};
+  const stampIcon = cardConfig.stampIcon || 'star';
+  const customIconUrl = cardConfig.customIconUrl || '';
+  const useCustomIcon = stampIcon === 'custom' && customIconUrl;
+  const iconData = getIconById(stampIcon) || LOYALTY_ICONS[0];
+  const StampIconComponent = iconData?.icon || FiCheck;
+
   return (
     <div
       className="min-h-screen flex flex-col items-center py-6 px-4"
@@ -305,10 +313,18 @@ export default function LoyaltyCardPage() {
                   >
                     {isFilled && (
                       <div
-                        className="w-6 h-6 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: primaryColor }}
+                        className="w-6 h-6 rounded-full flex items-center justify-center overflow-hidden"
+                        style={{ backgroundColor: useCustomIcon ? 'transparent' : primaryColor }}
                       >
-                        <FiCheck className="text-white" size={14} />
+                        {useCustomIcon ? (
+                          <img
+                            src={customIconUrl}
+                            alt=""
+                            className="w-5 h-5 object-contain"
+                          />
+                        ) : (
+                          <StampIconComponent className="text-white" size={14} />
+                        )}
                       </div>
                     )}
                   </div>

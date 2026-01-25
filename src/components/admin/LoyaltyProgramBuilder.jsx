@@ -41,6 +41,7 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
         primaryColor: loyalty.card?.primaryColor || client?.primary_color || '#F59E0B',
         backgroundColor: loyalty.card?.backgroundColor || client?.background_color || '#18181B',
         stampIcon: loyalty.card?.stampIcon || 'star',
+        customIconUrl: loyalty.card?.customIconUrl || '',
         stampFilledColor: loyalty.card?.stampFilledColor || '#FFFFFF',
         stampEmptyColor: loyalty.card?.stampEmptyColor || 'rgba(255,255,255,0.2)',
         layout: loyalty.card?.layout || 'grid',

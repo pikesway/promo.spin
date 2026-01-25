@@ -3,12 +3,15 @@ import {
   FiSun, FiMoon, FiCloud, FiDroplet, FiFeather, FiAnchor,
   FiZap, FiUmbrella, FiShoppingBag, FiCamera
 } from 'react-icons/fi';
+import { LuWine, LuPizza } from 'react-icons/lu';
 
 export const LOYALTY_ICONS = [
   { id: 'heart', name: 'Heart', icon: FiHeart, color: '#EF4444' },
   { id: 'star', name: 'Star', icon: FiStar, color: '#F59E0B' },
   { id: 'award', name: 'Award', icon: FiAward, color: '#8B5CF6' },
   { id: 'coffee', name: 'Coffee', icon: FiCoffee, color: '#92400E' },
+  { id: 'wine', name: 'Wine', icon: LuWine, color: '#7C3AED' },
+  { id: 'pizza', name: 'Pizza', icon: LuPizza, color: '#EA580C' },
   { id: 'gift', name: 'Gift', icon: FiGift, color: '#EC4899' },
   { id: 'music', name: 'Music', icon: FiMusic, color: '#06B6D4' },
   { id: 'sun', name: 'Sun', icon: FiSun, color: '#FBBF24' },

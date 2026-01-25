@@ -1,15 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { LOYALTY_ICONS } from '../../../constants/loyaltyIcons';
-import { FiCheck, FiUpload } from 'react-icons/fi';
+import { FiUpload, FiX, FiImage } from 'react-icons/fi';
 
 const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
   const [activeSection, setActiveSection] = useState('colors');
+  const [uploadingIcon, setUploadingIcon] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleCardChange = (key, value) => {
     onChange({
       card: { ...loyaltyData.card, [key]: value }
     });
   };
+
+  const handleCustomIconUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/svg+xml', 'image/x-icon', 'image/vnd.microsoft.icon'];
+    if (!validTypes.includes(file.type)) {
+      alert('Please upload a PNG, JPG, GIF, SVG, or ICO file');
+      return;
+    }
+
+    if (file.size > 500 * 1024) {
+      alert('File size must be less than 500KB');
+      return;
+    }
+
+    setUploadingIcon(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleCardChange('customIconUrl', reader.result);
+        handleCardChange('stampIcon', 'custom');
+        setUploadingIcon(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading icon:', error);
+      alert('Failed to upload icon');
+      setUploadingIcon(false);
+    }
+  };
+
+  const clearCustomIcon = () => {
+    handleCardChange('customIconUrl', '');
+    handleCardChange('stampIcon', 'star');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const isCustomIconSelected = loyaltyData.card.stampIcon === 'custom';
 
   const sections = [
     { id: 'colors', label: 'Colors' },
@@ -161,7 +204,7 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
               <div>
                 <h3 className="text-base font-medium text-white mb-4">Stamp Icon</h3>
                 <p className="text-sm text-gray-400 mb-4">
-                  Choose the icon that appears when a stamp is collected.
+                  Choose the icon that appears when a stamp is collected, or upload your own.
                 </p>
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
                   {LOYALTY_ICONS.map(iconData => {
@@ -188,6 +231,71 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                 </div>
               </div>
 
+              <div className="border-t border-white/10 pt-6">
+                <h3 className="text-base font-medium text-white mb-4">Custom Icon</h3>
+                <p className="text-sm text-gray-400 mb-4">
+                  Upload your own logo or icon image (PNG, JPG, SVG, ICO - max 500KB)
+                </p>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".png,.jpg,.jpeg,.gif,.svg,.ico"
+                  onChange={handleCustomIconUpload}
+                  className="hidden"
+                />
+
+                {loyaltyData.card.customIconUrl ? (
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => handleCardChange('stampIcon', 'custom')}
+                      className={`w-20 h-20 rounded-lg flex items-center justify-center transition-all ${
+                        isCustomIconSelected
+                          ? 'bg-rose-500/20 border-2 border-rose-500'
+                          : 'bg-charcoal-900 border border-white/10 hover:border-white/30'
+                      }`}
+                    >
+                      <img
+                        src={loyaltyData.card.customIconUrl}
+                        alt="Custom icon"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </button>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-sm text-rose-400 hover:text-rose-300 flex items-center gap-1"
+                      >
+                        <FiUpload className="w-4 h-4" />
+                        Replace
+                      </button>
+                      <button
+                        onClick={clearCustomIcon}
+                        className="text-sm text-gray-400 hover:text-white flex items-center gap-1"
+                      >
+                        <FiX className="w-4 h-4" />
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingIcon}
+                    className="w-full p-4 border-2 border-dashed border-white/20 rounded-lg hover:border-rose-500/50 transition-colors flex flex-col items-center gap-2"
+                  >
+                    {uploadingIcon ? (
+                      <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <FiImage className="w-8 h-8 text-gray-400" />
+                        <span className="text-sm text-gray-400">Click to upload custom icon</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
               <div className="p-4 bg-charcoal-900 rounded-lg border border-white/10">
                 <h4 className="text-sm font-medium text-white mb-3">Preview</h4>
                 <div
@@ -198,7 +306,8 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                     {Array.from({ length: Math.min(loyaltyData.threshold, 10) }).map((_, index) => {
                       const isFilled = index < Math.floor(loyaltyData.threshold / 2);
                       const iconData = LOYALTY_ICONS.find(i => i.id === loyaltyData.card.stampIcon) || LOYALTY_ICONS[0];
-                      const IconComponent = iconData.icon;
+                      const useCustomIcon = isCustomIconSelected && loyaltyData.card.customIconUrl;
+                      const IconComponent = iconData?.icon;
                       return (
                         <div
                           key={index}
@@ -212,10 +321,18 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                         >
                           {isFilled && (
                             <div
-                              className="w-6 h-6 rounded-full flex items-center justify-center"
-                              style={{ backgroundColor: loyaltyData.card.primaryColor }}
+                              className="w-6 h-6 rounded-full flex items-center justify-center overflow-hidden"
+                              style={{ backgroundColor: useCustomIcon ? 'transparent' : loyaltyData.card.primaryColor }}
                             >
-                              <IconComponent className="text-white" size={14} />
+                              {useCustomIcon ? (
+                                <img
+                                  src={loyaltyData.card.customIconUrl}
+                                  alt=""
+                                  className="w-5 h-5 object-contain"
+                                />
+                              ) : (
+                                IconComponent && <IconComponent className="text-white" size={14} />
+                              )}
                             </div>
                           )}
                         </div>

@@ -12,8 +12,9 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
   const rewardUnlocked = simulatedProgress >= threshold;
   const stampsRemaining = threshold - simulatedProgress;
 
+  const useCustomIcon = loyaltyData.card.stampIcon === 'custom' && loyaltyData.card.customIconUrl;
   const iconData = getIconById(loyaltyData.card.stampIcon) || LOYALTY_ICONS[0];
-  const IconComponent = iconData.icon;
+  const IconComponent = iconData?.icon;
 
   const downloadQRCode = () => {
     const canvas = qrRef.current.querySelector('canvas');
@@ -130,10 +131,18 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
                         >
                           {isFilled && (
                             <div
-                              className="w-6 h-6 rounded-full flex items-center justify-center"
-                              style={{ backgroundColor: loyaltyData.card.primaryColor }}
+                              className="w-6 h-6 rounded-full flex items-center justify-center overflow-hidden"
+                              style={{ backgroundColor: useCustomIcon ? 'transparent' : loyaltyData.card.primaryColor }}
                             >
-                              <IconComponent className="text-white" size={14} />
+                              {useCustomIcon ? (
+                                <img
+                                  src={loyaltyData.card.customIconUrl}
+                                  alt=""
+                                  className="w-5 h-5 object-contain"
+                                />
+                              ) : (
+                                IconComponent && <IconComponent className="text-white" size={14} />
+                              )}
                             </div>
                           )}
                         </div>
