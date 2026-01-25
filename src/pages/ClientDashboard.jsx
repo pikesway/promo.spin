@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import CampaignWizard from '../components/CampaignWizard';
 import CampaignBuilder from '../components/admin/CampaignBuilder';
 import BizGamezCampaignBuilder from '../components/admin/BizGamezCampaignBuilder';
+import LoyaltyProgramBuilder from '../components/admin/LoyaltyProgramBuilder';
 import CampaignList from '../components/admin/CampaignList';
 import LoyaltyMemberManagement from '../components/admin/LoyaltyMemberManagement';
 import QRCode from 'qrcode.react';
@@ -142,6 +143,15 @@ export default function ClientDashboard() {
     if (editingCampaign.type === 'bizgamez') {
       return (
         <BizGamezCampaignBuilder
+          campaign={editingCampaign}
+          client={client}
+          onBack={() => setEditingCampaign(null)}
+        />
+      );
+    }
+    if (editingCampaign.type === 'loyalty') {
+      return (
+        <LoyaltyProgramBuilder
           campaign={editingCampaign}
           client={client}
           onBack={() => setEditingCampaign(null)}
