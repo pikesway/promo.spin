@@ -123,22 +123,57 @@ Deno.serve(async (req: Request) => {
       }
 
       const shortCode = generateShortCode();
+      const redemptionToken = crypto.randomUUID();
       const resetBehavior = loyaltyProgram.reset_behavior || loyaltyProgram.resetBehavior || "reset";
       const expiryDays = campaign.config?.screens?.redemption?.expiryDays || 30;
+      const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString();
 
       const newProgress = resetBehavior === "rollover"
         ? Math.max(0, (account.current_progress || 0) - threshold)
         : 0;
 
-      const { error: redemptionError } = await supabase.from("loyalty_redemptions").insert({
+      const rewardName = loyaltyProgram.reward_name || loyaltyProgram.rewardName || "Free Reward";
+
+      const { data: redemption, error: mainRedemptionError } = await supabase
+        .from("redemptions")
+        .insert({
+          campaign_id: campaignId,
+          client_id: campaign.client_id,
+          prize_name: rewardName,
+          short_code: shortCode,
+          redemption_token: redemptionToken,
+          token_expires_at: expiresAt,
+          email: account.email,
+          status: "valid",
+          expires_at: expiresAt,
+          metadata: {
+            loyalty_account_id: account.id,
+            member_code: account.member_code,
+            member_name: account.name,
+            source: "loyalty_program",
+          },
+        })
+        .select("id")
+        .single();
+
+      if (mainRedemptionError) {
+        console.error("Error creating main redemption:", mainRedemptionError);
+        throw mainRedemptionError;
+      }
+
+      const { error: loyaltyRedemptionError } = await supabase.from("loyalty_redemptions").insert({
         loyalty_account_id: account.id,
         campaign_id: campaignId,
         short_code: shortCode,
         status: "valid",
-        expires_at: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: expiresAt,
+        redemption_id: redemption.id,
       });
 
-      if (redemptionError) throw redemptionError;
+      if (loyaltyRedemptionError) {
+        console.error("Error creating loyalty redemption:", loyaltyRedemptionError);
+        throw loyaltyRedemptionError;
+      }
 
       await supabase
         .from("loyalty_accounts")
@@ -157,12 +192,23 @@ Deno.serve(async (req: Request) => {
         device_info: deviceInfo || {},
       });
 
+      const supabaseFunctionsUrl = `${supabaseUrl}/functions/v1/send-redemption-email`;
+      fetch(supabaseFunctionsUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${supabaseServiceKey}`,
+        },
+        body: JSON.stringify({ redemptionId: redemption.id }),
+      }).catch((err) => console.error("Failed to trigger email:", err));
+
       return new Response(
         JSON.stringify({
           success: true,
           shortCode,
+          redemptionToken,
           newProgress,
-          rewardName: loyaltyProgram.reward_name || loyaltyProgram.rewardName || "Free Reward",
+          rewardName,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );

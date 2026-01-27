@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FiSearch, FiDownload, FiRefreshCw, FiCheck, FiGift, FiUsers, FiTrash2, FiExternalLink } from 'react-icons/fi';
+import { FiSearch, FiDownload, FiRefreshCw, FiCheck, FiGift, FiUsers, FiTrash2, FiExternalLink, FiEye } from 'react-icons/fi';
 import { supabase } from '../../supabase/client';
+import MemberActivityModal from './MemberActivityModal';
 
 export default function LoyaltyMemberManagement({ clientId, campaigns }) {
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState('all');
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [stats, setStats] = useState({
     totalMembers: 0,
     totalVisits: 0,
@@ -161,6 +164,11 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
     if (campaign) {
       window.open(`${window.location.origin}${window.location.pathname}#/loyalty/${campaign.slug}/${member.member_code}`, '_blank');
     }
+  };
+
+  const openMemberDetail = (member) => {
+    setSelectedMember(member);
+    setShowDetailModal(true);
   };
 
   if (loyaltyCampaigns.length === 0) {
@@ -327,6 +335,13 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
                         <td className="p-3">
                           <div className="flex gap-1 justify-end">
                             <button
+                              onClick={() => openMemberDetail(member)}
+                              className="p-1.5 rounded hover:bg-white/10 text-gray-400 hover:text-rose-400"
+                              title="View Activity"
+                            >
+                              <FiEye size={14} />
+                            </button>
+                            <button
                               onClick={() => openMemberCard(member)}
                               className="p-1.5 rounded hover:bg-white/10 text-gray-400 hover:text-white"
                               title="View Card"
@@ -387,6 +402,12 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
                       <span className="text-gray-500 text-xs">{member.campaigns?.name}</span>
                       <div className="flex gap-1">
                         <button
+                          onClick={() => openMemberDetail(member)}
+                          className="p-1.5 rounded hover:bg-white/10 text-gray-400"
+                        >
+                          <FiEye size={14} />
+                        </button>
+                        <button
                           onClick={() => openMemberCard(member)}
                           className="p-1.5 rounded hover:bg-white/10 text-gray-400"
                         >
@@ -407,6 +428,16 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
           </>
         )}
       </div>
+
+      <MemberActivityModal
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedMember(null);
+        }}
+        member={selectedMember}
+        campaign={selectedMember ? loyaltyCampaigns.find(c => c.id === selectedMember.campaign_id) : null}
+      />
     </div>
   );
 }

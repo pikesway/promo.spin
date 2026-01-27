@@ -163,42 +163,33 @@ export default function LoyaltyCardPage() {
     setShowValidation(false);
 
     try {
-      const shortCode = generateShortCode();
-      const resetBehavior = loyaltyProgram?.reset_behavior || campaign?.config?.loyalty?.resetBehavior || 'reset';
-      const threshold = loyaltyProgram?.threshold || campaign?.config?.loyalty?.threshold || 10;
-      const expiryDays = campaign?.config?.screens?.redemption?.expiryDays || 30;
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/confirm-loyalty-action`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            memberCode: account.member_code,
+            campaignId: campaign.id,
+            actionType: 'redemption',
+            deviceInfo: {
+              userAgent: navigator.userAgent,
+              timestamp: Date.now(),
+            },
+          }),
+        }
+      );
 
-      const newProgress = resetBehavior === 'rollover'
-        ? (account.current_progress || 0) - threshold
-        : 0;
+      const result = await response.json();
 
-      await supabase.from('loyalty_redemptions').insert({
-        loyalty_account_id: account.id,
-        campaign_id: campaign.id,
-        short_code: shortCode,
-        status: 'valid',
-        expires_at: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString()
-      });
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to redeem reward');
+      }
 
-      const { error: updateError } = await supabase
-        .from('loyalty_accounts')
-        .update({
-          current_progress: Math.max(0, newProgress),
-          reward_unlocked: false,
-          reward_unlocked_at: null
-        })
-        .eq('id', account.id);
-
-      if (updateError) throw updateError;
-
-      await supabase.from('loyalty_progress_log').insert({
-        loyalty_account_id: account.id,
-        campaign_id: campaign.id,
-        action_type: 'reward_redeemed',
-        quantity: 1
-      });
-
-      navigate(`/redeem/${shortCode}`);
+      navigate(`/redeem/${result.shortCode}?token=${result.redemptionToken}`);
     } catch (err) {
       console.error('Error redeeming reward:', err);
       alert('Failed to redeem reward');
@@ -227,15 +218,6 @@ export default function LoyaltyCardPage() {
 
     setIsLocked(false);
     setShowManagerOverride(false);
-  };
-
-  const generateShortCode = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
   };
 
   if (loading) {
