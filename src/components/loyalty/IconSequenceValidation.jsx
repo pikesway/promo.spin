@@ -7,7 +7,7 @@ export default function IconSequenceValidation({ config, onSuccess, onFailure, a
   const [error, setError] = useState('');
   const [isShaking, setIsShaking] = useState(false);
 
-  const targetSequence = config?.iconSequence || ['heart', 'star'];
+  const targetSequence = config?.sequence || config?.iconSequence || ['heart', 'star'];
   const sequenceLength = targetSequence.length;
 
   const targetIcons = targetSequence.map(id => getIconById(id)).filter(Boolean);
@@ -62,7 +62,7 @@ export default function IconSequenceValidation({ config, onSuccess, onFailure, a
           Staff: Enter your validation code
         </p>
         <p className="text-gray-500 text-xs">
-          Select {sequenceLength} icon{sequenceLength > 1 ? 's' : ''} to verify
+          Enter the validation icon(s) in order
         </p>
       </div>
 

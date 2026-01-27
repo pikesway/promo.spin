@@ -15,8 +15,10 @@ const ClientBrandingForm = ({ client, onSave, onCancel }) => {
     secondary_color: client?.secondary_color || getDefaultColors().secondary,
     background_color: client?.background_color || getDefaultColors().background,
     status: client?.status || 'prospect',
-    status_notes: client?.status_notes || ''
+    status_notes: client?.status_notes || '',
+    unlock_pin: client?.unlock_pin || ''
   });
+  const [unlockPinError, setUnlockPinError] = useState('');
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
@@ -57,6 +59,11 @@ const ClientBrandingForm = ({ client, onSave, onCancel }) => {
 
     if (!formData.email.trim()) {
       setError('Client email is required');
+      return;
+    }
+
+    if (formData.unlock_pin && !/^\d{4,6}$/.test(formData.unlock_pin)) {
+      setError('Unlock PIN must be 4-6 digits');
       return;
     }
 
@@ -187,6 +194,39 @@ const ClientBrandingForm = ({ client, onSave, onCancel }) => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="border-t border-white/10 pt-5">
+        <h3 className="text-base font-semibold text-white mb-1">Loyalty Program Settings</h3>
+        <p className="text-sm text-gray-400 mb-4">
+          Configure settings that apply to all loyalty programs for this client
+        </p>
+
+        <div>
+          <label className="block text-sm font-medium text-white mb-2">
+            Unlock PIN
+          </label>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="\d*"
+            maxLength={6}
+            value={formData.unlock_pin}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+              setFormData({ ...formData, unlock_pin: value });
+              setUnlockPinError('');
+            }}
+            placeholder="Enter 4-6 digit PIN"
+            className={`w-full max-w-xs px-4 py-3 bg-zinc-800 border ${unlockPinError ? 'border-red-500' : 'border-white/10'} rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 tracking-widest text-center font-mono`}
+          />
+          {unlockPinError && (
+            <p className="text-red-400 text-sm mt-1">{unlockPinError}</p>
+          )}
+          <p className="text-xs text-gray-500 mt-2">
+            This PIN is used by staff to unlock customer accounts that have been locked due to failed validation attempts.
+          </p>
         </div>
       </div>
 

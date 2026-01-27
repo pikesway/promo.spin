@@ -419,6 +419,7 @@ export default function LoyaltyCardPage() {
         onClose={() => setShowManagerOverride(false)}
         onUnlock={handleManagerUnlock}
         memberName={account?.name}
+        unlockPin={client?.unlock_pin}
       />
     </div>
   );

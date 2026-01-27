@@ -467,6 +467,7 @@ export default function StaffDashboard() {
         onClose={() => setShowManagerOverride(false)}
         onUnlock={async () => setShowManagerOverride(false)}
         memberName={selectedMember?.name}
+        unlockPin={client?.unlock_pin}
       />
     </div>
   );
