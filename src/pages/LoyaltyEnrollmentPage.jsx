@@ -1,7 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiHeart, FiMail, FiUser, FiPhone, FiCheck } from 'react-icons/fi';
+import { FiHeart, FiMail, FiUser, FiPhone, FiCheck, FiSmartphone } from 'react-icons/fi';
 import { supabase } from '../supabase/client';
+
+const DEVICE_TOKEN_EXPIRY_DAYS = 60;
+
+function getDeviceTokenKey(campaignSlug) {
+  return `loyalty_device_${campaignSlug}`;
+}
+
+function getDeviceName() {
+  const ua = navigator.userAgent;
+  if (/iPhone/i.test(ua)) return 'iPhone';
+  if (/iPad/i.test(ua)) return 'iPad';
+  if (/Android/i.test(ua)) return 'Android';
+  if (/Windows/i.test(ua)) return 'Windows';
+  if (/Mac/i.test(ua)) return 'Mac';
+  return 'Browser';
+}
 
 export default function LoyaltyEnrollmentPage() {
   const { campaignSlug } = useParams();
@@ -13,18 +29,50 @@ export default function LoyaltyEnrollmentPage() {
   const [campaign, setCampaign] = useState(null);
   const [client, setClient] = useState(null);
   const [loyaltyConfig, setLoyaltyConfig] = useState(null);
+  const [checkingDevice, setCheckingDevice] = useState(true);
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    consent: false
+    consent: false,
+    rememberDevice: true
   });
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
+    const checkDeviceToken = async () => {
+      const tokenKey = getDeviceTokenKey(campaignSlug);
+      const storedToken = localStorage.getItem(tokenKey);
+
+      if (storedToken) {
+        const { data: tokenData } = await supabase
+          .from('loyalty_device_tokens')
+          .select('loyalty_account_id, expires_at, loyalty_accounts(member_code)')
+          .eq('device_token', storedToken)
+          .gt('expires_at', new Date().toISOString())
+          .maybeSingle();
+
+        if (tokenData?.loyalty_accounts?.member_code) {
+          await supabase
+            .from('loyalty_device_tokens')
+            .update({ last_used_at: new Date().toISOString() })
+            .eq('device_token', storedToken);
+
+          navigate(`/loyalty/${campaignSlug}/${tokenData.loyalty_accounts.member_code}`, { replace: true });
+          return true;
+        } else {
+          localStorage.removeItem(tokenKey);
+        }
+      }
+      return false;
+    };
+
     const fetchCampaign = async () => {
       try {
+        const redirected = await checkDeviceToken();
+        if (redirected) return;
+
         const { data: campaignData, error: campaignError } = await supabase
           .from('campaigns')
           .select('*, clients(*)')
@@ -53,11 +101,12 @@ export default function LoyaltyEnrollmentPage() {
         setError('Failed to load loyalty program');
       } finally {
         setLoading(false);
+        setCheckingDevice(false);
       }
     };
 
     fetchCampaign();
-  }, [campaignSlug]);
+  }, [campaignSlug, navigate]);
 
   const validateForm = () => {
     const errors = {};
@@ -80,6 +129,28 @@ export default function LoyaltyEnrollmentPage() {
     return result;
   };
 
+  const createDeviceToken = async (loyaltyAccountId) => {
+    if (!formData.rememberDevice) return;
+
+    try {
+      const deviceToken = crypto.randomUUID();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + DEVICE_TOKEN_EXPIRY_DAYS);
+
+      await supabase.from('loyalty_device_tokens').insert({
+        loyalty_account_id: loyaltyAccountId,
+        campaign_id: campaign.id,
+        device_token: deviceToken,
+        device_name: getDeviceName(),
+        expires_at: expiresAt.toISOString()
+      });
+
+      localStorage.setItem(getDeviceTokenKey(campaignSlug), deviceToken);
+    } catch (err) {
+      console.error('Error creating device token:', err);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -89,19 +160,20 @@ export default function LoyaltyEnrollmentPage() {
     try {
       const { data: existing } = await supabase
         .from('loyalty_accounts')
-        .select('member_code')
+        .select('id, member_code')
         .eq('campaign_id', campaign.id)
         .eq('email', formData.email.toLowerCase())
         .maybeSingle();
 
       if (existing) {
+        await createDeviceToken(existing.id);
         navigate(`/loyalty/${campaignSlug}/${existing.member_code}`);
         return;
       }
 
       const memberCode = generateMemberCode();
 
-      const { error: insertError } = await supabase
+      const { data: newAccount, error: insertError } = await supabase
         .from('loyalty_accounts')
         .insert({
           campaign_id: campaign.id,
@@ -113,10 +185,13 @@ export default function LoyaltyEnrollmentPage() {
           current_progress: 0,
           total_visits: 0,
           reward_unlocked: false
-        });
+        })
+        .select('id')
+        .single();
 
       if (insertError) throw insertError;
 
+      await createDeviceToken(newAccount.id);
       navigate(`/loyalty/${campaignSlug}/${memberCode}`);
     } catch (err) {
       console.error('Error enrolling:', err);
@@ -130,7 +205,7 @@ export default function LoyaltyEnrollmentPage() {
     }
   };
 
-  if (loading) {
+  if (loading || checkingDevice) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
         <div className="w-10 h-10 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -279,6 +354,35 @@ export default function LoyaltyEnrollmentPage() {
             </span>
           </label>
           {formErrors.consent && <p className="text-red-400 text-xs -mt-2">{formErrors.consent}</p>}
+
+          <label className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${hoverBg}`}>
+            <div className="relative flex-shrink-0 mt-0.5">
+              <input
+                type="checkbox"
+                checked={formData.rememberDevice}
+                onChange={(e) => setFormData({ ...formData, rememberDevice: e.target.checked })}
+                className="sr-only"
+              />
+              <div
+                className={`
+                  w-5 h-5 rounded border-2 flex items-center justify-center transition-all
+                  ${formData.rememberDevice
+                    ? 'border-transparent'
+                    : isDark ? 'border-white/30' : 'border-gray-400'
+                  }
+                `}
+                style={formData.rememberDevice ? { backgroundColor: primaryColor } : {}}
+              >
+                {formData.rememberDevice && <FiCheck size={12} className="text-white" />}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <FiSmartphone className={mutedTextColor} size={14} />
+              <span className={`text-sm ${mutedTextColor}`}>
+                Remember this device for faster access
+              </span>
+            </div>
+          </label>
 
           <button
             type="submit"

@@ -7,6 +7,10 @@ import StaffValidationModal from '../components/loyalty/StaffValidationModal';
 import ManagerOverrideModal from '../components/loyalty/ManagerOverrideModal';
 import { LOYALTY_ICONS, getIconById } from '../constants/loyaltyIcons';
 
+function getDeviceTokenKey(campaignSlug) {
+  return `loyalty_device_${campaignSlug}`;
+}
+
 export default function LoyaltyCardPage() {
   const { campaignSlug, memberCode } = useParams();
   const navigate = useNavigate();
@@ -67,6 +71,16 @@ export default function LoyaltyCardPage() {
         }
 
         setAccount(accountData);
+
+        const tokenKey = getDeviceTokenKey(campaignSlug);
+        const storedToken = localStorage.getItem(tokenKey);
+        if (storedToken) {
+          supabase
+            .from('loyalty_device_tokens')
+            .update({ last_used_at: new Date().toISOString() })
+            .eq('device_token', storedToken)
+            .then(() => {});
+        }
 
         const { data: lockoutData } = await supabase
           .from('validation_lockouts')
