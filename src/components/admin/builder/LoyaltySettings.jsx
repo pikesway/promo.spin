@@ -1,6 +1,326 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
-import { FiInfo } from 'react-icons/fi';
+import { FiInfo, FiPlus, FiX, FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import { LOYALTY_ICONS, getIconById } from '../../../constants/loyaltyIcons';
+import SafeIcon from '../../../common/SafeIcon';
+
+const IconSequenceConfig = ({ config, onChange }) => {
+  const sequence = config.sequence || [];
+  const [showPicker, setShowPicker] = useState(false);
+
+  const addIcon = (iconId) => {
+    if (sequence.length < 5) {
+      onChange('sequence', [...sequence, iconId]);
+    }
+    setShowPicker(false);
+  };
+
+  const removeIcon = (index) => {
+    const newSequence = sequence.filter((_, i) => i !== index);
+    onChange('sequence', newSequence);
+  };
+
+  const moveIcon = (index, direction) => {
+    const newSequence = [...sequence];
+    const newIndex = index + direction;
+    if (newIndex >= 0 && newIndex < sequence.length) {
+      [newSequence[index], newSequence[newIndex]] = [newSequence[newIndex], newSequence[index]];
+      onChange('sequence', newSequence);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Icon Sequence (3-5 icons)
+        </label>
+        <p className="text-xs text-gray-400 mb-3">
+          Staff must tap these icons in order to validate a visit.
+        </p>
+      </div>
+
+      <div className="flex flex-wrap gap-2 min-h-[60px] p-3 bg-charcoal-900 rounded-lg border border-white/10">
+        {sequence.map((iconId, index) => {
+          const iconData = getIconById(iconId);
+          if (!iconData) return null;
+          return (
+            <div
+              key={`${iconId}-${index}`}
+              className="flex items-center gap-1 bg-charcoal-700 rounded-lg p-2 border border-white/10"
+            >
+              <span className="text-xs text-gray-400 mr-1">{index + 1}.</span>
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: `${iconData.color}20` }}
+              >
+                <SafeIcon icon={iconData.icon} className="w-5 h-5" style={{ color: iconData.color }} />
+              </div>
+              <div className="flex flex-col ml-1">
+                <button
+                  onClick={() => moveIcon(index, -1)}
+                  disabled={index === 0}
+                  className="p-0.5 hover:bg-white/10 rounded disabled:opacity-30"
+                >
+                  <FiArrowUp className="w-3 h-3 text-gray-400" />
+                </button>
+                <button
+                  onClick={() => moveIcon(index, 1)}
+                  disabled={index === sequence.length - 1}
+                  className="p-0.5 hover:bg-white/10 rounded disabled:opacity-30"
+                >
+                  <FiArrowDown className="w-3 h-3 text-gray-400" />
+                </button>
+              </div>
+              <button
+                onClick={() => removeIcon(index)}
+                className="p-1 hover:bg-red-500/20 rounded ml-1"
+              >
+                <FiX className="w-4 h-4 text-red-400" />
+              </button>
+            </div>
+          );
+        })}
+        {sequence.length < 5 && (
+          <button
+            onClick={() => setShowPicker(true)}
+            className="w-12 h-12 rounded-lg border-2 border-dashed border-white/20 flex items-center justify-center hover:border-rose-500/50 hover:bg-rose-500/10 transition-colors"
+          >
+            <FiPlus className="w-5 h-5 text-gray-400" />
+          </button>
+        )}
+      </div>
+
+      {sequence.length < 3 && (
+        <p className="text-xs text-amber-400">Add at least 3 icons to complete the sequence.</p>
+      )}
+
+      {showPicker && (
+        <div className="p-4 bg-charcoal-900 rounded-lg border border-white/10">
+          <p className="text-sm text-gray-300 mb-3">Select an icon to add:</p>
+          <div className="grid grid-cols-6 gap-2">
+            {LOYALTY_ICONS.map((iconData) => (
+              <button
+                key={iconData.id}
+                onClick={() => addIcon(iconData.id)}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors flex flex-col items-center gap-1"
+              >
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: `${iconData.color}20` }}
+                >
+                  <SafeIcon icon={iconData.icon} className="w-6 h-6" style={{ color: iconData.color }} />
+                </div>
+                <span className="text-xs text-gray-400">{iconData.name}</span>
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setShowPicker(false)}
+            className="mt-3 text-sm text-gray-400 hover:text-white"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const IconPositionConfig = ({ config, onChange }) => {
+  const targetIcon = config.targetIcon || 'star';
+  const targetPosition = config.targetPosition || 1;
+  const gridSize = config.gridSize || 6;
+
+  const iconData = getIconById(targetIcon);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Icon Position Challenge
+        </label>
+        <p className="text-xs text-gray-400 mb-3">
+          Staff must identify which position the target icon appears at.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Target Icon
+          </label>
+          <div className="grid grid-cols-6 gap-2 p-3 bg-charcoal-900 rounded-lg border border-white/10 max-h-48 overflow-y-auto">
+            {LOYALTY_ICONS.map((icon) => (
+              <button
+                key={icon.id}
+                onClick={() => onChange('targetIcon', icon.id)}
+                className={`p-2 rounded-lg transition-colors ${
+                  targetIcon === icon.id
+                    ? 'bg-rose-500/20 ring-2 ring-rose-500'
+                    : 'hover:bg-white/10'
+                }`}
+              >
+                <SafeIcon icon={icon.icon} className="w-6 h-6 mx-auto" style={{ color: icon.color }} />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Grid Size
+            </label>
+            <select
+              value={gridSize}
+              onChange={(e) => onChange('gridSize', parseInt(e.target.value))}
+              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+            >
+              <option value={4}>4 icons (2x2)</option>
+              <option value={6}>6 icons (2x3)</option>
+              <option value={9}>9 icons (3x3)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Correct Position
+            </label>
+            <select
+              value={targetPosition}
+              onChange={(e) => onChange('targetPosition', parseInt(e.target.value))}
+              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+            >
+              {Array.from({ length: gridSize }, (_, i) => (
+                <option key={i + 1} value={i + 1}>Position {i + 1}</option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-400 mt-1">
+              The target icon will appear at this position (numbered left-to-right, top-to-bottom).
+            </p>
+          </div>
+
+          {iconData && (
+            <div className="p-3 bg-charcoal-900 rounded-lg border border-white/10">
+              <p className="text-xs text-gray-400 mb-2">Preview: Staff must find</p>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: `${iconData.color}20` }}
+                >
+                  <SafeIcon icon={iconData.icon} className="w-6 h-6" style={{ color: iconData.color }} />
+                </div>
+                <span className="text-sm text-gray-300">at position {targetPosition}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const IconGridConfig = ({ config, onChange }) => {
+  const selectedIcons = config.selectedIcons || [];
+  const gridSize = config.gridSize || 9;
+
+  const toggleIcon = (iconId) => {
+    if (selectedIcons.includes(iconId)) {
+      onChange('selectedIcons', selectedIcons.filter(id => id !== iconId));
+    } else if (selectedIcons.length < Math.floor(gridSize / 2)) {
+      onChange('selectedIcons', [...selectedIcons, iconId]);
+    }
+  };
+
+  const maxSelectable = Math.floor(gridSize / 2);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Icon Grid Pattern
+        </label>
+        <p className="text-xs text-gray-400 mb-3">
+          Staff must select all the correct icons from a grid. Select 2-{maxSelectable} icons that staff must identify.
+        </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Grid Size
+        </label>
+        <select
+          value={gridSize}
+          onChange={(e) => {
+            const newSize = parseInt(e.target.value);
+            onChange('gridSize', newSize);
+            const newMax = Math.floor(newSize / 2);
+            if (selectedIcons.length > newMax) {
+              onChange('selectedIcons', selectedIcons.slice(0, newMax));
+            }
+          }}
+          className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+        >
+          <option value={6}>6 icons (2x3)</option>
+          <option value={9}>9 icons (3x3)</option>
+          <option value={12}>12 icons (3x4)</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Select Target Icons ({selectedIcons.length}/{maxSelectable} max)
+        </label>
+        <div className="grid grid-cols-6 gap-2 p-3 bg-charcoal-900 rounded-lg border border-white/10">
+          {LOYALTY_ICONS.map((icon) => {
+            const isSelected = selectedIcons.includes(icon.id);
+            return (
+              <button
+                key={icon.id}
+                onClick={() => toggleIcon(icon.id)}
+                disabled={!isSelected && selectedIcons.length >= maxSelectable}
+                className={`p-2 rounded-lg transition-colors ${
+                  isSelected
+                    ? 'bg-rose-500/20 ring-2 ring-rose-500'
+                    : 'hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed'
+                }`}
+              >
+                <SafeIcon icon={icon.icon} className="w-6 h-6 mx-auto" style={{ color: icon.color }} />
+                <span className="text-xs text-gray-400 block mt-1">{icon.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {selectedIcons.length < 2 && (
+        <p className="text-xs text-amber-400">Select at least 2 icons for the pattern.</p>
+      )}
+
+      {selectedIcons.length >= 2 && (
+        <div className="p-3 bg-charcoal-900 rounded-lg border border-white/10">
+          <p className="text-xs text-gray-400 mb-2">Staff must find these {selectedIcons.length} icons:</p>
+          <div className="flex flex-wrap gap-2">
+            {selectedIcons.map(iconId => {
+              const iconData = getIconById(iconId);
+              if (!iconData) return null;
+              return (
+                <div
+                  key={iconId}
+                  className="w-10 h-10 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: `${iconData.color}20` }}
+                >
+                  <SafeIcon icon={iconData.icon} className="w-6 h-6" style={{ color: iconData.color }} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
   const qrRef = useRef();
@@ -190,25 +510,24 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
           )}
 
           {loyaltyData.validationMethod === 'icon_sequence' && (
-            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-lg">
-              <div className="flex items-start gap-2">
-                <FiInfo className="text-rose-400 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-gray-300">
-                  Staff will need to tap icons in the correct order. Configure the sequence in the Staff Dashboard.
-                </p>
-              </div>
-            </div>
+            <IconSequenceConfig
+              config={loyaltyData.validationConfig}
+              onChange={handleValidationConfigChange}
+            />
           )}
 
-          {(loyaltyData.validationMethod === 'icon_position' || loyaltyData.validationMethod === 'icon_grid') && (
-            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-lg">
-              <div className="flex items-start gap-2">
-                <FiInfo className="text-rose-400 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-gray-300">
-                  Staff will need to identify the correct icon position. Configure the pattern in the Staff Dashboard.
-                </p>
-              </div>
-            </div>
+          {loyaltyData.validationMethod === 'icon_position' && (
+            <IconPositionConfig
+              config={loyaltyData.validationConfig}
+              onChange={handleValidationConfigChange}
+            />
+          )}
+
+          {loyaltyData.validationMethod === 'icon_grid' && (
+            <IconGridConfig
+              config={loyaltyData.validationConfig}
+              onChange={handleValidationConfigChange}
+            />
           )}
 
           <div>
