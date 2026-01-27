@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { FiSearch, FiDownload, FiRefreshCw, FiCheck, FiGift, FiUsers, FiTrash2, FiExternalLink, FiEye } from 'react-icons/fi';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { FiSearch, FiDownload, FiRefreshCw, FiCheck, FiGift, FiUsers, FiTrash2, FiExternalLink, FiEye, FiChevronDown, FiFileText, FiList } from 'react-icons/fi';
 import { supabase } from '../../supabase/client';
 import MemberActivityModal from './MemberActivityModal';
 
@@ -10,6 +10,9 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
   const [selectedCampaign, setSelectedCampaign] = useState('all');
   const [selectedMember, setSelectedMember] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const exportMenuRef = useRef(null);
   const [stats, setStats] = useState({
     totalMembers: 0,
     totalVisits: 0,
@@ -67,6 +70,16 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
     fetchMembers();
   }, [fetchMembers]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const filteredMembers = members.filter(member => {
     const matchesSearch = searchQuery === '' ||
       member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -122,7 +135,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
     }
   };
 
-  const exportToCSV = () => {
+  const exportSummaryCSV = () => {
     if (filteredMembers.length === 0) {
       alert('No members to export');
       return;
@@ -154,9 +167,132 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `loyalty-members-${Date.now()}.csv`;
+    a.download = `loyalty-members-summary-${Date.now()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    setShowExportMenu(false);
+  };
+
+  const exportDetailedCSV = async () => {
+    if (filteredMembers.length === 0) {
+      alert('No members to export');
+      return;
+    }
+
+    setExporting(true);
+    setShowExportMenu(false);
+
+    try {
+      const memberIds = filteredMembers.map(m => m.id);
+
+      const { data: activityData } = await supabase
+        .from('loyalty_progress_log')
+        .select('*')
+        .in('loyalty_account_id', memberIds)
+        .order('created_at', { ascending: false });
+
+      const { data: redemptionData } = await supabase
+        .from('loyalty_redemptions')
+        .select('*, redemptions(prize_name, status, redeemed_at)')
+        .in('loyalty_account_id', memberIds)
+        .order('created_at', { ascending: false });
+
+      const activityByMember = {};
+      const redemptionsByMember = {};
+
+      (activityData || []).forEach(a => {
+        if (!activityByMember[a.loyalty_account_id]) {
+          activityByMember[a.loyalty_account_id] = [];
+        }
+        activityByMember[a.loyalty_account_id].push(a);
+      });
+
+      (redemptionData || []).forEach(r => {
+        if (!redemptionsByMember[r.loyalty_account_id]) {
+          redemptionsByMember[r.loyalty_account_id] = [];
+        }
+        redemptionsByMember[r.loyalty_account_id].push(r);
+      });
+
+      const formatDateTime = (dateStr) => {
+        if (!dateStr) return '';
+        return new Date(dateStr).toLocaleString();
+      };
+
+      const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        return new Date(dateStr).toLocaleDateString();
+      };
+
+      const headers = [
+        'Name', 'Email', 'Phone', 'Program', 'Member Code', 'Enrolled Date',
+        'Current Progress', 'Threshold', 'Total Visits', 'Reward Ready',
+        'Activity Date', 'Activity Type', 'Activity Quantity',
+        'Reward Name', 'Coupon Code', 'Reward Status', 'Issued Date', 'Expires Date', 'Redeemed Date'
+      ];
+
+      const rows = [];
+
+      filteredMembers.forEach(m => {
+        const campaign = loyaltyCampaigns.find(c => c.id === m.campaign_id);
+        const threshold = campaign?.config?.loyalty?.threshold || 10;
+        const rewardName = campaign?.config?.loyalty?.reward_name || campaign?.config?.loyalty?.rewardName || 'Reward';
+        const memberActivity = activityByMember[m.id] || [];
+        const memberRedemptions = redemptionsByMember[m.id] || [];
+
+        const maxRows = Math.max(1, memberActivity.length, memberRedemptions.length);
+
+        for (let i = 0; i < maxRows; i++) {
+          const activity = memberActivity[i];
+          const redemption = memberRedemptions[i];
+
+          let redemptionStatus = redemption?.redemptions?.status || redemption?.status || '';
+          if (redemption?.expires_at && new Date(redemption.expires_at) < new Date() && redemptionStatus === 'valid') {
+            redemptionStatus = 'expired';
+          }
+
+          rows.push([
+            i === 0 ? (m.name || '') : '',
+            i === 0 ? (m.email || '') : '',
+            i === 0 ? (m.phone || '') : '',
+            i === 0 ? (m.campaigns?.name || '') : '',
+            i === 0 ? (m.member_code || '') : '',
+            i === 0 ? formatDate(m.enrolled_at) : '',
+            i === 0 ? (m.current_progress || 0) : '',
+            i === 0 ? threshold : '',
+            i === 0 ? (m.total_visits || 0) : '',
+            i === 0 ? (m.reward_unlocked ? 'Yes' : 'No') : '',
+            activity ? formatDateTime(activity.created_at) : '',
+            activity ? activity.action_type : '',
+            activity?.quantity > 1 ? activity.quantity : (activity ? '1' : ''),
+            redemption ? (redemption.redemptions?.prize_name || rewardName) : '',
+            redemption ? (redemption.short_code || '') : '',
+            redemptionStatus,
+            redemption ? formatDate(redemption.created_at) : '',
+            redemption ? formatDate(redemption.expires_at) : '',
+            redemption?.redemptions?.redeemed_at ? formatDate(redemption.redemptions.redeemed_at) : ''
+          ]);
+        }
+      });
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `loyalty-members-detailed-${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error exporting detailed data:', err);
+      alert('Failed to export detailed data');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const openMemberCard = (member) => {
@@ -187,13 +323,45 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
     <div>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg md:text-xl font-semibold text-white">Loyalty Members</h3>
-        <button
-          className="btn btn-success btn-sm md:btn"
-          onClick={exportToCSV}
-          disabled={filteredMembers.length === 0}
-        >
-          <FiDownload /> <span className="hidden md:inline">Export CSV</span>
-        </button>
+        <div className="relative" ref={exportMenuRef}>
+          <button
+            className="btn btn-success btn-sm md:btn"
+            onClick={() => setShowExportMenu(!showExportMenu)}
+            disabled={filteredMembers.length === 0 || exporting}
+          >
+            {exporting ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <FiDownload />
+            )}
+            <span className="hidden md:inline">{exporting ? 'Exporting...' : 'Export'}</span>
+            <FiChevronDown className="ml-1" size={14} />
+          </button>
+          {showExportMenu && (
+            <div className="absolute right-0 top-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-10 min-w-[180px] py-1">
+              <button
+                onClick={exportSummaryCSV}
+                className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2"
+              >
+                <FiFileText size={16} className="text-gray-400" />
+                <div>
+                  <div className="font-medium">Summary Export</div>
+                  <div className="text-xs text-gray-500">Basic member info</div>
+                </div>
+              </button>
+              <button
+                onClick={exportDetailedCSV}
+                className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2"
+              >
+                <FiList size={16} className="text-gray-400" />
+                <div>
+                  <div className="font-medium">Detailed Export</div>
+                  <div className="text-xs text-gray-500">Activity & rewards history</div>
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
