@@ -98,6 +98,7 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
   if (!isOpen) return null;
 
   const threshold = campaign?.config?.loyalty?.threshold || 10;
+  const defaultRewardName = campaign?.config?.loyalty?.reward_name || campaign?.config?.loyalty?.rewardName || 'Free Reward';
 
   return (
     <AnimatePresence>
@@ -243,7 +244,7 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
                 {redemptions.map((redemption) => {
                   const status = redemption.redemptions?.status || redemption.status;
                   const statusConfig = REDEMPTION_STATUS[status] || REDEMPTION_STATUS.valid;
-                  const prizeName = redemption.redemptions?.prize_name || 'Reward';
+                  const prizeName = redemption.redemptions?.prize_name || defaultRewardName;
                   const isExpired = redemption.expires_at && new Date(redemption.expires_at) < new Date() && status === 'valid';
                   const displayStatus = isExpired ? REDEMPTION_STATUS.expired : statusConfig;
 
