@@ -58,24 +58,12 @@ export default function IconSequenceValidation({ config, onSuccess, onFailure, a
   return (
     <div className="flex flex-col items-center">
       <div className="mb-4 text-center">
-        <p className="text-gray-400 text-sm mb-3">
-          Select the icons in this order:
+        <p className="text-gray-400 text-sm mb-2">
+          Staff: Enter your validation code
         </p>
-        <div className="flex items-center justify-center gap-2 mb-2">
-          {targetIcons.map((icon, index) => (
-            <React.Fragment key={icon.id}>
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: `${icon.color}20` }}
-              >
-                <icon.icon size={22} style={{ color: icon.color }} />
-              </div>
-              {index < targetIcons.length - 1 && (
-                <span className="text-gray-500 text-lg">→</span>
-              )}
-            </React.Fragment>
-          ))}
-        </div>
+        <p className="text-gray-500 text-xs">
+          Select {sequenceLength} icon{sequenceLength > 1 ? 's' : ''} to verify
+        </p>
       </div>
 
       <div className="mb-4">
@@ -86,17 +74,10 @@ export default function IconSequenceValidation({ config, onSuccess, onFailure, a
           ) : (
             selectedSequence.map((iconId, index) => {
               const icon = getIconById(iconId);
-              const isCorrect = iconId === targetSequence[index];
               return (
                 <div
                   key={index}
-                  className={`
-                    w-10 h-10 rounded-lg flex items-center justify-center
-                    ${selectedSequence.length === sequenceLength
-                      ? isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'
-                      : 'bg-white/10'
-                    }
-                  `}
+                  className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/10"
                 >
                   {icon && <icon.icon size={20} className="text-white" />}
                 </div>

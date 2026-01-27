@@ -33,10 +33,10 @@ const IconSequenceConfig = ({ config, onChange }) => {
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">
-          Icon Sequence (3-5 icons)
+          Icon Sequence (1-5 icons)
         </label>
         <p className="text-xs text-gray-400 mb-3">
-          Staff must tap these icons in order to validate a visit.
+          Staff must tap these icons in order to validate a visit. This sequence is kept secret from customers.
         </p>
       </div>
 
@@ -56,22 +56,24 @@ const IconSequenceConfig = ({ config, onChange }) => {
               >
                 <SafeIcon icon={iconData.icon} className="w-5 h-5" style={{ color: iconData.color }} />
               </div>
-              <div className="flex flex-col ml-1">
-                <button
-                  onClick={() => moveIcon(index, -1)}
-                  disabled={index === 0}
-                  className="p-0.5 hover:bg-white/10 rounded disabled:opacity-30"
-                >
-                  <FiArrowUp className="w-3 h-3 text-gray-400" />
-                </button>
-                <button
-                  onClick={() => moveIcon(index, 1)}
-                  disabled={index === sequence.length - 1}
-                  className="p-0.5 hover:bg-white/10 rounded disabled:opacity-30"
-                >
-                  <FiArrowDown className="w-3 h-3 text-gray-400" />
-                </button>
-              </div>
+              {sequence.length > 1 && (
+                <div className="flex flex-col ml-1">
+                  <button
+                    onClick={() => moveIcon(index, -1)}
+                    disabled={index === 0}
+                    className="p-0.5 hover:bg-white/10 rounded disabled:opacity-30"
+                  >
+                    <FiArrowUp className="w-3 h-3 text-gray-400" />
+                  </button>
+                  <button
+                    onClick={() => moveIcon(index, 1)}
+                    disabled={index === sequence.length - 1}
+                    className="p-0.5 hover:bg-white/10 rounded disabled:opacity-30"
+                  >
+                    <FiArrowDown className="w-3 h-3 text-gray-400" />
+                  </button>
+                </div>
+              )}
               <button
                 onClick={() => removeIcon(index)}
                 className="p-1 hover:bg-red-500/20 rounded ml-1"
@@ -91,8 +93,8 @@ const IconSequenceConfig = ({ config, onChange }) => {
         )}
       </div>
 
-      {sequence.length < 3 && (
-        <p className="text-xs text-amber-400">Add at least 3 icons to complete the sequence.</p>
+      {sequence.length === 0 && (
+        <p className="text-xs text-amber-400">Add at least 1 icon to complete the sequence.</p>
       )}
 
       {showPicker && (

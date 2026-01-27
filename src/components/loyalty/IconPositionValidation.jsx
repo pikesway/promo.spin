@@ -62,10 +62,8 @@ export default function IconPositionValidation({ config, onSuccess, onFailure, a
   }, [isTargetInPosition, targetIcon, targetPosition, onSuccess, onFailure]);
 
   const getPositionHighlight = (index) => {
-    if (index === targetIndex) {
-      if (isConfirmed && isTargetInPosition) return 'ring-2 ring-green-500 bg-green-500/20';
-      if (isShaking && !isTargetInPosition) return 'ring-2 ring-red-500 bg-red-500/20';
-      return 'ring-2 ring-teal-500/50 bg-teal-500/10';
+    if (index === targetIndex && isConfirmed && isTargetInPosition) {
+      return 'ring-2 ring-green-500 bg-green-500/20';
     }
     return '';
   };
@@ -74,24 +72,13 @@ export default function IconPositionValidation({ config, onSuccess, onFailure, a
     <div className="flex flex-col items-center">
       <div className="mb-4 text-center">
         <p className="text-gray-400 text-sm mb-2">
-          Click <span className="text-teal-400 font-medium">Confirm</span> when the
+          Staff: Enter your validation code
         </p>
-        <div className="flex items-center justify-center gap-2 mb-2">
-          {targetIcon && (
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: `${targetIcon.color}20` }}
-            >
-              <targetIcon.icon size={22} style={{ color: targetIcon.color }} />
-            </div>
-          )}
-          <span className="text-white font-medium">{targetIcon?.name}</span>
-        </div>
-        <p className="text-gray-400 text-sm">
-          is in the <span className="text-white font-medium">{POSITION_LABELS[targetPosition]}</span> corner
+        <p className="text-gray-500 text-xs mb-2">
+          Shuffle until ready, then confirm
         </p>
         {error && (
-          <p className="text-red-400 text-sm mt-2">{error}</p>
+          <p className="text-red-400 text-sm mt-2">Incorrect - try again</p>
         )}
         <p className="text-gray-500 text-xs mt-2">
           {attemptsRemaining} attempts remaining

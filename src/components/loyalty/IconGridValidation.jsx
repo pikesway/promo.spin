@@ -38,21 +38,14 @@ export default function IconGridValidation({ config, onSuccess, onFailure, attem
   return (
     <div className="flex flex-col items-center">
       <div className="mb-6 text-center">
-        <p className="text-gray-400 text-sm mb-3">
-          Select the <span className="text-white font-medium">{targetIcon?.name}</span> icon
+        <p className="text-gray-400 text-sm mb-2">
+          Staff: Enter your validation code
         </p>
-        <div className="flex items-center justify-center gap-2 mb-2">
-          {targetIcon && (
-            <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: `${targetIcon.color}20` }}
-            >
-              <targetIcon.icon size={28} style={{ color: targetIcon.color }} />
-            </div>
-          )}
-        </div>
+        <p className="text-gray-500 text-xs mb-2">
+          Select the correct icon to verify
+        </p>
         {error && (
-          <p className="text-red-400 text-sm mt-2">{error}</p>
+          <p className="text-red-400 text-sm mt-2">Incorrect - try again</p>
         )}
         <p className="text-gray-500 text-xs mt-1">
           {attemptsRemaining} attempts remaining
