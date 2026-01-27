@@ -3,7 +3,7 @@ import {
   FiSun, FiMoon, FiCloud, FiDroplet, FiFeather, FiAnchor,
   FiZap, FiUmbrella, FiShoppingBag, FiCamera
 } from 'react-icons/fi';
-import { LuWine, LuPizza } from 'react-icons/lu';
+import { LuWine, LuPizza, LuScissors } from 'react-icons/lu';
 
 export const LOYALTY_ICONS = [
   { id: 'heart', name: 'Heart', icon: FiHeart, color: '#EF4444' },
@@ -23,7 +23,8 @@ export const LOYALTY_ICONS = [
   { id: 'zap', name: 'Lightning', icon: FiZap, color: '#EAB308' },
   { id: 'umbrella', name: 'Umbrella', icon: FiUmbrella, color: '#F43F5E' },
   { id: 'shopping', name: 'Shopping', icon: FiShoppingBag, color: '#14B8A6' },
-  { id: 'camera', name: 'Camera', icon: FiCamera, color: '#64748B' }
+  { id: 'camera', name: 'Camera', icon: FiCamera, color: '#64748B' },
+  { id: 'scissors', name: 'Scissors', icon: LuScissors, color: '#71717A' }
 ];
 
 export const getIconById = (id) => {
