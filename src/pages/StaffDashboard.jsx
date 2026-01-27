@@ -460,6 +460,8 @@ export default function StaffDashboard() {
           setShowValidation(false);
           setShowManagerOverride(true);
         }}
+        onLockout={() => {}}
+        accountId={selectedMember?.id}
       />
 
       <ManagerOverrideModal

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiLock, FiAlertTriangle } from 'react-icons/fi';
+import { supabase } from '../../supabase/client';
 import PinValidation from './PinValidation';
 import IconGridValidation from './IconGridValidation';
 import IconSequenceValidation from './IconSequenceValidation';
@@ -14,7 +15,9 @@ export default function StaffValidationModal({
   actionType = 'visit',
   lockoutThreshold = 3,
   isLocked = false,
-  onUnlockRequest
+  onUnlockRequest,
+  onLockout,
+  accountId
 }) {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [showLockout, setShowLockout] = useState(isLocked);
@@ -34,12 +37,26 @@ export default function StaffValidationModal({
     onSuccess();
   };
 
-  const handleFailure = () => {
+  const handleFailure = async () => {
     const newFailedAttempts = failedAttempts + 1;
     setFailedAttempts(newFailedAttempts);
 
     if (newFailedAttempts >= lockoutThreshold) {
       setShowLockout(true);
+      if (accountId) {
+        try {
+          await supabase.from('validation_lockouts').insert({
+            loyalty_account_id: accountId,
+            failed_attempts: newFailedAttempts,
+            reason: 'Too many failed validation attempts'
+          });
+          if (onLockout) {
+            onLockout();
+          }
+        } catch (err) {
+          console.error('Error creating lockout record:', err);
+        }
+      }
     }
   };
 

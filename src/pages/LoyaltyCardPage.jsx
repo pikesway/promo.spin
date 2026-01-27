@@ -412,6 +412,8 @@ export default function LoyaltyCardPage() {
         lockoutThreshold={loyaltyConfig.lockout_threshold || loyaltyConfig.lockoutThreshold || 3}
         isLocked={isLocked}
         onUnlockRequest={handleUnlockRequest}
+        onLockout={() => setIsLocked(true)}
+        accountId={account?.id}
       />
 
       <ManagerOverrideModal
