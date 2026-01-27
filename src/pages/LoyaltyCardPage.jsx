@@ -414,6 +414,7 @@ export default function LoyaltyCardPage() {
         onUnlockRequest={handleUnlockRequest}
         onLockout={() => setIsLocked(true)}
         accountId={account?.id}
+        campaignId={campaign?.id}
       />
 
       <ManagerOverrideModal

@@ -462,6 +462,7 @@ export default function StaffDashboard() {
         }}
         onLockout={() => {}}
         accountId={selectedMember?.id}
+        campaignId={selectedMember?.campaign_id}
       />
 
       <ManagerOverrideModal

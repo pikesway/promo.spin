@@ -17,7 +17,8 @@ export default function StaffValidationModal({
   isLocked = false,
   onUnlockRequest,
   onLockout,
-  accountId
+  accountId,
+  campaignId
 }) {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [showLockout, setShowLockout] = useState(isLocked);
@@ -43,14 +44,16 @@ export default function StaffValidationModal({
 
     if (newFailedAttempts >= lockoutThreshold) {
       setShowLockout(true);
-      if (accountId) {
+      if (accountId && campaignId) {
         try {
-          await supabase.from('validation_lockouts').insert({
+          const { error } = await supabase.from('validation_lockouts').insert({
             loyalty_account_id: accountId,
-            failed_attempts: newFailedAttempts,
+            campaign_id: campaignId,
             reason: 'Too many failed validation attempts'
           });
-          if (onLockout) {
+          if (error) {
+            console.error('Error creating lockout record:', error);
+          } else if (onLockout) {
             onLockout();
           }
         } catch (err) {
