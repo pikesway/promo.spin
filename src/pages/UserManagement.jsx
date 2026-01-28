@@ -229,12 +229,12 @@ export default function UserManagement() {
       <div className="container px-3 md:px-4 py-4 md:py-6">
         <div className="flex justify-between items-start mb-4 md:mb-6">
           <div>
-            <h1 className="text-xl md:text-3xl font-bold flex items-center gap-2 text-white">
-              <FiUsers className="text-blue-500" size={24} />
+            <h1 className="text-xl md:text-3xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <FiUsers style={{ color: 'var(--info)' }} size={24} />
               <span className="hidden md:inline">User Management</span>
               <span className="md:hidden">Users</span>
             </h1>
-            <p className="text-sm text-gray-400 mt-1 hidden md:block">Manage system users and their access</p>
+            <p className="text-sm mt-1 hidden md:block" style={{ color: 'var(--text-secondary)' }}>Manage system users and their access</p>
           </div>
           <button
             onClick={() => setShowModal(true)}
@@ -268,25 +268,26 @@ export default function UserManagement() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left py-3 px-4 font-medium text-gray-400">Name</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-400">Email</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-400">Role</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-400">Client</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-400">Status</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-400">Actions</th>
+                <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Name</th>
+                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Email</th>
+                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Role</th>
+                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Client</th>
+                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Status</th>
+                  <th className="text-right py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((user) => (
                   <tr
                     key={user.id}
-                    className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                    className="transition-colors"
+                    style={{ borderBottom: '1px solid var(--divider)' }}
                   >
-                    <td className="py-3 px-4 text-white">{user.full_name || '-'}</td>
-                    <td className="py-3 px-4 text-white">{user.email}</td>
+                    <td className="py-3 px-4" style={{ color: 'var(--text-primary)' }}>{user.full_name || '-'}</td>
+                    <td className="py-3 px-4" style={{ color: 'var(--text-primary)' }}>{user.email}</td>
                     <td className="py-3 px-4">{getRoleBadge(user.role)}</td>
-                    <td className="py-3 px-4 text-white">{user.clients?.name || '-'}</td>
+                    <td className="py-3 px-4" style={{ color: 'var(--text-primary)' }}>{user.clients?.name || '-'}</td>
                     <td className="py-3 px-4">
                       <span
                         className="px-2 py-1 rounded text-xs font-medium"
@@ -305,14 +306,16 @@ export default function UserManagement() {
                           <>
                             <button
                               onClick={() => handleToggleActive(user)}
-                              className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
+                              className="p-2 transition-colors"
+                              style={{ color: 'var(--text-secondary)' }}
                               title={user.is_active ? 'Deactivate' : 'Activate'}
                             >
                               {user.is_active ? <FiLock size={16} /> : <FiUnlock size={16} />}
                             </button>
                             <button
                               onClick={() => handleEdit(user)}
-                              className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
+                              className="p-2 transition-colors"
+                              style={{ color: 'var(--text-secondary)' }}
                               title="Edit"
                             >
                               <FiEdit2 size={16} />
@@ -320,7 +323,8 @@ export default function UserManagement() {
                             {isSuperAdmin() && (
                               <button
                                 onClick={() => handleDelete(user.id)}
-                                className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                                className="p-2 transition-colors"
+                                style={{ color: 'var(--text-secondary)' }}
                                 title="Delete"
                               >
                                 <FiTrash2 size={16} />
@@ -342,18 +346,18 @@ export default function UserManagement() {
             <div
               key={user.id}
               onClick={() => canEditUser(user) && handleEdit(user)}
-              className={`glass-card p-3 ${canEditUser(user) ? 'cursor-pointer active:bg-white/10' : ''}`}
+              className={`glass-card p-3 ${canEditUser(user) ? 'cursor-pointer' : ''}`}
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--bg-tertiary)' }}>
-                  <FiUsers className="text-gray-400" size={18} />
+                  <FiUsers size={18} style={{ color: 'var(--text-secondary)' }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-white font-medium truncate">{user.full_name || 'Unnamed'}</span>
+                    <span className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>{user.full_name || 'Unnamed'}</span>
                     {getRoleBadge(user.role)}
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
                     <FiMail size={12} />
                     <span className="truncate">{user.email}</span>
                   </div>
@@ -368,12 +372,12 @@ export default function UserManagement() {
                       {user.is_active ? 'Active' : 'Inactive'}
                     </span>
                     {user.clients?.name && (
-                      <span className="text-[10px] text-gray-500">{user.clients.name}</span>
+                      <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{user.clients.name}</span>
                     )}
                   </div>
                 </div>
                 {canEditUser(user) && (
-                  <FiChevronRight className="text-gray-500 flex-shrink-0" size={20} />
+                  <FiChevronRight size={20} style={{ color: 'var(--text-tertiary)' }} className="flex-shrink-0" />
                 )}
               </div>
             </div>
@@ -387,20 +391,20 @@ export default function UserManagement() {
       />
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" style={{ background: 'rgba(0, 0, 0, 0.8)' }}>
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" style={{ background: 'var(--overlay-bg)' }}>
           <div
             className="glass-card w-full md:max-w-md md:mx-4 rounded-t-2xl md:rounded-2xl max-h-[90vh] overflow-auto"
             style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}
           >
-            <div className="sticky top-0 p-4 border-b border-white/10" style={{ background: 'var(--bg-secondary)' }}>
-              <h2 className="text-xl font-bold text-white">
+            <div className="sticky top-0 p-4" style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
                 {editingUser ? 'Edit User' : 'Add New User'}
               </h2>
             </div>
 
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-400">
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
                   Email
                 </label>
                 <input
@@ -415,7 +419,7 @@ export default function UserManagement() {
 
               {!editingUser && (
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-400">
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
                     Password
                   </label>
                   <input
@@ -430,7 +434,7 @@ export default function UserManagement() {
               )}
 
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-400">
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
                   Full Name
                 </label>
                 <input
@@ -443,7 +447,7 @@ export default function UserManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-400">
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
                   Role
                 </label>
                 <select
@@ -464,7 +468,7 @@ export default function UserManagement() {
 
               {formData.role === 'client' && (
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-400">
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
                     Client
                   </label>
                   <select
@@ -491,7 +495,7 @@ export default function UserManagement() {
                   className="w-4 h-4 rounded"
                   style={{ accentColor: 'var(--brand-primary)' }}
                 />
-                <label htmlFor="is_active" className="ml-2 text-sm text-gray-400">
+                <label htmlFor="is_active" className="ml-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
                   Active
                 </label>
               </div>

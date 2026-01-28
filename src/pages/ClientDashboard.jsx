@@ -130,7 +130,7 @@ export default function ClientDashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--bg-primary)' }}>
         <div className="text-center p-4">
-          <p className="text-gray-400 mb-3">Client not found</p>
+          <p className="mb-3" style={{ color: 'var(--text-secondary)' }}>Client not found</p>
           <button className="btn btn-primary" onClick={() => navigate('/agency')}>
             Back to Agency Dashboard
           </button>
@@ -199,14 +199,14 @@ export default function ClientDashboard() {
               />
             ) : (
               <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--bg-tertiary)' }}>
-                <FiUser className="text-gray-500" size={24} />
+                <FiUser size={24} style={{ color: 'var(--text-tertiary)' }} />
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl md:text-3xl font-bold text-white truncate mb-1">{client.name}</h1>
+              <h1 className="text-xl md:text-3xl font-bold truncate mb-1" style={{ color: 'var(--text-primary)' }}>{client.name}</h1>
               <div className="flex items-center gap-2 flex-wrap">
                 <StatusBadge status={client.status} size="sm" />
-                <span className="text-xs text-gray-500 hidden md:inline">{client.email}</span>
+                <span className="text-xs hidden md:inline" style={{ color: 'var(--text-tertiary)' }}>{client.email}</span>
               </div>
             </div>
             <div className="hidden md:flex gap-2 flex-shrink-0">
@@ -220,37 +220,37 @@ export default function ClientDashboard() {
           </div>
         </div>
 
-        <div className="flex gap-2 mb-4 border-b border-white/10 pb-2 -mx-3 px-3 overflow-x-auto hide-scrollbar">
+        <div className="flex gap-2 mb-4 pb-2 -mx-3 px-3 overflow-x-auto hide-scrollbar" style={{ borderBottom: '1px solid var(--border-color)' }}>
           <button
             onClick={() => setActiveTab('campaigns')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-              activeTab === 'campaigns'
-                ? 'bg-blue-500 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+            className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors"
+            style={{
+              background: activeTab === 'campaigns' ? 'var(--brand-primary)' : 'transparent',
+              color: activeTab === 'campaigns' ? 'white' : 'var(--text-secondary)'
+            }}
           >
             Campaigns
           </button>
           <button
             onClick={() => setActiveTab('leads')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${
-              activeTab === 'leads'
-                ? 'bg-blue-500 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+            className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2"
+            style={{
+              background: activeTab === 'leads' ? 'var(--brand-primary)' : 'transparent',
+              color: activeTab === 'leads' ? 'white' : 'var(--text-secondary)'
+            }}
           >
             Leads
-            <span className={`text-xs px-1.5 py-0.5 rounded ${activeTab === 'leads' ? 'bg-white/20' : 'bg-white/10'}`}>
+            <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: activeTab === 'leads' ? 'rgba(255,255,255,0.2)' : 'var(--glass-bg)' }}>
               {clientLeads.length}
             </span>
           </button>
           <button
             onClick={() => setActiveTab('loyalty')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${
-              activeTab === 'loyalty'
-                ? 'bg-rose-500 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+            className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2"
+            style={{
+              background: activeTab === 'loyalty' ? 'var(--error)' : 'transparent',
+              color: activeTab === 'loyalty' ? 'white' : 'var(--text-secondary)'
+            }}
           >
             <FiHeart size={14} />
             Loyalty
@@ -260,7 +260,7 @@ export default function ClientDashboard() {
         {activeTab === 'campaigns' && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg md:text-2xl font-semibold text-white">Overview</h2>
+              <h2 className="text-lg md:text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>Overview</h2>
               <button className="btn btn-primary hidden md:flex" onClick={() => setShowWizard(true)}>
                 <FiPlus /> Create Campaign
               </button>
@@ -270,18 +270,18 @@ export default function ClientDashboard() {
               {Object.entries(campaignsByStatus).map(([status, statusCampaigns]) => (
                 <div key={status} className="glass-card w-32 md:w-auto flex-shrink-0 p-3 md:p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-400 capitalize">{status}</span>
+                    <span className="text-xs capitalize" style={{ color: 'var(--text-secondary)' }}>{status}</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${getStatusBadgeClass(status)}`}>
                       {statusCampaigns.length}
                     </span>
                   </div>
-                  <p className="text-2xl md:text-3xl font-bold text-white">{statusCampaigns.length}</p>
+                  <p className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{statusCampaigns.length}</p>
                 </div>
               ))}
             </div>
 
             <div>
-              <h3 className="text-base md:text-xl font-semibold text-white mb-3">All Campaigns</h3>
+              <h3 className="text-base md:text-xl font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>All Campaigns</h3>
               <CampaignList
                 campaigns={clientCampaigns}
                 onEditCampaign={setEditingCampaign}
@@ -298,7 +298,7 @@ export default function ClientDashboard() {
         {activeTab === 'leads' && (
           <div>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg md:text-xl font-semibold text-white">Lead Collection</h3>
+              <h3 className="text-lg md:text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Lead Collection</h3>
               <button
                 className="btn btn-success btn-sm md:btn"
                 onClick={exportLeadsCSV}
@@ -310,7 +310,7 @@ export default function ClientDashboard() {
 
             {clientLeads.length === 0 ? (
               <div className="glass-card p-8 text-center">
-                <p className="text-gray-400">No leads collected yet</p>
+                <p style={{ color: 'var(--text-secondary)' }}>No leads collected yet</p>
               </div>
             ) : (
               <>
@@ -318,24 +318,24 @@ export default function ClientDashboard() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-white/10">
-                          <th className="text-left p-3 text-gray-400 font-medium">Date</th>
-                          <th className="text-left p-3 text-gray-400 font-medium">Campaign</th>
-                          <th className="text-left p-3 text-gray-400 font-medium">Name</th>
-                          <th className="text-left p-3 text-gray-400 font-medium">Email</th>
-                          <th className="text-left p-3 text-gray-400 font-medium">Phone</th>
+                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Date</th>
+                          <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Campaign</th>
+                          <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Name</th>
+                          <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Email</th>
+                          <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Phone</th>
                         </tr>
                       </thead>
                       <tbody>
                         {clientLeads.map(lead => {
                           const campaign = campaigns.find(c => c.id === lead.campaign_id);
                           return (
-                            <tr key={lead.id} className="border-b border-white/5 hover:bg-white/5">
-                              <td className="p-3 text-white">{new Date(lead.created_at).toLocaleDateString()}</td>
-                              <td className="p-3 text-white">{campaign?.name || 'Unknown'}</td>
-                              <td className="p-3 text-white">{lead.data.name || '-'}</td>
-                              <td className="p-3 text-white">{lead.data.email || '-'}</td>
-                              <td className="p-3 text-white">{lead.data.phone || '-'}</td>
+                            <tr key={lead.id} style={{ borderBottom: '1px solid var(--divider)' }}>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{new Date(lead.created_at).toLocaleDateString()}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{campaign?.name || 'Unknown'}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.data.name || '-'}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.data.email || '-'}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.data.phone || '-'}</td>
                             </tr>
                           );
                         })}
@@ -351,18 +351,18 @@ export default function ClientDashboard() {
                       <div key={lead.id} className="glass-card p-3">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <FiUser className="text-gray-400" size={14} />
-                            <span className="text-white font-medium">{lead.data.name || 'Unknown'}</span>
+                            <FiUser size={14} style={{ color: 'var(--text-secondary)' }} />
+                            <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{lead.data.name || 'Unknown'}</span>
                           </div>
-                          <span className="text-xs text-gray-500 flex items-center gap-1">
+                          <span className="text-xs flex items-center gap-1" style={{ color: 'var(--text-tertiary)' }}>
                             <FiCalendar size={12} />
                             {new Date(lead.created_at).toLocaleDateString()}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-400 mb-1 truncate">
+                        <div className="text-xs mb-1 truncate" style={{ color: 'var(--text-secondary)' }}>
                           {campaign?.name || 'Unknown Campaign'}
                         </div>
-                        <div className="flex flex-wrap gap-3 text-xs text-gray-400">
+                        <div className="flex flex-wrap gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
                           {lead.data.email && (
                             <span className="flex items-center gap-1">
                               <FiMail size={12} />
@@ -412,7 +412,7 @@ export default function ClientDashboard() {
       {showQRModal && (
         <div
           className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4"
-          style={{ background: 'rgba(0, 0, 0, 0.8)' }}
+          style={{ background: 'var(--overlay-bg)' }}
           onClick={() => setShowQRModal(null)}
         >
           <div
@@ -421,7 +421,7 @@ export default function ClientDashboard() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4">
-              <h2 className="text-xl font-semibold text-white mb-4">Share Campaign</h2>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Share Campaign</h2>
 
               <div className="text-center mb-4">
                 <div className="bg-white p-3 rounded-xl inline-block">
@@ -430,7 +430,7 @@ export default function ClientDashboard() {
               </div>
 
               <div className="mb-3">
-                <label className="block text-xs text-gray-400 mb-1">Campaign URL</label>
+                <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Campaign URL</label>
                 <div className="flex gap-2">
                   <input className="input flex-1 text-sm" value={getCampaignURL(showQRModal)} readOnly />
                   <button className="btn btn-secondary p-2" onClick={() => copyToClipboard(getCampaignURL(showQRModal))}>
@@ -440,7 +440,7 @@ export default function ClientDashboard() {
               </div>
 
               <div className="mb-4 hidden md:block">
-                <label className="block text-xs text-gray-400 mb-1">iFrame Embed Code</label>
+                <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>iFrame Embed Code</label>
                 <div className="flex gap-2">
                   <textarea
                     className="input flex-1 text-xs font-mono"
@@ -465,14 +465,14 @@ export default function ClientDashboard() {
       {showBrandingModal && (
         <div
           className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
-          style={{ background: 'rgba(0, 0, 0, 0.8)' }}
+          style={{ background: 'var(--overlay-bg)' }}
         >
           <div
             className="glass-card w-full md:max-w-2xl md:mx-4 rounded-t-2xl md:rounded-2xl max-h-[90vh] overflow-auto"
             style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}
           >
-            <div className="sticky top-0 p-4 border-b border-white/10" style={{ background: 'var(--bg-secondary)' }}>
-              <h2 className="text-xl font-semibold text-white">Edit Client Branding</h2>
+            <div className="sticky top-0 p-4" style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
+              <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Edit Client Branding</h2>
             </div>
             <div className="p-4">
               <ClientBrandingForm

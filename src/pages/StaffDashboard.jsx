@@ -268,13 +268,14 @@ export default function StaffDashboard() {
               />
             )}
             <div>
-              <h1 className="text-xl font-bold text-white">{client?.name || 'Staff Dashboard'}</h1>
-              <p className="text-sm text-gray-500">{profile?.full_name || profile?.email}</p>
+              <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{client?.name || 'Staff Dashboard'}</h1>
+              <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>{profile?.full_name || profile?.email}</p>
             </div>
           </div>
           <button
             onClick={handleSignOut}
-            className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
           >
             <FiLogOut size={20} />
           </button>
@@ -282,25 +283,25 @@ export default function StaffDashboard() {
 
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="glass-card p-4">
-            <div className="flex items-center gap-2 text-gray-400 mb-1">
+            <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
               <FiCheck size={14} />
               <span className="text-xs">Today</span>
             </div>
-            <p className="text-2xl font-bold text-white">{stats.todayConfirmations}</p>
+            <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.todayConfirmations}</p>
           </div>
           <div className="glass-card p-4">
-            <div className="flex items-center gap-2 text-gray-400 mb-1">
+            <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
               <FiGift size={14} />
               <span className="text-xs">Rewards</span>
             </div>
-            <p className="text-2xl font-bold text-amber-400">{stats.pendingRewards}</p>
+            <p className="text-2xl font-bold" style={{ color: 'var(--warning)' }}>{stats.pendingRewards}</p>
           </div>
           <div className="glass-card p-4">
-            <div className="flex items-center gap-2 text-gray-400 mb-1">
+            <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
               <FiUsers size={14} />
               <span className="text-xs">Members</span>
             </div>
-            <p className="text-2xl font-bold text-white">{stats.activeMembers}</p>
+            <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.activeMembers}</p>
           </div>
         </div>
 
@@ -354,7 +355,7 @@ export default function StaffDashboard() {
 
           <div className="space-y-2">
             {filteredMembers.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
+              <p className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
                 {searchQuery ? 'No members found' : 'No loyalty members yet'}
               </p>
             ) : (
@@ -365,24 +366,25 @@ export default function StaffDashboard() {
                 return (
                   <div
                     key={member.id}
-                    className="p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                    className="p-3 rounded-xl transition-colors"
+                    style={{ background: 'var(--glass-bg)' }}
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-white font-medium truncate">{member.name}</p>
+                          <p className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>{member.name}</p>
                           {member.reward_unlocked && (
-                            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-xs font-medium">
+                            <span className="px-1.5 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(245, 158, 11, 0.2)', color: 'var(--warning)' }}>
                               Reward Ready
                             </span>
                           )}
                         </div>
-                        <p className="text-gray-500 text-sm truncate">{member.email}</p>
+                        <p className="text-sm truncate" style={{ color: 'var(--text-tertiary)' }}>{member.email}</p>
                         <div className="flex items-center gap-4 mt-1">
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                             {member.current_progress}/{threshold} stamps
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                             {member.campaigns?.name}
                           </span>
                         </div>
@@ -417,7 +419,7 @@ export default function StaffDashboard() {
 
         {recentActivity.length > 0 && (
           <div className="glass-card p-4">
-            <h2 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+            <h2 className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
               <FiCalendar size={14} />
               Recent Activity
             </h2>
@@ -429,10 +431,10 @@ export default function StaffDashboard() {
                     activity.action_type === 'reward_unlocked' ? 'bg-green-500' :
                     'bg-rose-500'
                   }`} />
-                  <span className="text-gray-400 flex-1 truncate">
+                  <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)' }}>
                     {activity.loyalty_accounts?.name || 'Member'}
                   </span>
-                  <span className="text-gray-500 text-xs">
+                  <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                     {activity.action_type === 'visit_confirmed' ? 'Stamped' :
                      activity.action_type === 'reward_unlocked' ? 'Earned reward' :
                      activity.action_type === 'reward_redeemed' ? 'Redeemed' : activity.action_type}

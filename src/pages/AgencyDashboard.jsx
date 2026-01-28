@@ -98,10 +98,10 @@ export default function AgencyDashboard() {
         <header className="mb-4 md:mb-6">
           <div className="flex justify-between items-start gap-3">
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl md:text-4xl font-bold text-white mb-1 truncate">
+              <h1 className="text-2xl md:text-4xl font-bold mb-1 truncate" style={{ color: 'var(--text-primary)' }}>
                 Agency Dashboard
               </h1>
-              <p className="text-sm md:text-lg text-gray-400 hidden md:block">
+              <p className="text-sm md:text-lg hidden md:block" style={{ color: 'var(--text-secondary)' }}>
                 Manage all clients and monitor global campaign performance
               </p>
             </div>
@@ -135,9 +135,9 @@ export default function AgencyDashboard() {
           <div className="glass-card w-36 md:w-auto flex-shrink-0 p-3 md:p-4">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-xs text-gray-400 mb-1">Clients</p>
-                <p className="text-3xl md:text-4xl font-bold text-white">{stats.totalClients}</p>
-                <p className="text-[10px] md:text-xs text-gray-500 mt-1 hidden md:block">
+                <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Clients</p>
+                <p className="text-3xl md:text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.totalClients}</p>
+                <p className="text-[10px] md:text-xs mt-1 hidden md:block" style={{ color: 'var(--text-tertiary)' }}>
                   {statusBreakdown.active} Active
                 </p>
               </div>
@@ -150,9 +150,9 @@ export default function AgencyDashboard() {
           <div className="glass-card w-36 md:w-auto flex-shrink-0 p-3 md:p-4">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-xs text-gray-400 mb-1">Active</p>
-                <p className="text-3xl md:text-4xl font-bold text-white">{stats.activeCampaigns}</p>
-                <p className="text-[10px] md:text-xs text-gray-500 mt-1 hidden md:block">campaigns</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Active</p>
+                <p className="text-3xl md:text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.activeCampaigns}</p>
+                <p className="text-[10px] md:text-xs mt-1 hidden md:block" style={{ color: 'var(--text-tertiary)' }}>campaigns</p>
               </div>
               <div className="hidden md:flex w-10 h-10 rounded-lg items-center justify-center" style={{ background: 'rgba(16, 185, 129, 0.1)' }}>
                 <FiTrendingUp size={20} color="var(--success)" />
@@ -163,8 +163,8 @@ export default function AgencyDashboard() {
           <div className="glass-card w-36 md:w-auto flex-shrink-0 p-3 md:p-4">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-xs text-gray-400 mb-1">Leads</p>
-                <p className="text-3xl md:text-4xl font-bold text-white">{stats.totalLeads}</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Leads</p>
+                <p className="text-3xl md:text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.totalLeads}</p>
               </div>
               <div className="hidden md:flex w-10 h-10 rounded-lg items-center justify-center" style={{ background: 'rgba(59, 130, 246, 0.1)' }}>
                 <FiTarget size={20} color="var(--info)" />
@@ -175,8 +175,8 @@ export default function AgencyDashboard() {
           <div className="glass-card w-36 md:w-auto flex-shrink-0 p-3 md:p-4">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-xs text-gray-400 mb-1">Redeemed</p>
-                <p className="text-3xl md:text-4xl font-bold text-white">{stats.totalRedemptions}</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Redeemed</p>
+                <p className="text-3xl md:text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.totalRedemptions}</p>
               </div>
               <div className="hidden md:flex w-10 h-10 rounded-lg items-center justify-center" style={{ background: 'rgba(245, 158, 11, 0.1)' }}>
                 <FiDollarSign size={20} color="var(--warning)" />
@@ -188,7 +188,7 @@ export default function AgencyDashboard() {
         <div className="glass-card p-3 md:p-4">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4">
             <div className="flex items-center gap-3">
-              <h2 className="text-lg md:text-2xl font-semibold text-white">Clients</h2>
+              <h2 className="text-lg md:text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>Clients</h2>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -210,7 +210,7 @@ export default function AgencyDashboard() {
 
           {clients.length === 0 ? (
             <div className="text-center py-8 md:py-12">
-              <p className="text-gray-400 mb-3">No clients yet</p>
+              <p className="mb-3" style={{ color: 'var(--text-secondary)' }}>No clients yet</p>
               <button className="btn btn-primary" onClick={() => setShowClientModal(true)}>
                 Create Your First Client
               </button>
@@ -225,7 +225,8 @@ export default function AgencyDashboard() {
                   <div
                     key={client.id}
                     onClick={() => navigate(`/client/${client.id}`)}
-                    className="glass-card p-3 md:p-4 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10"
+                    className="glass-card p-3 md:p-4 flex items-center gap-3 cursor-pointer transition-colors"
+                    style={{ ':hover': { background: 'var(--card-hover-bg)' } }}
                   >
                     {client.logo_url ? (
                       <img
@@ -236,20 +237,20 @@ export default function AgencyDashboard() {
                       />
                     ) : (
                       <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--bg-tertiary)' }}>
-                        <FiUsers className="text-gray-500" size={20} />
+                        <FiUsers size={20} style={{ color: 'var(--text-tertiary)' }} />
                       </div>
                     )}
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-base md:text-lg font-semibold text-white truncate">{client.name}</h3>
+                        <h3 className="text-base md:text-lg font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{client.name}</h3>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <StatusBadge status={client.status} size="sm" />
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                           {clientCampaigns.length} campaigns
                         </span>
-                        <span className="text-xs text-gray-500 hidden md:inline">
+                        <span className="text-xs hidden md:inline" style={{ color: 'var(--text-tertiary)' }}>
                           {clientLeads.length} leads
                         </span>
                       </div>
@@ -271,7 +272,7 @@ export default function AgencyDashboard() {
                       </button>
                     </div>
 
-                    <FiChevronRight className="text-gray-500 flex-shrink-0 md:hidden" size={20} />
+                    <FiChevronRight size={20} className="flex-shrink-0 md:hidden" style={{ color: 'var(--text-tertiary)' }} />
                   </div>
                 );
               })}
@@ -286,13 +287,13 @@ export default function AgencyDashboard() {
       />
 
       {showClientModal && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" style={{ background: 'rgba(0, 0, 0, 0.8)' }}>
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" style={{ background: 'var(--overlay-bg)' }}>
           <div
             className="glass-card w-full md:max-w-2xl md:mx-4 rounded-t-2xl md:rounded-2xl max-h-[90vh] overflow-auto"
             style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}
           >
-            <div className="sticky top-0 p-4 border-b border-white/10" style={{ background: 'var(--bg-secondary)' }}>
-              <h2 className="text-xl md:text-2xl font-semibold text-white">
+            <div className="sticky top-0 p-4" style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
+              <h2 className="text-xl md:text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>
                 {editingClient ? 'Edit Client' : 'Create New Client'}
               </h2>
             </div>
