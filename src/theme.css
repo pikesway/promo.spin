@@ -1,11 +1,12 @@
 /*
   Campaign-as-a-Service Platform Theme
-  Design System: 2026 Modern Dark Mode with Glassmorphism
-  Color Palette: Deep blacks, electric indigo accents
+  Design System: 2026 Modern with Glassmorphism
+  Supports: Dark Mode (default) and Light Mode
+  Color Palette: Electric indigo accents
 */
 
 :root {
-  /* Core Colors - Dark Mode Base */
+  /* Core Colors - Dark Mode Base (Default) */
   --bg-primary: #09090B;
   --bg-secondary: #18181B;
   --bg-tertiary: #27272A;
@@ -65,22 +66,44 @@
   --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.7);
   --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
 
+  /* Focus Ring */
+  --focus-ring: 0 0 0 3px rgba(99, 102, 241, 0.4);
+
+  /* Scrollbar Colors */
+  --scrollbar-track: var(--bg-secondary);
+  --scrollbar-thumb: var(--gray-700);
+  --scrollbar-thumb-hover: var(--gray-600);
+
+  /* Card Hover Background */
+  --card-hover-bg: rgba(255, 255, 255, 0.08);
+
+  /* Input Background */
+  --input-bg: var(--bg-secondary);
+  --input-disabled-bg: rgba(255, 255, 255, 0.05);
+
+  /* Overlay */
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+
+  /* Nav Background */
+  --nav-bg: rgba(9, 9, 11, 0.95);
+  --nav-border: rgba(255, 255, 255, 0.1);
+
   /* Spacing System (8px base) */
-  --space-1: 0.5rem;   /* 8px */
-  --space-2: 1rem;     /* 16px */
-  --space-3: 1.5rem;   /* 24px */
-  --space-4: 2rem;     /* 32px */
-  --space-5: 2.5rem;   /* 40px */
-  --space-6: 3rem;     /* 48px */
-  --space-8: 4rem;     /* 64px */
-  --space-10: 5rem;    /* 80px */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --space-5: 2.5rem;
+  --space-6: 3rem;
+  --space-8: 4rem;
+  --space-10: 5rem;
 
   /* Border Radius */
-  --radius-sm: 0.375rem;  /* 6px */
-  --radius-md: 0.5rem;    /* 8px */
-  --radius-lg: 0.75rem;   /* 12px */
-  --radius-xl: 1rem;      /* 16px */
-  --radius-2xl: 1.5rem;   /* 24px */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
   --radius-full: 9999px;
 
   /* Typography */
@@ -88,15 +111,15 @@
   --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
 
   /* Font Sizes */
-  --text-xs: 0.75rem;     /* 12px */
-  --text-sm: 0.875rem;    /* 14px */
-  --text-base: 1rem;      /* 16px */
-  --text-lg: 1.125rem;    /* 18px */
-  --text-xl: 1.25rem;     /* 20px */
-  --text-2xl: 1.5rem;     /* 24px */
-  --text-3xl: 1.875rem;   /* 30px */
-  --text-4xl: 2.25rem;    /* 36px */
-  --text-5xl: 3rem;       /* 48px */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
 
   /* Line Heights */
   --leading-tight: 1.2;
@@ -123,6 +146,79 @@
   --z-modal: 1050;
   --z-popover: 1060;
   --z-tooltip: 1070;
+}
+
+/* Light Mode Theme */
+[data-theme="light"] {
+  /* Core Colors - Light Mode */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F4F4F5;
+  --bg-tertiary: #E4E4E7;
+
+  /* Brand Colors - Slightly adjusted for light mode contrast */
+  --brand-primary: #4F46E5;
+  --brand-hover: #4338CA;
+  --brand-light: #6366F1;
+  --brand-dark: #3730A3;
+
+  /* Status Colors - Enhanced for light backgrounds */
+  --success: #059669;
+  --success-bg: rgba(5, 150, 105, 0.1);
+  --warning: #D97706;
+  --warning-bg: rgba(217, 119, 6, 0.1);
+  --error: #DC2626;
+  --error-bg: rgba(220, 38, 38, 0.1);
+  --info: #2563EB;
+  --info-bg: rgba(37, 99, 235, 0.1);
+
+  /* Redemption Status Colors */
+  --status-valid: #059669;
+  --status-redeemed: #DC2626;
+  --status-expired: #6B7280;
+
+  /* Text Colors */
+  --text-primary: #18181B;
+  --text-secondary: #52525B;
+  --text-tertiary: #71717A;
+  --text-inverse: #FAFAFA;
+
+  /* Border & Divider */
+  --border-color: rgba(0, 0, 0, 0.1);
+  --divider: rgba(0, 0, 0, 0.05);
+
+  /* Glassmorphism for Light Mode */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-blur: 12px;
+
+  /* Shadows - Softer for light mode */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 20px rgba(79, 70, 229, 0.2);
+
+  /* Focus Ring */
+  --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.3);
+
+  /* Scrollbar Colors */
+  --scrollbar-track: var(--bg-secondary);
+  --scrollbar-thumb: var(--gray-300);
+  --scrollbar-thumb-hover: var(--gray-400);
+
+  /* Card Hover Background */
+  --card-hover-bg: rgba(0, 0, 0, 0.03);
+
+  /* Input Background */
+  --input-bg: #FFFFFF;
+  --input-disabled-bg: rgba(0, 0, 0, 0.03);
+
+  /* Overlay */
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+
+  /* Nav Background */
+  --nav-bg: rgba(255, 255, 255, 0.95);
+  --nav-border: rgba(0, 0, 0, 0.1);
 }
 
 /* Base Styles */
@@ -205,7 +301,7 @@ a:hover {
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--card-hover-bg);
   box-shadow: var(--shadow-xl);
 }
 
@@ -305,7 +401,7 @@ a:hover {
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-base);
   color: var(--text-primary);
-  background: var(--bg-secondary);
+  background: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
@@ -314,7 +410,7 @@ a:hover {
 
 .input:focus {
   border-color: var(--brand-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: var(--focus-ring);
 }
 
 .input::placeholder {
@@ -325,7 +421,7 @@ a:hover {
 .input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--input-disabled-bg);
 }
 
 .input::selection {
@@ -339,7 +435,7 @@ a:hover {
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-base);
   color: var(--text-primary);
-  background: var(--bg-secondary);
+  background: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -349,7 +445,7 @@ a:hover {
 
 .select:focus {
   border-color: var(--brand-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: var(--focus-ring);
 }
 
 .select::selection {
@@ -519,16 +615,16 @@ button, a, input, select, textarea {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--gray-700);
+  background: var(--scrollbar-thumb);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-600);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Utility Classes */

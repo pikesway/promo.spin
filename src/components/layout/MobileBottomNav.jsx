@@ -59,10 +59,10 @@ export default function MobileBottomNav() {
       <div
         className="flex items-center justify-around px-2 py-2 pb-safe"
         style={{
-          background: 'rgba(9, 9, 11, 0.95)',
+          background: 'var(--nav-bg)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+          borderTop: '1px solid var(--nav-border)'
         }}
       >
         {navItems.map((item) => {

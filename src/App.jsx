@@ -1,6 +1,7 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { PlatformProvider } from './context/PlatformContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
@@ -20,9 +21,10 @@ import StaffDashboard from './pages/StaffDashboard';
 function App() {
   return (
     <AuthProvider>
-      <PlatformProvider>
-        <Router>
-          <AppLayout>
+      <ThemeProvider>
+        <PlatformProvider>
+          <Router>
+            <AppLayout>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
@@ -85,9 +87,10 @@ function App() {
                 }
               />
             </Routes>
-          </AppLayout>
-        </Router>
-      </PlatformProvider>
+            </AppLayout>
+          </Router>
+        </PlatformProvider>
+      </ThemeProvider>
     </AuthProvider>
   );
 }
