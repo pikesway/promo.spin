@@ -2,7 +2,7 @@
   Campaign-as-a-Service Platform Theme
   Design System: 2026 Modern with Glassmorphism
   Supports: Dark Mode (default) and Light Mode
-  Color Palette: Electric indigo accents
+  Color Palette: Teal accents (no purple/indigo)
 */
 
 :root {
@@ -10,22 +10,28 @@
   --bg-primary: #09090B;
   --bg-secondary: #18181B;
   --bg-tertiary: #27272A;
+  --bg-surface: #1F1F23;
+  --bg-elevated: #252529;
 
-  /* Electric Indigo Brand Colors */
-  --brand-primary: #6366F1;
-  --brand-hover: #4F46E5;
-  --brand-light: #818CF8;
-  --brand-dark: #4338CA;
+  /* Teal Brand Colors */
+  --brand-primary: #14B8A6;
+  --brand-hover: #0D9488;
+  --brand-light: #2DD4BF;
+  --brand-dark: #0F766E;
 
   /* Status Colors */
   --success: #10B981;
-  --success-bg: rgba(16, 185, 129, 0.1);
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --success-text: #34D399;
   --warning: #F59E0B;
-  --warning-bg: rgba(245, 158, 11, 0.1);
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --warning-text: #FBBF24;
   --error: #EF4444;
-  --error-bg: rgba(239, 68, 68, 0.1);
+  --error-bg: rgba(239, 68, 68, 0.15);
+  --error-text: #F87171;
   --info: #3B82F6;
-  --info-bg: rgba(59, 130, 246, 0.1);
+  --info-bg: rgba(59, 130, 246, 0.15);
+  --info-text: #60A5FA;
 
   /* Redemption Status Colors */
   --status-valid: #10B981;
@@ -48,14 +54,18 @@
   --text-primary: #FAFAFA;
   --text-secondary: #A1A1AA;
   --text-tertiary: #71717A;
+  --text-muted: #52525B;
   --text-inverse: #09090B;
+  --text-on-brand: #FFFFFF;
 
   /* Border & Divider */
-  --border-color: rgba(255, 255, 255, 0.1);
-  --divider: rgba(255, 255, 255, 0.05);
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.15);
+  --divider: rgba(255, 255, 255, 0.08);
 
   /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.06);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-blur: 12px;
 
@@ -64,29 +74,53 @@
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
   --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.7);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-glow: 0 0 20px rgba(20, 184, 166, 0.3);
 
   /* Focus Ring */
-  --focus-ring: 0 0 0 3px rgba(99, 102, 241, 0.4);
+  --focus-ring: 0 0 0 3px rgba(20, 184, 166, 0.4);
 
   /* Scrollbar Colors */
   --scrollbar-track: var(--bg-secondary);
   --scrollbar-thumb: var(--gray-700);
   --scrollbar-thumb-hover: var(--gray-600);
 
-  /* Card Hover Background */
+  /* Card Styles */
+  --card-bg: var(--bg-secondary);
   --card-hover-bg: rgba(255, 255, 255, 0.08);
+  --card-border: var(--border-color);
 
-  /* Input Background */
-  --input-bg: var(--bg-secondary);
+  /* Input Styles */
+  --input-bg: var(--bg-tertiary);
+  --input-border: var(--border-color);
+  --input-focus-border: var(--brand-primary);
+  --input-placeholder: var(--text-tertiary);
   --input-disabled-bg: rgba(255, 255, 255, 0.05);
 
-  /* Overlay */
-  --overlay-bg: rgba(0, 0, 0, 0.7);
+  /* Modal Styles */
+  --modal-bg: var(--bg-secondary);
+  --modal-border: var(--border-color);
+  --modal-header-bg: var(--bg-secondary);
+  --modal-footer-bg: var(--bg-secondary);
+  --overlay-bg: rgba(0, 0, 0, 0.8);
 
   /* Nav Background */
   --nav-bg: rgba(9, 9, 11, 0.95);
   --nav-border: rgba(255, 255, 255, 0.1);
+
+  /* Icon Colors */
+  --icon-primary: var(--text-primary);
+  --icon-secondary: var(--text-secondary);
+  --icon-muted: var(--text-tertiary);
+
+  /* Button Variants */
+  --btn-ghost-hover: rgba(255, 255, 255, 0.1);
+  --btn-secondary-bg: var(--bg-tertiary);
+  --btn-secondary-border: var(--border-color);
+  --btn-secondary-hover: var(--bg-surface);
+
+  /* Badge Backgrounds */
+  --badge-draft-bg: var(--bg-tertiary);
+  --badge-draft-text: var(--text-secondary);
 
   /* Spacing System (8px base) */
   --space-1: 0.5rem;
@@ -152,73 +186,107 @@
 [data-theme="light"] {
   /* Core Colors - Light Mode */
   --bg-primary: #FFFFFF;
-  --bg-secondary: #F4F4F5;
-  --bg-tertiary: #E4E4E7;
+  --bg-secondary: #F8FAFC;
+  --bg-tertiary: #F1F5F9;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
 
-  /* Brand Colors - Slightly adjusted for light mode contrast */
-  --brand-primary: #4F46E5;
-  --brand-hover: #4338CA;
-  --brand-light: #6366F1;
-  --brand-dark: #3730A3;
+  /* Brand Colors - Teal for light mode */
+  --brand-primary: #0D9488;
+  --brand-hover: #0F766E;
+  --brand-light: #14B8A6;
+  --brand-dark: #115E59;
 
   /* Status Colors - Enhanced for light backgrounds */
   --success: #059669;
-  --success-bg: rgba(5, 150, 105, 0.1);
+  --success-bg: rgba(5, 150, 105, 0.12);
+  --success-text: #047857;
   --warning: #D97706;
-  --warning-bg: rgba(217, 119, 6, 0.1);
+  --warning-bg: rgba(217, 119, 6, 0.12);
+  --warning-text: #B45309;
   --error: #DC2626;
-  --error-bg: rgba(220, 38, 38, 0.1);
+  --error-bg: rgba(220, 38, 38, 0.12);
+  --error-text: #B91C1C;
   --info: #2563EB;
-  --info-bg: rgba(37, 99, 235, 0.1);
+  --info-bg: rgba(37, 99, 235, 0.12);
+  --info-text: #1D4ED8;
 
   /* Redemption Status Colors */
   --status-valid: #059669;
   --status-redeemed: #DC2626;
   --status-expired: #6B7280;
 
-  /* Text Colors */
-  --text-primary: #18181B;
-  --text-secondary: #52525B;
-  --text-tertiary: #71717A;
+  /* Text Colors - High contrast for light mode */
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-tertiary: #64748B;
+  --text-muted: #94A3B8;
   --text-inverse: #FAFAFA;
+  --text-on-brand: #FFFFFF;
 
-  /* Border & Divider */
-  --border-color: rgba(0, 0, 0, 0.1);
-  --divider: rgba(0, 0, 0, 0.05);
+  /* Border & Divider - Visible on light backgrounds */
+  --border-color: rgba(0, 0, 0, 0.12);
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-default: rgba(0, 0, 0, 0.15);
+  --divider: rgba(0, 0, 0, 0.08);
 
   /* Glassmorphism for Light Mode */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.1);
   --glass-blur: 12px;
 
   /* Shadows - Softer for light mode */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.12);
-  --shadow-glow: 0 0 20px rgba(79, 70, 229, 0.2);
+  --shadow-glow: 0 0 20px rgba(13, 148, 136, 0.2);
 
   /* Focus Ring */
-  --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.3);
+  --focus-ring: 0 0 0 3px rgba(13, 148, 136, 0.3);
 
   /* Scrollbar Colors */
   --scrollbar-track: var(--bg-secondary);
   --scrollbar-thumb: var(--gray-300);
   --scrollbar-thumb-hover: var(--gray-400);
 
-  /* Card Hover Background */
-  --card-hover-bg: rgba(0, 0, 0, 0.03);
+  /* Card Styles */
+  --card-bg: #FFFFFF;
+  --card-hover-bg: rgba(0, 0, 0, 0.02);
+  --card-border: rgba(0, 0, 0, 0.1);
 
-  /* Input Background */
+  /* Input Styles */
   --input-bg: #FFFFFF;
-  --input-disabled-bg: rgba(0, 0, 0, 0.03);
+  --input-border: rgba(0, 0, 0, 0.15);
+  --input-focus-border: var(--brand-primary);
+  --input-placeholder: var(--text-tertiary);
+  --input-disabled-bg: rgba(0, 0, 0, 0.04);
 
-  /* Overlay */
+  /* Modal Styles */
+  --modal-bg: #FFFFFF;
+  --modal-border: rgba(0, 0, 0, 0.1);
+  --modal-header-bg: #FFFFFF;
+  --modal-footer-bg: #FAFAFA;
   --overlay-bg: rgba(0, 0, 0, 0.5);
 
   /* Nav Background */
   --nav-bg: rgba(255, 255, 255, 0.95);
   --nav-border: rgba(0, 0, 0, 0.1);
+
+  /* Icon Colors */
+  --icon-primary: var(--text-primary);
+  --icon-secondary: var(--text-secondary);
+  --icon-muted: var(--text-tertiary);
+
+  /* Button Variants */
+  --btn-ghost-hover: rgba(0, 0, 0, 0.06);
+  --btn-secondary-bg: var(--bg-tertiary);
+  --btn-secondary-border: var(--border-color);
+  --btn-secondary-hover: #E2E8F0;
+
+  /* Badge Backgrounds */
+  --badge-draft-bg: var(--bg-tertiary);
+  --badge-draft-text: var(--text-secondary);
 }
 
 /* Base Styles */
@@ -331,7 +399,7 @@ a:hover {
 
 .btn-primary {
   background: var(--brand-primary);
-  color: white;
+  color: var(--text-on-brand);
   box-shadow: var(--shadow-md);
 }
 
@@ -346,13 +414,13 @@ a:hover {
 }
 
 .btn-secondary {
-  background: var(--bg-tertiary);
+  background: var(--btn-secondary-bg);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--btn-secondary-border);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--bg-secondary);
+  background: var(--btn-secondary-hover);
   border-color: var(--brand-primary);
 }
 
@@ -362,27 +430,27 @@ a:hover {
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: var(--glass-bg);
+  background: var(--btn-ghost-hover);
   color: var(--text-primary);
 }
 
 .btn-success {
   background: var(--success);
-  color: white;
+  color: var(--text-on-brand);
 }
 
 .btn-success:hover:not(:disabled) {
-  background: #059669;
+  filter: brightness(1.1);
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 .btn-danger {
   background: var(--error);
-  color: white;
+  color: var(--text-on-brand);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #DC2626;
+  filter: brightness(1.1);
 }
 
 .btn-sm {
@@ -477,43 +545,43 @@ textarea.input::selection {
 }
 
 .badge-draft {
-  background: var(--gray-800);
-  color: var(--gray-400);
+  background: var(--badge-draft-bg);
+  color: var(--badge-draft-text);
 }
 
 .badge-scheduled {
   background: var(--info-bg);
-  color: var(--info);
+  color: var(--info-text, var(--info));
 }
 
 .badge-active {
   background: var(--success-bg);
-  color: var(--success);
+  color: var(--success-text, var(--success));
 }
 
 .badge-paused {
   background: var(--warning-bg);
-  color: var(--warning);
+  color: var(--warning-text, var(--warning));
 }
 
 .badge-completed {
-  background: var(--gray-800);
-  color: var(--gray-500);
+  background: var(--badge-draft-bg);
+  color: var(--text-tertiary);
 }
 
 .badge-valid {
   background: var(--success-bg);
-  color: var(--success);
+  color: var(--success-text, var(--success));
 }
 
 .badge-redeemed {
   background: var(--error-bg);
-  color: var(--error);
+  color: var(--error-text, var(--error));
 }
 
 .badge-expired {
-  background: var(--gray-800);
-  color: var(--gray-500);
+  background: var(--badge-draft-bg);
+  color: var(--text-tertiary);
 }
 
 /* Status Indicator */

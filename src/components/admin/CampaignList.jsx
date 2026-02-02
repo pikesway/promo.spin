@@ -1,6 +1,5 @@
 import React from 'react';
 import { FiCopy, FiTrash2, FiExternalLink, FiPlay, FiPause, FiGrid, FiChevronRight, FiTarget } from 'react-icons/fi';
-import GlassCard from '../common/GlassCard';
 
 const CampaignList = ({
   campaigns,
@@ -30,12 +29,31 @@ const CampaignList = ({
 
   if (campaigns.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 md:p-12 text-center rounded-2xl border border-dashed border-white/10 bg-white/5">
-        <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-blue-500/10 flex items-center justify-center mb-3 md:mb-4">
-          <FiTarget className="w-6 h-6 md:w-8 md:h-8 text-blue-400" />
+      <div
+        className="flex flex-col items-center justify-center p-8 md:p-12 text-center rounded-2xl border border-dashed"
+        style={{
+          borderColor: 'var(--border-color)',
+          background: 'var(--glass-bg)'
+        }}
+      >
+        <div
+          className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 md:mb-4"
+          style={{ background: 'var(--info-bg)' }}
+        >
+          <FiTarget className="w-6 h-6 md:w-8 md:h-8" style={{ color: 'var(--info)' }} />
         </div>
-        <h3 className="text-lg md:text-xl font-semibold text-white mb-2">No campaigns yet</h3>
-        <p className="text-sm md:text-base text-gray-400 max-w-sm mx-auto">Create your first campaign to start engaging your audience.</p>
+        <h3
+          className="text-lg md:text-xl font-semibold mb-2"
+          style={{ color: 'var(--text-primary)' }}
+        >
+          No campaigns yet
+        </h3>
+        <p
+          className="text-sm md:text-base max-w-sm mx-auto"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          Create your first campaign to start engaging your audience.
+        </p>
       </div>
     );
   }
@@ -53,67 +71,110 @@ const CampaignList = ({
           <div
             key={campaign.id}
             onClick={() => onEditCampaign(campaign)}
-            className="glass-card p-3 md:p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-l-4 md:flex md:flex-col"
-            style={{ borderLeftColor: getStatusColor(campaign.status) }}
+            className="glass-card p-3 md:p-4 cursor-pointer transition-colors active:scale-[0.99] md:flex md:flex-col border-l-4"
+            style={{
+              borderLeftColor: getStatusColor(campaign.status),
+              background: 'var(--card-bg)'
+            }}
           >
             <div className="flex items-center gap-3 md:block">
               <div className="flex-1 min-w-0 md:mb-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-base md:text-lg font-bold text-white truncate">
+                  <h3
+                    className="text-base md:text-lg font-bold truncate"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
                     {campaign.name}
                   </h3>
                   {campaign.type === 'bizgamez' && (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 flex-shrink-0">
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[9px] font-bold flex-shrink-0"
+                      style={{
+                        background: 'rgba(249, 115, 22, 0.15)',
+                        color: '#F97316',
+                        border: '1px solid rgba(249, 115, 22, 0.3)'
+                      }}
+                    >
                       BG
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`
-                    px-2 py-0.5 rounded text-[10px] font-bold uppercase
-                    ${isActive ? 'bg-green-500/10 text-green-400' :
-                      campaign.status === 'scheduled' ? 'bg-yellow-500/10 text-yellow-400' :
-                      campaign.status === 'completed' ? 'bg-blue-500/10 text-blue-400' :
-                      'bg-gray-500/10 text-gray-400'}
-                  `}>
+                  <span
+                    className="px-2 py-0.5 rounded text-[10px] font-bold uppercase"
+                    style={{
+                      background: isActive ? 'var(--success-bg)' :
+                        campaign.status === 'scheduled' ? 'var(--warning-bg)' :
+                        campaign.status === 'completed' ? 'var(--info-bg)' : 'var(--bg-tertiary)',
+                      color: isActive ? 'var(--success-text, var(--success))' :
+                        campaign.status === 'scheduled' ? 'var(--warning-text, var(--warning))' :
+                        campaign.status === 'completed' ? 'var(--info-text, var(--info))' : 'var(--text-tertiary)'
+                    }}
+                  >
                     {getStatusLabel(campaign.status)}
                   </span>
-                  <span className="text-xs text-blue-400 font-semibold">{leads} leads</span>
+                  <span
+                    className="text-xs font-semibold"
+                    style={{ color: 'var(--info)' }}
+                  >
+                    {leads} leads
+                  </span>
                 </div>
               </div>
 
-              <FiChevronRight className="text-gray-500 flex-shrink-0 md:hidden" size={20} />
+              <FiChevronRight
+                className="flex-shrink-0 md:hidden"
+                size={20}
+                style={{ color: 'var(--icon-muted)' }}
+              />
 
               <div className="hidden md:block">
                 <div className="grid grid-cols-3 gap-2 mb-4">
-                  <div className="bg-white/5 rounded-lg p-2 text-center">
-                    <div className="text-xs text-gray-400">Views</div>
-                    <div className="text-sm font-bold text-white">{views}</div>
+                  <div
+                    className="rounded-lg p-2 text-center"
+                    style={{ background: 'var(--bg-tertiary)' }}
+                  >
+                    <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Views</div>
+                    <div className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{views}</div>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-2 text-center">
-                    <div className="text-xs text-gray-400">Leads</div>
-                    <div className="text-sm font-bold text-blue-400">{leads}</div>
+                  <div
+                    className="rounded-lg p-2 text-center"
+                    style={{ background: 'var(--bg-tertiary)' }}
+                  >
+                    <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Leads</div>
+                    <div className="text-sm font-bold" style={{ color: 'var(--info)' }}>{leads}</div>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-2 text-center">
-                    <div className="text-xs text-gray-400">Win Rate</div>
-                    <div className={`text-sm font-bold ${campaign.type === 'bizgamez' ? 'text-gray-500' : 'text-green-400'}`}>
+                  <div
+                    className="rounded-lg p-2 text-center"
+                    style={{ background: 'var(--bg-tertiary)' }}
+                  >
+                    <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Win Rate</div>
+                    <div
+                      className="text-sm font-bold"
+                      style={{ color: campaign.type === 'bizgamez' ? 'var(--text-tertiary)' : 'var(--success)' }}
+                    >
                       {campaign.type === 'bizgamez' ? '-' : `${winRate}%`}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                <div
+                  className="flex items-center justify-between pt-3"
+                  style={{ borderTop: '1px solid var(--border-color)' }}
+                >
                   <div className="flex space-x-1">
                     <button
                       onClick={(e) => { e.stopPropagation(); onToggleStatus(campaign.id, campaign.status); }}
-                      className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                      className="p-2 rounded-lg transition-colors"
+                      style={{ color: 'var(--icon-secondary)' }}
                       title={isActive ? "Pause" : "Activate"}
                     >
                       {isActive ? <FiPause className="w-4 h-4" /> : <FiPlay className="w-4 h-4" />}
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); onDuplicateCampaign(campaign.id); }}
-                      className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                      className="p-2 rounded-lg transition-colors"
+                      style={{ color: 'var(--icon-secondary)' }}
                       title="Duplicate"
                     >
                       <FiCopy className="w-4 h-4" />
@@ -121,7 +182,8 @@ const CampaignList = ({
                     {campaign.type !== 'bizgamez' && (
                       <button
                         onClick={(e) => { e.stopPropagation(); onShowQR(campaign); }}
-                        className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ color: 'var(--icon-secondary)' }}
                         title="QR Code & Share"
                       >
                         <FiGrid className="w-4 h-4" />
@@ -133,7 +195,8 @@ const CampaignList = ({
                         target="_blank"
                         rel="noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ color: 'var(--icon-secondary)' }}
                         title="Open Live"
                       >
                         <FiExternalLink className="w-4 h-4" />
@@ -143,7 +206,8 @@ const CampaignList = ({
 
                   <button
                     onClick={(e) => { e.stopPropagation(); onDeleteCampaign(campaign.id); }}
-                    className="p-2 hover:bg-red-500/20 rounded-lg text-gray-500 hover:text-red-400 transition-colors"
+                    className="p-2 rounded-lg transition-colors"
+                    style={{ color: 'var(--text-tertiary)' }}
                     title="Delete"
                   >
                     <FiTrash2 className="w-4 h-4" />

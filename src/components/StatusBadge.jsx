@@ -41,7 +41,7 @@ const StatusBadge = ({ status, showAction = false, size = 'md' }) => {
         <span>{config.label}</span>
       </div>
       {showAction && (
-        <span className="text-xs text-gray-400 ml-1">
+        <span className="text-xs ml-1" style={{ color: 'var(--text-tertiary)' }}>
           {config.action}
         </span>
       )}
