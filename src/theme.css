@@ -776,3 +776,12 @@ button, a, input, select, textarea {
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
 }
+
+/* Theme-aware utility classes for builder components */
+.theme-bg-primary { background: var(--bg-primary) !important; }
+.theme-bg-secondary { background: var(--bg-secondary) !important; }
+.theme-bg-tertiary { background: var(--bg-tertiary) !important; }
+.theme-text-primary { color: var(--text-primary) !important; }
+.theme-text-secondary { color: var(--text-secondary) !important; }
+.theme-text-tertiary { color: var(--text-tertiary) !important; }
+.theme-border { border-color: var(--border-color) !important; }

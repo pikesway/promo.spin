@@ -32,24 +32,24 @@ const IconSequenceConfig = ({ config, onChange }) => {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium theme-text-secondary mb-2">
           Icon Sequence (1-5 icons)
         </label>
-        <p className="text-xs text-gray-400 mb-3">
+        <p className="text-xs theme-text-tertiary mb-3">
           Staff must tap these icons in order to validate a visit. This sequence is kept secret from customers.
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2 min-h-[60px] p-3 bg-charcoal-900 rounded-lg border border-white/10">
+      <div className="flex flex-wrap gap-2 min-h-[60px] p-3 theme-bg-tertiary rounded-lg border theme-border">
         {sequence.map((iconId, index) => {
           const iconData = getIconById(iconId);
           if (!iconData) return null;
           return (
             <div
               key={`${iconId}-${index}`}
-              className="flex items-center gap-1 bg-charcoal-700 rounded-lg p-2 border border-white/10"
+              className="flex items-center gap-1 bg-charcoal-700 rounded-lg p-2 border theme-border"
             >
-              <span className="text-xs text-gray-400 mr-1">{index + 1}.</span>
+              <span className="text-xs theme-text-tertiary mr-1">{index + 1}.</span>
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
                 style={{ backgroundColor: `${iconData.color}20` }}
@@ -63,14 +63,14 @@ const IconSequenceConfig = ({ config, onChange }) => {
                     disabled={index === 0}
                     className="p-0.5 hover:bg-white/10 rounded disabled:opacity-30"
                   >
-                    <FiArrowUp className="w-3 h-3 text-gray-400" />
+                    <FiArrowUp className="w-3 h-3 theme-text-tertiary" />
                   </button>
                   <button
                     onClick={() => moveIcon(index, 1)}
                     disabled={index === sequence.length - 1}
                     className="p-0.5 hover:bg-white/10 rounded disabled:opacity-30"
                   >
-                    <FiArrowDown className="w-3 h-3 text-gray-400" />
+                    <FiArrowDown className="w-3 h-3 theme-text-tertiary" />
                   </button>
                 </div>
               )}
@@ -88,7 +88,7 @@ const IconSequenceConfig = ({ config, onChange }) => {
             onClick={() => setShowPicker(true)}
             className="w-12 h-12 rounded-lg border-2 border-dashed border-white/20 flex items-center justify-center hover:border-rose-500/50 hover:bg-rose-500/10 transition-colors"
           >
-            <FiPlus className="w-5 h-5 text-gray-400" />
+            <FiPlus className="w-5 h-5 theme-text-tertiary" />
           </button>
         )}
       </div>
@@ -98,8 +98,8 @@ const IconSequenceConfig = ({ config, onChange }) => {
       )}
 
       {showPicker && (
-        <div className="p-4 bg-charcoal-900 rounded-lg border border-white/10">
-          <p className="text-sm text-gray-300 mb-3">Select an icon to add:</p>
+        <div className="p-4 theme-bg-tertiary rounded-lg border theme-border">
+          <p className="text-sm theme-text-secondary mb-3">Select an icon to add:</p>
           <div className="grid grid-cols-6 gap-2">
             {LOYALTY_ICONS.map((iconData) => (
               <button
@@ -113,13 +113,13 @@ const IconSequenceConfig = ({ config, onChange }) => {
                 >
                   <SafeIcon icon={iconData.icon} className="w-6 h-6" style={{ color: iconData.color }} />
                 </div>
-                <span className="text-xs text-gray-400">{iconData.name}</span>
+                <span className="text-xs theme-text-tertiary">{iconData.name}</span>
               </button>
             ))}
           </div>
           <button
             onClick={() => setShowPicker(false)}
-            className="mt-3 text-sm text-gray-400 hover:text-white"
+            className="mt-3 text-sm theme-text-tertiary hover:theme-text-primary"
           >
             Cancel
           </button>
@@ -139,20 +139,20 @@ const IconPositionConfig = ({ config, onChange }) => {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium theme-text-secondary mb-2">
           Icon Position Challenge
         </label>
-        <p className="text-xs text-gray-400 mb-3">
+        <p className="text-xs theme-text-tertiary mb-3">
           Staff must identify which position the target icon appears at.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium theme-text-secondary mb-2">
             Target Icon
           </label>
-          <div className="grid grid-cols-6 gap-2 p-3 bg-charcoal-900 rounded-lg border border-white/10 max-h-48 overflow-y-auto">
+          <div className="grid grid-cols-6 gap-2 p-3 theme-bg-tertiary rounded-lg border theme-border max-h-48 overflow-y-auto">
             {LOYALTY_ICONS.map((icon) => (
               <button
                 key={icon.id}
@@ -171,13 +171,13 @@ const IconPositionConfig = ({ config, onChange }) => {
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               Grid Size
             </label>
             <select
               value={gridSize}
               onChange={(e) => onChange('gridSize', parseInt(e.target.value))}
-              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
             >
               <option value={4}>4 icons (2x2)</option>
               <option value={6}>6 icons (2x3)</option>
@@ -186,26 +186,26 @@ const IconPositionConfig = ({ config, onChange }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               Correct Position
             </label>
             <select
               value={targetPosition}
               onChange={(e) => onChange('targetPosition', parseInt(e.target.value))}
-              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
             >
               {Array.from({ length: gridSize }, (_, i) => (
                 <option key={i + 1} value={i + 1}>Position {i + 1}</option>
               ))}
             </select>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs theme-text-tertiary mt-1">
               The target icon will appear at this position (numbered left-to-right, top-to-bottom).
             </p>
           </div>
 
           {iconData && (
-            <div className="p-3 bg-charcoal-900 rounded-lg border border-white/10">
-              <p className="text-xs text-gray-400 mb-2">Preview: Staff must find</p>
+            <div className="p-3 theme-bg-tertiary rounded-lg border theme-border">
+              <p className="text-xs theme-text-tertiary mb-2">Preview: Staff must find</p>
               <div className="flex items-center gap-2">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center"
@@ -213,7 +213,7 @@ const IconPositionConfig = ({ config, onChange }) => {
                 >
                   <SafeIcon icon={iconData.icon} className="w-6 h-6" style={{ color: iconData.color }} />
                 </div>
-                <span className="text-sm text-gray-300">at position {targetPosition}</span>
+                <span className="text-sm theme-text-secondary">at position {targetPosition}</span>
               </div>
             </div>
           )}
@@ -240,16 +240,16 @@ const IconGridConfig = ({ config, onChange }) => {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium theme-text-secondary mb-2">
           Icon Grid Pattern
         </label>
-        <p className="text-xs text-gray-400 mb-3">
+        <p className="text-xs theme-text-tertiary mb-3">
           Staff must select all the correct icons from a grid. Select 2-{maxSelectable} icons that staff must identify.
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium theme-text-secondary mb-2">
           Grid Size
         </label>
         <select
@@ -262,7 +262,7 @@ const IconGridConfig = ({ config, onChange }) => {
               onChange('selectedIcons', selectedIcons.slice(0, newMax));
             }
           }}
-          className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+          className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
         >
           <option value={6}>6 icons (2x3)</option>
           <option value={9}>9 icons (3x3)</option>
@@ -271,10 +271,10 @@ const IconGridConfig = ({ config, onChange }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium theme-text-secondary mb-2">
           Select Target Icons ({selectedIcons.length}/{maxSelectable} max)
         </label>
-        <div className="grid grid-cols-6 gap-2 p-3 bg-charcoal-900 rounded-lg border border-white/10">
+        <div className="grid grid-cols-6 gap-2 p-3 theme-bg-tertiary rounded-lg border theme-border">
           {LOYALTY_ICONS.map((icon) => {
             const isSelected = selectedIcons.includes(icon.id);
             return (
@@ -289,7 +289,7 @@ const IconGridConfig = ({ config, onChange }) => {
                 }`}
               >
                 <SafeIcon icon={icon.icon} className="w-6 h-6 mx-auto" style={{ color: icon.color }} />
-                <span className="text-xs text-gray-400 block mt-1">{icon.name}</span>
+                <span className="text-xs theme-text-tertiary block mt-1">{icon.name}</span>
               </button>
             );
           })}
@@ -301,8 +301,8 @@ const IconGridConfig = ({ config, onChange }) => {
       )}
 
       {selectedIcons.length >= 2 && (
-        <div className="p-3 bg-charcoal-900 rounded-lg border border-white/10">
-          <p className="text-xs text-gray-400 mb-2">Staff must find these {selectedIcons.length} icons:</p>
+        <div className="p-3 theme-bg-tertiary rounded-lg border theme-border">
+          <p className="text-xs theme-text-tertiary mb-2">Staff must find these {selectedIcons.length} icons:</p>
           <div className="flex flex-wrap gap-2">
             {selectedIcons.map(iconId => {
               const iconData = getIconById(iconId);
@@ -368,53 +368,53 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
 
   return (
     <div className="space-y-8">
-      <div className="bg-charcoal-800 rounded-lg border border-white/10 p-6">
-        <h2 className="text-lg font-semibold text-white mb-6">Program Details</h2>
+      <div className="theme-bg-secondary rounded-lg border theme-border p-6">
+        <h2 className="text-lg font-semibold theme-text-primary mb-6">Program Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               Program Name
             </label>
             <input
               type="text"
               value={loyaltyData.name}
               onChange={(e) => handleChange('name', e.target.value)}
-              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary placeholder-gray-500 focus:ring-2 focus:ring-rose-500 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               Program ID (Read Only)
             </label>
             <input
               type="text"
               value={loyaltyData.id}
               readOnly
-              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-gray-400"
+              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-tertiary"
             />
           </div>
         </div>
       </div>
 
-      <div className="bg-charcoal-800 rounded-lg border border-white/10 p-6">
-        <h2 className="text-lg font-semibold text-white mb-6">Reward Configuration</h2>
+      <div className="theme-bg-secondary rounded-lg border theme-border p-6">
+        <h2 className="text-lg font-semibold theme-text-primary mb-6">Reward Configuration</h2>
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium theme-text-secondary mb-2">
                 Program Type
               </label>
               <select
                 value={loyaltyData.programType}
                 onChange={(e) => handleChange('programType', e.target.value)}
-                className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+                className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
               >
                 <option value="visit">Visit-Based (Earn stamps per visit)</option>
                 <option value="action">Action-Based (Earn stamps per purchase)</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium theme-text-secondary mb-2">
                 {loyaltyData.programType === 'visit' ? 'Visits' : 'Actions'} Required
               </label>
               <input
@@ -423,13 +423,13 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
                 max="100"
                 value={loyaltyData.threshold}
                 onChange={(e) => handleChange('threshold', parseInt(e.target.value) || 10)}
-                className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+                className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               Reward Name
             </label>
             <input
@@ -437,12 +437,12 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
               value={loyaltyData.rewardName}
               onChange={(e) => handleChange('rewardName', e.target.value)}
               placeholder="Free Coffee"
-              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500"
+              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary placeholder-gray-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               Reward Description
             </label>
             <textarea
@@ -450,18 +450,18 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
               onChange={(e) => handleChange('rewardDescription', e.target.value)}
               placeholder="Get any drink free on your next visit!"
               rows={2}
-              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 resize-none"
+              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary placeholder-gray-500 resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               After Reward Claimed
             </label>
             <select
               value={loyaltyData.resetBehavior}
               onChange={(e) => handleChange('resetBehavior', e.target.value)}
-              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
             >
               <option value="reset">Reset to zero stamps</option>
               <option value="rollover">Rollover excess stamps to next card</option>
@@ -470,31 +470,31 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
         </div>
       </div>
 
-      <div className="bg-charcoal-800 rounded-lg border border-white/10 p-6">
-        <h2 className="text-lg font-semibold text-white mb-6">Staff Validation</h2>
+      <div className="theme-bg-secondary rounded-lg border theme-border p-6">
+        <h2 className="text-lg font-semibold theme-text-primary mb-6">Staff Validation</h2>
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               Validation Method
             </label>
             <select
               value={loyaltyData.validationMethod}
               onChange={(e) => handleChange('validationMethod', e.target.value)}
-              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
             >
               <option value="pin">PIN Code</option>
               <option value="icon_sequence">Icon Sequence</option>
               <option value="icon_position">Icon Position</option>
               <option value="icon_grid">Icon Grid Pattern</option>
             </select>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs theme-text-tertiary mt-1">
               Staff must complete this verification to add stamps.
             </p>
           </div>
 
           {loyaltyData.validationMethod === 'pin' && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium theme-text-secondary mb-2">
                 Staff PIN Code
               </label>
               <input
@@ -503,9 +503,9 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
                 onChange={(e) => handleValidationConfigChange('pin', e.target.value)}
                 maxLength={6}
                 placeholder="1234"
-                className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 font-mono tracking-widest"
+                className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary placeholder-gray-500 font-mono tracking-widest"
               />
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs theme-text-tertiary mt-1">
                 4-6 digit PIN that staff must enter to verify.
               </p>
             </div>
@@ -533,7 +533,7 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               Failed Attempt Lockout
             </label>
             <div className="flex items-center gap-3">
@@ -543,28 +543,28 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
                 max="10"
                 value={loyaltyData.lockoutThreshold}
                 onChange={(e) => handleChange('lockoutThreshold', parseInt(e.target.value) || 3)}
-                className="w-24 bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+                className="w-24 theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
               />
-              <span className="text-sm text-gray-400">failed attempts before lockout</span>
+              <span className="text-sm theme-text-tertiary">failed attempts before lockout</span>
             </div>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs theme-text-tertiary mt-1">
               Card will be locked after this many failed validation attempts.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="bg-charcoal-800 rounded-lg border border-white/10 p-6">
-        <h2 className="text-lg font-semibold text-white mb-6">Scheduling</h2>
+      <div className="theme-bg-secondary rounded-lg border theme-border p-6">
+        <h2 className="text-lg font-semibold theme-text-primary mb-6">Scheduling</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               Timezone
             </label>
             <select
               value={loyaltyData.settings?.timezone || 'UTC'}
               onChange={(e) => handleSettingsChange('timezone', e.target.value)}
-              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
             >
               {timezones.map(tz => (
                 <option key={tz.value} value={tz.value}>{tz.label} ({tz.value})</option>
@@ -572,37 +572,37 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               Start Date (Optional)
             </label>
             <input
               type="datetime-local"
               value={loyaltyData.settings?.startDate || ''}
               onChange={(e) => handleSettingsChange('startDate', e.target.value)}
-              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
             />
-            <p className="text-xs text-gray-400 mt-1">Program will be hidden before this date.</p>
+            <p className="text-xs theme-text-tertiary mt-1">Program will be hidden before this date.</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               End Date (Optional)
             </label>
             <input
               type="datetime-local"
               value={loyaltyData.settings?.endDate || ''}
               onChange={(e) => handleSettingsChange('endDate', e.target.value)}
-              className="w-full bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-white"
+              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
             />
-            <p className="text-xs text-gray-400 mt-1">Program will close after this date.</p>
+            <p className="text-xs theme-text-tertiary mt-1">Program will close after this date.</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-charcoal-800 rounded-lg border border-white/10 p-6">
-        <h2 className="text-lg font-semibold text-white mb-6">Enrollment Link & QR Code</h2>
+      <div className="theme-bg-secondary rounded-lg border theme-border p-6">
+        <h2 className="text-lg font-semibold theme-text-primary mb-6">Enrollment Link & QR Code</h2>
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               Enrollment URL
             </label>
             <div className="flex items-center space-x-2">
@@ -610,34 +610,34 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
                 type="text"
                 value={loyaltyUrl}
                 readOnly
-                className="flex-1 bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-gray-300"
+                className="flex-1 theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-secondary"
               />
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(loyaltyUrl);
                   alert('URL copied to clipboard!');
                 }}
-                className="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                className="bg-rose-600 hover:bg-rose-500 theme-text-primary px-4 py-2 rounded-lg font-medium transition-colors"
               >
                 Copy
               </button>
             </div>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs theme-text-tertiary mt-1">
               Share this link to allow customers to enroll in your loyalty program.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-3">
+              <label className="block text-sm font-medium theme-text-secondary mb-3">
                 QR Code for Enrollment
               </label>
               <div className="flex items-start space-x-4">
-                <div ref={qrRef} className="p-2 bg-white border border-white/10 rounded-lg inline-block">
+                <div ref={qrRef} className="p-2 bg-white border theme-border rounded-lg inline-block">
                   <QRCodeCanvas value={loyaltyUrl} size={150} level={"H"} includeMargin={true} />
                 </div>
                 <div className="flex flex-col space-y-2">
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm theme-text-tertiary">
                     Display this at your location for easy sign-up.
                   </p>
                   <button

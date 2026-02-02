@@ -67,8 +67,8 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-charcoal-800 rounded-lg border border-white/10">
-        <div className="border-b border-white/10 overflow-x-auto">
+      <div className="theme-bg-secondary rounded-lg border theme-border">
+        <div className="border-b theme-border overflow-x-auto">
           <nav className="flex space-x-8 px-6 min-w-max">
             {sections.map(section => (
               <button
@@ -77,7 +77,7 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeSection === section.id
                     ? 'border-rose-500 text-rose-400'
-                    : 'border-transparent text-gray-400 hover:text-gray-300'
+                    : 'border-transparent theme-text-tertiary hover:theme-text-secondary'
                 }`}
               >
                 {section.label}
@@ -90,8 +90,8 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
           {activeSection === 'colors' && (
             <div className="space-y-8">
               <div>
-                <h3 className="text-base font-medium text-white mb-4">Card Primary Color</h3>
-                <p className="text-sm text-gray-400 mb-4">
+                <h3 className="text-base font-medium theme-text-primary mb-4">Card Primary Color</h3>
+                <p className="text-sm theme-text-tertiary mb-4">
                   This color will be used for the card header and accent elements.
                 </p>
                 <div className="flex flex-wrap gap-3 mb-4">
@@ -109,7 +109,7 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                   ))}
                 </div>
                 <div className="flex items-center gap-3">
-                  <label className="text-sm text-gray-300">Custom:</label>
+                  <label className="text-sm theme-text-secondary">Custom:</label>
                   <input
                     type="color"
                     value={loyaltyData.card.primaryColor}
@@ -120,14 +120,14 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                     type="text"
                     value={loyaltyData.card.primaryColor}
                     onChange={(e) => handleCardChange('primaryColor', e.target.value)}
-                    className="w-28 bg-charcoal-900 border border-white/10 rounded px-3 py-2 text-white text-sm font-mono"
+                    className="w-28 theme-bg-tertiary border theme-border rounded px-3 py-2 theme-text-primary text-sm font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <h3 className="text-base font-medium text-white mb-4">Background Color</h3>
-                <p className="text-sm text-gray-400 mb-4">
+                <h3 className="text-base font-medium theme-text-primary mb-4">Background Color</h3>
+                <p className="text-sm theme-text-tertiary mb-4">
                   The page background color behind the loyalty card.
                 </p>
                 <div className="flex flex-wrap gap-3 mb-4">
@@ -145,7 +145,7 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                   ))}
                 </div>
                 <div className="flex items-center gap-3">
-                  <label className="text-sm text-gray-300">Custom:</label>
+                  <label className="text-sm theme-text-secondary">Custom:</label>
                   <input
                     type="color"
                     value={loyaltyData.card.backgroundColor}
@@ -156,16 +156,16 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                     type="text"
                     value={loyaltyData.card.backgroundColor}
                     onChange={(e) => handleCardChange('backgroundColor', e.target.value)}
-                    className="w-28 bg-charcoal-900 border border-white/10 rounded px-3 py-2 text-white text-sm font-mono"
+                    className="w-28 theme-bg-tertiary border theme-border rounded px-3 py-2 theme-text-primary text-sm font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <h3 className="text-base font-medium text-white mb-4">Stamp Colors</h3>
+                <h3 className="text-base font-medium theme-text-primary mb-4">Stamp Colors</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm text-gray-300 mb-2">Filled Stamp Color</label>
+                    <label className="block text-sm theme-text-secondary mb-2">Filled Stamp Color</label>
                     <div className="flex items-center gap-3">
                       <input
                         type="color"
@@ -177,19 +177,19 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                         type="text"
                         value={loyaltyData.card.stampFilledColor}
                         onChange={(e) => handleCardChange('stampFilledColor', e.target.value)}
-                        className="w-28 bg-charcoal-900 border border-white/10 rounded px-3 py-2 text-white text-sm font-mono"
+                        className="w-28 theme-bg-tertiary border theme-border rounded px-3 py-2 theme-text-primary text-sm font-mono"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-300 mb-2">Empty Stamp Color</label>
+                    <label className="block text-sm theme-text-secondary mb-2">Empty Stamp Color</label>
                     <div className="flex items-center gap-3">
                       <input
                         type="text"
                         value={loyaltyData.card.stampEmptyColor}
                         onChange={(e) => handleCardChange('stampEmptyColor', e.target.value)}
                         placeholder="rgba(255,255,255,0.2)"
-                        className="flex-1 bg-charcoal-900 border border-white/10 rounded px-3 py-2 text-white text-sm font-mono"
+                        className="flex-1 theme-bg-tertiary border theme-border rounded px-3 py-2 theme-text-primary text-sm font-mono"
                       />
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Supports rgba for transparency</p>
@@ -202,8 +202,8 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
           {activeSection === 'stamps' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-base font-medium text-white mb-4">Stamp Icon</h3>
-                <p className="text-sm text-gray-400 mb-4">
+                <h3 className="text-base font-medium theme-text-primary mb-4">Stamp Icon</h3>
+                <p className="text-sm theme-text-tertiary mb-4">
                   Choose the icon that appears when a stamp is collected, or upload your own.
                 </p>
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
@@ -217,23 +217,23 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                         className={`aspect-square rounded-lg flex flex-col items-center justify-center gap-1 transition-all ${
                           isSelected
                             ? 'bg-rose-500/20 border-2 border-rose-500'
-                            : 'bg-charcoal-900 border border-white/10 hover:border-white/30'
+                            : 'theme-bg-tertiary border theme-border hover:border-white/30'
                         }`}
                       >
                         <IconComponent
                           className="w-6 h-6"
                           style={{ color: isSelected ? loyaltyData.card.stampFilledColor : iconData.color }}
                         />
-                        <span className="text-[10px] text-gray-400">{iconData.name}</span>
+                        <span className="text-[10px] theme-text-tertiary">{iconData.name}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="border-t border-white/10 pt-6">
-                <h3 className="text-base font-medium text-white mb-4">Custom Icon</h3>
-                <p className="text-sm text-gray-400 mb-4">
+              <div className="border-t theme-border pt-6">
+                <h3 className="text-base font-medium theme-text-primary mb-4">Custom Icon</h3>
+                <p className="text-sm theme-text-tertiary mb-4">
                   Upload your own logo or icon image (PNG, JPG, SVG, ICO - max 500KB)
                 </p>
 
@@ -252,7 +252,7 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                       className={`w-20 h-20 rounded-lg flex items-center justify-center transition-all ${
                         isCustomIconSelected
                           ? 'bg-rose-500/20 border-2 border-rose-500'
-                          : 'bg-charcoal-900 border border-white/10 hover:border-white/30'
+                          : 'theme-bg-tertiary border theme-border hover:border-white/30'
                       }`}
                     >
                       <img
@@ -271,7 +271,7 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                       </button>
                       <button
                         onClick={clearCustomIcon}
-                        className="text-sm text-gray-400 hover:text-white flex items-center gap-1"
+                        className="text-sm theme-text-tertiary hover:theme-text-primary flex items-center gap-1"
                       >
                         <FiX className="w-4 h-4" />
                         Remove
@@ -288,16 +288,16 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                       <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                     ) : (
                       <>
-                        <FiImage className="w-8 h-8 text-gray-400" />
-                        <span className="text-sm text-gray-400">Click to upload custom icon</span>
+                        <FiImage className="w-8 h-8 theme-text-tertiary" />
+                        <span className="text-sm theme-text-tertiary">Click to upload custom icon</span>
                       </>
                     )}
                   </button>
                 )}
               </div>
 
-              <div className="p-4 bg-charcoal-900 rounded-lg border border-white/10">
-                <h4 className="text-sm font-medium text-white mb-3">Preview</h4>
+              <div className="p-4 theme-bg-tertiary rounded-lg border theme-border">
+                <h4 className="text-sm font-medium theme-text-primary mb-3">Preview</h4>
                 <div
                   className="rounded-lg p-4"
                   style={{ backgroundColor: loyaltyData.card.primaryColor }}
@@ -331,7 +331,7 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                                   className="w-5 h-5 object-contain"
                                 />
                               ) : (
-                                IconComponent && <IconComponent className="text-white" size={14} />
+                                IconComponent && <IconComponent className="theme-text-primary" size={14} />
                               )}
                             </div>
                           )}
@@ -347,14 +347,14 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
           {activeSection === 'layout' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-base font-medium text-white mb-4">Stamp Layout</h3>
+                <h3 className="text-base font-medium theme-text-primary mb-4">Stamp Layout</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     onClick={() => handleCardChange('layout', 'grid')}
                     className={`p-4 rounded-lg border-2 transition-all ${
                       loyaltyData.card.layout === 'grid'
                         ? 'border-rose-500 bg-rose-500/10'
-                        : 'border-white/10 hover:border-white/30'
+                        : 'theme-border hover:border-white/30'
                     }`}
                   >
                     <div className="grid grid-cols-5 gap-1 mb-2">
@@ -362,8 +362,8 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                         <div key={i} className="w-4 h-4 rounded-full bg-white/30" />
                       ))}
                     </div>
-                    <span className="text-sm text-white">Grid Layout</span>
-                    <p className="text-xs text-gray-400 mt-1">5 stamps per row</p>
+                    <span className="text-sm theme-text-primary">Grid Layout</span>
+                    <p className="text-xs theme-text-tertiary mt-1">5 stamps per row</p>
                   </button>
 
                   <button
@@ -371,7 +371,7 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                     className={`p-4 rounded-lg border-2 transition-all ${
                       loyaltyData.card.layout === 'inline'
                         ? 'border-rose-500 bg-rose-500/10'
-                        : 'border-white/10 hover:border-white/30'
+                        : 'theme-border hover:border-white/30'
                     }`}
                   >
                     <div className="flex gap-1 mb-2 overflow-hidden">
@@ -379,14 +379,14 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                         <div key={i} className="w-4 h-4 rounded-full bg-white/30 flex-shrink-0" />
                       ))}
                     </div>
-                    <span className="text-sm text-white">Inline Layout</span>
-                    <p className="text-xs text-gray-400 mt-1">Single scrollable row</p>
+                    <span className="text-sm theme-text-primary">Inline Layout</span>
+                    <p className="text-xs theme-text-tertiary mt-1">Single scrollable row</p>
                   </button>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-base font-medium text-white mb-4">Card Elements</h3>
+                <h3 className="text-base font-medium theme-text-primary mb-4">Card Elements</h3>
                 <div className="space-y-3">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
@@ -395,7 +395,7 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                       onChange={(e) => handleCardChange('showLogo', e.target.checked)}
                       className="w-4 h-4 rounded border-white/20 text-rose-500 focus:ring-rose-500"
                     />
-                    <span className="text-sm text-gray-300">Show business logo on card</span>
+                    <span className="text-sm theme-text-secondary">Show business logo on card</span>
                   </label>
 
                   <label className="flex items-center gap-3 cursor-pointer">
@@ -405,20 +405,20 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                       onChange={(e) => handleCardChange('showQR', e.target.checked)}
                       className="w-4 h-4 rounded border-white/20 text-rose-500 focus:ring-rose-500"
                     />
-                    <span className="text-sm text-gray-300">Show QR code on card</span>
+                    <span className="text-sm theme-text-secondary">Show QR code on card</span>
                   </label>
                 </div>
               </div>
 
               {client?.logo_url && (
-                <div className="p-4 bg-charcoal-900 rounded-lg border border-white/10">
-                  <h4 className="text-sm font-medium text-white mb-3">Current Logo</h4>
+                <div className="p-4 theme-bg-tertiary rounded-lg border theme-border">
+                  <h4 className="text-sm font-medium theme-text-primary mb-3">Current Logo</h4>
                   <img
                     src={client.logo_url}
                     alt={client.name}
                     className="h-12 object-contain"
                   />
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-xs theme-text-tertiary mt-2">
                     Update the logo in Client Branding settings.
                   </p>
                 </div>

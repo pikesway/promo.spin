@@ -34,16 +34,16 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-charcoal-800 rounded-lg border border-white/10 p-6">
+      <div className="theme-bg-secondary rounded-lg border theme-border p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-white">Card Preview</h2>
+          <h2 className="text-lg font-semibold theme-text-primary">Card Preview</h2>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPreviewMode('mobile')}
               className={`p-2 rounded-lg transition-colors ${
                 previewMode === 'mobile'
                   ? 'bg-rose-500/20 text-rose-400'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  : 'theme-text-tertiary hover:theme-text-primary hover:bg-white/5'
               }`}
             >
               <FiSmartphone className="w-5 h-5" />
@@ -53,7 +53,7 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
               className={`p-2 rounded-lg transition-colors ${
                 previewMode === 'desktop'
                   ? 'bg-rose-500/20 text-rose-400'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  : 'theme-text-tertiary hover:theme-text-primary hover:bg-white/5'
               }`}
             >
               <FiMonitor className="w-5 h-5" />
@@ -62,7 +62,7 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm text-gray-400 mb-2">
+          <label className="block text-sm theme-text-tertiary mb-2">
             Simulate Progress: {simulatedProgress} / {threshold} stamps
           </label>
           <input
@@ -71,7 +71,7 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
             max={threshold}
             value={simulatedProgress}
             onChange={(e) => setSimulatedProgress(parseInt(e.target.value))}
-            className="w-full h-2 bg-charcoal-900 rounded-lg appearance-none cursor-pointer accent-rose-500"
+            className="w-full h-2 theme-bg-tertiary rounded-lg appearance-none cursor-pointer accent-rose-500"
           />
         </div>
 
@@ -97,10 +97,10 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
                       className="h-12 mx-auto mb-2 object-contain"
                     />
                   )}
-                  <h1 className="text-white font-bold text-lg">
+                  <h1 className="theme-text-primary font-bold text-lg">
                     {client?.name || 'Your Business'}
                   </h1>
-                  <p className="text-white/80 text-sm mt-1">
+                  <p className="theme-text-primary/80 text-sm mt-1">
                     {loyaltyData.rewardName}
                   </p>
                 </div>
@@ -141,7 +141,7 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
                                   className="w-5 h-5 object-contain"
                                 />
                               ) : (
-                                IconComponent && <IconComponent className="text-white" size={14} />
+                                IconComponent && <IconComponent className="theme-text-primary" size={14} />
                               )}
                             </div>
                           )}
@@ -150,7 +150,7 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
                     })}
                   </div>
 
-                  <div className="text-center text-white">
+                  <div className="text-center theme-text-primary">
                     {rewardUnlocked ? (
                       <p className="font-semibold flex items-center justify-center gap-2">
                         <FiGift className="text-yellow-300" />
@@ -190,7 +190,7 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
               <div className="mt-6 space-y-3">
                 {rewardUnlocked ? (
                   <button
-                    className="w-full py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2"
+                    className="w-full py-4 rounded-xl font-semibold theme-text-primary flex items-center justify-center gap-2"
                     style={{ backgroundColor: loyaltyData.card.primaryColor }}
                   >
                     <FiGift size={20} />
@@ -198,7 +198,7 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
                   </button>
                 ) : (
                   <button
-                    className="w-full py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2"
+                    className="w-full py-4 rounded-xl font-semibold theme-text-primary flex items-center justify-center gap-2"
                     style={{ backgroundColor: loyaltyData.card.primaryColor }}
                   >
                     <FiCheck size={20} />
@@ -207,7 +207,7 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
                 )}
 
                 <button
-                  className="w-full py-3 rounded-xl font-medium text-gray-400 hover:text-white hover:bg-white/10 flex items-center justify-center gap-2 transition-colors"
+                  className="w-full py-3 rounded-xl font-medium theme-text-tertiary hover:theme-text-primary hover:bg-white/10 flex items-center justify-center gap-2 transition-colors"
                 >
                   <FiRefreshCw size={16} />
                   Refresh Card
@@ -218,12 +218,12 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
         </div>
       </div>
 
-      <div className="bg-charcoal-800 rounded-lg border border-white/10 p-6">
-        <h2 className="text-lg font-semibold text-white mb-6">Sharing & Distribution</h2>
+      <div className="theme-bg-secondary rounded-lg border theme-border p-6">
+        <h2 className="text-lg font-semibold theme-text-primary mb-6">Sharing & Distribution</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               Enrollment URL
             </label>
             <div className="flex items-center space-x-2">
@@ -231,11 +231,11 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
                 type="text"
                 value={loyaltyUrl}
                 readOnly
-                className="flex-1 bg-charcoal-900 border border-white/10 rounded-lg px-3 py-2 text-gray-300 text-sm"
+                className="flex-1 theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-secondary text-sm"
               />
               <button
                 onClick={copyUrl}
-                className="p-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg transition-colors"
+                className="p-2 bg-rose-600 hover:bg-rose-500 theme-text-primary rounded-lg transition-colors"
               >
                 <FiCopy className="w-5 h-5" />
               </button>
@@ -243,7 +243,7 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2">
               QR Code
             </label>
             <div className="flex items-start space-x-4">
@@ -252,7 +252,7 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
               </div>
               <button
                 onClick={downloadQRCode}
-                className="flex items-center gap-2 px-3 py-2 bg-charcoal-900 hover:bg-charcoal-700 border border-white/10 rounded-lg text-sm text-gray-300 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 theme-bg-tertiary hover:bg-charcoal-700 border theme-border rounded-lg text-sm theme-text-secondary transition-colors"
               >
                 <FiDownload className="w-4 h-4" />
                 Download
@@ -263,7 +263,7 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
 
         <div className="mt-6 p-4 bg-rose-500/10 border border-rose-500/20 rounded-lg">
           <h4 className="text-sm font-medium text-rose-300 mb-2">Tips for Promotion</h4>
-          <ul className="text-sm text-gray-300 space-y-1">
+          <ul className="text-sm theme-text-secondary space-y-1">
             <li>Print the QR code and display it at your register or entrance</li>
             <li>Share the enrollment link on your social media profiles</li>
             <li>Add the link to your email signatures and newsletters</li>
@@ -272,24 +272,24 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
         </div>
       </div>
 
-      <div className="bg-charcoal-800 rounded-lg border border-white/10 p-6">
-        <h2 className="text-lg font-semibold text-white mb-4">Program Summary</h2>
+      <div className="theme-bg-secondary rounded-lg border theme-border p-6">
+        <h2 className="text-lg font-semibold theme-text-primary mb-4">Program Summary</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-charcoal-900 rounded-lg p-4">
-            <p className="text-sm text-gray-400">Program Type</p>
-            <p className="text-lg font-semibold text-white capitalize">{loyaltyData.programType}-Based</p>
+          <div className="theme-bg-tertiary rounded-lg p-4">
+            <p className="text-sm theme-text-tertiary">Program Type</p>
+            <p className="text-lg font-semibold theme-text-primary capitalize">{loyaltyData.programType}-Based</p>
           </div>
-          <div className="bg-charcoal-900 rounded-lg p-4">
-            <p className="text-sm text-gray-400">Stamps Required</p>
-            <p className="text-lg font-semibold text-white">{loyaltyData.threshold}</p>
+          <div className="theme-bg-tertiary rounded-lg p-4">
+            <p className="text-sm theme-text-tertiary">Stamps Required</p>
+            <p className="text-lg font-semibold theme-text-primary">{loyaltyData.threshold}</p>
           </div>
-          <div className="bg-charcoal-900 rounded-lg p-4">
-            <p className="text-sm text-gray-400">Reward</p>
-            <p className="text-lg font-semibold text-white truncate">{loyaltyData.rewardName}</p>
+          <div className="theme-bg-tertiary rounded-lg p-4">
+            <p className="text-sm theme-text-tertiary">Reward</p>
+            <p className="text-lg font-semibold theme-text-primary truncate">{loyaltyData.rewardName}</p>
           </div>
-          <div className="bg-charcoal-900 rounded-lg p-4">
-            <p className="text-sm text-gray-400">Validation</p>
-            <p className="text-lg font-semibold text-white capitalize">
+          <div className="theme-bg-tertiary rounded-lg p-4">
+            <p className="text-sm theme-text-tertiary">Validation</p>
+            <p className="text-lg font-semibold theme-text-primary capitalize">
               {loyaltyData.validationMethod.replace('_', ' ')}
             </p>
           </div>

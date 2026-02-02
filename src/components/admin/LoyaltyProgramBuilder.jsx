@@ -120,30 +120,31 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
 
   if (!loyaltyData) {
     return (
-      <div className="h-full flex items-center justify-center bg-zinc-900 text-white">
+      <div className="h-full flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading loyalty program...</p>
+          <div className="w-8 h-8 border-2 rounded-full animate-spin mx-auto mb-4" style={{ borderColor: 'var(--border-color)', borderTopColor: 'var(--text-primary)' }} />
+          <p style={{ color: 'var(--text-secondary)' }}>Loading loyalty program...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-zinc-900 text-white">
-      <header className="h-14 md:h-16 border-b border-white/10 bg-zinc-800 flex items-center justify-between px-3 md:px-6 flex-shrink-0">
+    <div className="h-full flex flex-col" style={{ background: 'var(--bg-primary)' }}>
+      <header className="h-14 md:h-16 flex items-center justify-between px-3 md:px-6 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
         <div className="flex items-center gap-2 md:gap-4 min-w-0">
           <button
             onClick={onBack}
-            className="p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors flex-shrink-0"
+            className="p-2 rounded-full transition-colors flex-shrink-0"
+            style={{ color: 'var(--text-tertiary)' }}
           >
             <SafeIcon icon={FiArrowLeft} className="w-5 h-5" />
           </button>
           <div className="min-w-0">
-            <h1 className="text-base md:text-lg font-bold text-white truncate">{loyaltyData.name}</h1>
+            <h1 className="text-base md:text-lg font-bold truncate" style={{ color: 'var(--text-primary)' }}>{loyaltyData.name}</h1>
             <div className="hidden md:flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${hasChanges ? 'bg-amber-500' : 'bg-green-500'}`}></span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                 {hasChanges ? 'Changes unsaved' : 'All changes saved'}
               </span>
             </div>
@@ -153,7 +154,13 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
         <button
           onClick={handleSave}
           disabled={isSaving || !hasChanges}
-          className="hidden md:flex bg-rose-600 hover:bg-rose-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium items-center gap-2 shadow-lg shadow-rose-500/20 transition-colors"
+          className="hidden md:flex px-6 py-2 rounded-lg font-medium items-center gap-2 shadow-lg transition-colors"
+          style={{
+            background: hasChanges && !isSaving ? 'var(--brand-primary)' : 'var(--bg-tertiary)',
+            color: '#fff',
+            opacity: hasChanges && !isSaving ? 1 : 0.5,
+            cursor: hasChanges && !isSaving ? 'pointer' : 'not-allowed'
+          }}
         >
           <SafeIcon icon={FiSave} className="w-4 h-4" />
           <span>{isSaving ? 'Saving...' : 'Save'}</span>
@@ -168,15 +175,17 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
       </header>
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-        <nav className="hidden md:flex w-64 border-r border-white/5 bg-zinc-800/50 flex-col">
+        <nav className="hidden md:flex w-64 flex-col" style={{ borderRight: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`
-                flex items-center gap-3 p-4 px-6 hover:bg-white/5 transition-colors border-l-2
-                ${activeTab === tab.id ? 'border-rose-500 bg-white/5 text-rose-400' : 'border-transparent text-gray-500'}
-              `}
+              className="flex items-center gap-3 p-4 px-6 transition-colors border-l-2"
+              style={{
+                borderLeftColor: activeTab === tab.id ? 'var(--brand-primary)' : 'transparent',
+                background: activeTab === tab.id ? 'var(--btn-ghost-hover)' : 'transparent',
+                color: activeTab === tab.id ? 'var(--brand-primary)' : 'var(--text-tertiary)'
+              }}
             >
               <SafeIcon icon={tab.icon} className="w-5 h-5" />
               <span className="font-medium text-sm">{tab.label}</span>
@@ -184,7 +193,7 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
           ))}
         </nav>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-zinc-900 pb-24 md:pb-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8" style={{ background: 'var(--bg-primary)' }}>
           <div className="max-w-4xl mx-auto">
             {activeTab === 'settings' && (
               <LoyaltySettings
@@ -217,15 +226,15 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
         </main>
       </div>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-white/10 flex safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 flex safe-area-bottom" style={{ background: 'var(--bg-primary)', borderTop: '1px solid var(--border-color)' }}>
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`
-              flex-1 flex flex-col items-center gap-1 py-3 transition-colors
-              ${activeTab === tab.id ? 'text-rose-400' : 'text-gray-500'}
-            `}
+            className="flex-1 flex flex-col items-center gap-1 py-3 transition-colors"
+            style={{
+              color: activeTab === tab.id ? 'var(--brand-primary)' : 'var(--text-tertiary)'
+            }}
           >
             <SafeIcon icon={tab.icon} className="w-5 h-5" />
             <span className="text-xs font-medium">{tab.label}</span>
@@ -237,10 +246,14 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="md:hidden fixed bottom-20 right-4 w-14 h-14 bg-rose-600 hover:bg-rose-500 disabled:bg-rose-600/50 text-white rounded-full shadow-lg shadow-rose-500/30 flex items-center justify-center transition-all active:scale-95 z-20"
+          className="md:hidden fixed bottom-20 right-4 w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95 z-20"
+          style={{
+            background: isSaving ? 'var(--bg-tertiary)' : 'var(--brand-primary)',
+            opacity: isSaving ? 0.5 : 1
+          }}
         >
           {isSaving ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
           ) : (
             <SafeIcon icon={FiCheck} className="w-6 h-6" />
           )}
