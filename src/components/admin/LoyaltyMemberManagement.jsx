@@ -310,9 +310,9 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
   if (loyaltyCampaigns.length === 0) {
     return (
       <div className="glass-card p-8 text-center">
-        <FiUsers className="mx-auto text-gray-500 mb-4" size={40} />
-        <h3 className="text-lg font-medium text-white mb-2">No Loyalty Programs Yet</h3>
-        <p className="text-gray-400">
+        <FiUsers className="mx-auto mb-4" size={40} style={{ color: 'var(--text-tertiary)' }} />
+        <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--text-primary)' }}>No Loyalty Programs Yet</h3>
+        <p style={{ color: 'var(--text-secondary)' }}>
           Create a Loyalty Program campaign to start managing members.
         </p>
       </div>
@@ -322,7 +322,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg md:text-xl font-semibold text-white">Loyalty Members</h3>
+        <h3 className="text-lg md:text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Loyalty Members</h3>
         <div className="relative" ref={exportMenuRef}>
           <button
             className="btn btn-success btn-sm md:btn"
@@ -338,25 +338,31 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
             <FiChevronDown className="ml-1" size={14} />
           </button>
           {showExportMenu && (
-            <div className="absolute right-0 top-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-10 min-w-[180px] py-1">
+            <div className="absolute right-0 top-full mt-1 rounded-lg shadow-xl z-10 min-w-[180px] py-1" style={{ background: 'var(--modal-bg)', border: '1px solid var(--border-color)' }}>
               <button
                 onClick={exportSummaryCSV}
-                className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2"
+                className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 transition-colors"
+                style={{ color: 'var(--text-primary)' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--btn-ghost-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
-                <FiFileText size={16} className="text-gray-400" />
+                <FiFileText size={16} style={{ color: 'var(--text-tertiary)' }} />
                 <div>
                   <div className="font-medium">Summary Export</div>
-                  <div className="text-xs text-gray-500">Basic member info</div>
+                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Basic member info</div>
                 </div>
               </button>
               <button
                 onClick={exportDetailedCSV}
-                className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2"
+                className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 transition-colors"
+                style={{ color: 'var(--text-primary)' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--btn-ghost-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
-                <FiList size={16} className="text-gray-400" />
+                <FiList size={16} style={{ color: 'var(--text-tertiary)' }} />
                 <div>
                   <div className="font-medium">Detailed Export</div>
-                  <div className="text-xs text-gray-500">Activity & rewards history</div>
+                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Activity & rewards history</div>
                 </div>
               </button>
             </div>
@@ -366,50 +372,51 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <div className="glass-card p-3">
-          <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
+          <div className="flex items-center gap-2 text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
             <FiUsers size={12} />
             Members
           </div>
-          <p className="text-xl font-bold text-white">{stats.totalMembers}</p>
+          <p className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.totalMembers}</p>
         </div>
         <div className="glass-card p-3">
-          <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
+          <div className="flex items-center gap-2 text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
             <FiCheck size={12} />
             Total Visits
           </div>
-          <p className="text-xl font-bold text-white">{stats.totalVisits}</p>
+          <p className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.totalVisits}</p>
         </div>
         <div className="glass-card p-3">
-          <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
+          <div className="flex items-center gap-2 text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
             <FiGift size={12} />
             Rewards Issued
           </div>
-          <p className="text-xl font-bold text-amber-400">{stats.rewardsIssued}</p>
+          <p className="text-xl font-bold" style={{ color: '#FBBF24' }}>{stats.rewardsIssued}</p>
         </div>
         <div className="glass-card p-3">
-          <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
+          <div className="flex items-center gap-2 text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
             <FiGift size={12} />
             Redeemed
           </div>
-          <p className="text-xl font-bold text-green-400">{stats.rewardsRedeemed}</p>
+          <p className="text-xl font-bold" style={{ color: 'var(--success)' }}>{stats.rewardsRedeemed}</p>
         </div>
       </div>
 
       <div className="glass-card p-4">
         <div className="flex gap-3 mb-4">
           <div className="flex-1 relative">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search members..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-white/30"
+              className="input w-full pl-10"
             />
           </div>
           <button
             onClick={fetchMembers}
-            className="p-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 border border-white/10"
+            className="p-2.5 rounded-lg transition-colors"
+            style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}
           >
             <FiRefreshCw size={18} />
           </button>
@@ -419,11 +426,11 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
           <div className="flex gap-2 mb-4 overflow-x-auto hide-scrollbar -mx-4 px-4">
             <button
               onClick={() => setSelectedCampaign('all')}
-              className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
-                selectedCampaign === 'all'
-                  ? 'bg-rose-500 text-white'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
-              }`}
+              className="px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors"
+              style={{
+                background: selectedCampaign === 'all' ? '#F43F5E' : 'var(--bg-tertiary)',
+                color: selectedCampaign === 'all' ? '#fff' : 'var(--text-secondary)'
+              }}
             >
               All Programs
             </button>
@@ -431,11 +438,11 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
               <button
                 key={c.id}
                 onClick={() => setSelectedCampaign(c.id)}
-                className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
-                  selectedCampaign === c.id
-                    ? 'bg-rose-500 text-white'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
-                }`}
+                className="px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors"
+                style={{
+                  background: selectedCampaign === c.id ? '#F43F5E' : 'var(--bg-tertiary)',
+                  color: selectedCampaign === c.id ? '#fff' : 'var(--text-secondary)'
+                }}
               >
                 {c.name}
               </button>
@@ -445,10 +452,10 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-color)', borderTopColor: 'var(--brand-primary)' }} />
           </div>
         ) : filteredMembers.length === 0 ? (
-          <p className="text-center text-gray-500 py-8">
+          <p className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
             {searchQuery ? 'No members found' : 'No loyalty members yet'}
           </p>
         ) : (
@@ -456,13 +463,13 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left p-3 text-gray-400 font-medium">Member</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Program</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Progress</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Status</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Enrolled</th>
-                    <th className="text-right p-3 text-gray-400 font-medium">Actions</th>
+                  <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Member</th>
+                    <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Program</th>
+                    <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Progress</th>
+                    <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Status</th>
+                    <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Enrolled</th>
+                    <th className="text-right p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -471,61 +478,65 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
                     const threshold = campaign?.config?.loyalty?.threshold || 10;
 
                     return (
-                      <tr key={member.id} className="border-b border-white/5 hover:bg-white/5">
+                      <tr key={member.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                         <td className="p-3">
-                          <p className="text-white font-medium">{member.name}</p>
-                          <p className="text-gray-500 text-xs">{member.email}</p>
+                          <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{member.name}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{member.email}</p>
                         </td>
-                        <td className="p-3 text-gray-400">{member.campaigns?.name}</td>
+                        <td className="p-3" style={{ color: 'var(--text-secondary)' }}>{member.campaigns?.name}</td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-20 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div className="w-20 h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-tertiary)' }}>
                               <div
-                                className="h-full bg-rose-500 rounded-full"
-                                style={{ width: `${Math.min((member.current_progress / threshold) * 100, 100)}%` }}
+                                className="h-full rounded-full"
+                                style={{ width: `${Math.min((member.current_progress / threshold) * 100, 100)}%`, background: '#F43F5E' }}
                               />
                             </div>
-                            <span className="text-white text-xs">{member.current_progress}/{threshold}</span>
+                            <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{member.current_progress}/{threshold}</span>
                           </div>
                         </td>
                         <td className="p-3">
                           {member.reward_unlocked ? (
-                            <span className="px-2 py-1 rounded bg-amber-500/20 text-amber-400 text-xs font-medium">
+                            <span className="px-2 py-1 rounded text-xs font-medium" style={{ background: 'rgba(251, 191, 36, 0.15)', color: '#FBBF24' }}>
                               Reward Ready
                             </span>
                           ) : (
-                            <span className="text-gray-500 text-xs">In Progress</span>
+                            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>In Progress</span>
                           )}
                         </td>
-                        <td className="p-3 text-gray-400 text-xs">
+                        <td className="p-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
                           {new Date(member.enrolled_at).toLocaleDateString()}
                         </td>
                         <td className="p-3">
                           <div className="flex gap-1 justify-end">
                             <button
                               onClick={() => openMemberDetail(member)}
-                              className="p-1.5 rounded hover:bg-white/10 text-gray-400 hover:text-rose-400"
+                              className="p-1.5 rounded transition-colors"
+                              style={{ color: 'var(--text-tertiary)' }}
                               title="View Activity"
                             >
                               <FiEye size={14} />
                             </button>
                             <button
                               onClick={() => openMemberCard(member)}
-                              className="p-1.5 rounded hover:bg-white/10 text-gray-400 hover:text-white"
+                              className="p-1.5 rounded transition-colors"
+                              style={{ color: 'var(--text-tertiary)' }}
                               title="View Card"
                             >
                               <FiExternalLink size={14} />
                             </button>
                             <button
                               onClick={() => handleResetProgress(member)}
-                              className="p-1.5 rounded hover:bg-white/10 text-gray-400 hover:text-amber-400"
+                              className="p-1.5 rounded transition-colors"
+                              style={{ color: 'var(--text-tertiary)' }}
                               title="Reset Progress"
                             >
                               <FiRefreshCw size={14} />
                             </button>
                             <button
                               onClick={() => handleDeleteMember(member)}
-                              className="p-1.5 rounded hover:bg-white/10 text-gray-400 hover:text-red-400"
+                              className="p-1.5 rounded transition-colors"
+                              style={{ color: 'var(--text-tertiary)' }}
                               title="Remove Member"
                             >
                               <FiTrash2 size={14} />
@@ -545,45 +556,48 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
                 const threshold = campaign?.config?.loyalty?.threshold || 10;
 
                 return (
-                  <div key={member.id} className="p-3 rounded-xl bg-white/5">
+                  <div key={member.id} className="p-3 rounded-xl" style={{ background: 'var(--bg-tertiary)' }}>
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="text-white font-medium">{member.name}</p>
-                        <p className="text-gray-500 text-xs">{member.email}</p>
+                        <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{member.name}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{member.email}</p>
                       </div>
                       {member.reward_unlocked && (
-                        <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-xs font-medium">
+                        <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(251, 191, 36, 0.15)', color: '#FBBF24' }}>
                           Reward
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--border-color)' }}>
                         <div
-                          className="h-full bg-rose-500 rounded-full"
-                          style={{ width: `${Math.min((member.current_progress / threshold) * 100, 100)}%` }}
+                          className="h-full rounded-full"
+                          style={{ width: `${Math.min((member.current_progress / threshold) * 100, 100)}%`, background: '#F43F5E' }}
                         />
                       </div>
-                      <span className="text-white text-xs">{member.current_progress}/{threshold}</span>
+                      <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{member.current_progress}/{threshold}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500 text-xs">{member.campaigns?.name}</span>
+                      <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{member.campaigns?.name}</span>
                       <div className="flex gap-1">
                         <button
                           onClick={() => openMemberDetail(member)}
-                          className="p-1.5 rounded hover:bg-white/10 text-gray-400"
+                          className="p-1.5 rounded"
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           <FiEye size={14} />
                         </button>
                         <button
                           onClick={() => openMemberCard(member)}
-                          className="p-1.5 rounded hover:bg-white/10 text-gray-400"
+                          className="p-1.5 rounded"
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           <FiExternalLink size={14} />
                         </button>
                         <button
                           onClick={() => handleResetProgress(member)}
-                          className="p-1.5 rounded hover:bg-white/10 text-gray-400"
+                          className="p-1.5 rounded"
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           <FiRefreshCw size={14} />
                         </button>

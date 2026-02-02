@@ -74,11 +74,11 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
         <button
           type="button"
           onClick={() => onLogoChange('upload', null)}
-          className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-            logoType === 'upload'
-              ? 'bg-teal-600 text-white'
-              : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'
-          }`}
+          className="flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          style={{
+            background: logoType === 'upload' ? 'var(--brand-primary)' : 'var(--bg-tertiary)',
+            color: logoType === 'upload' ? '#fff' : 'var(--text-secondary)'
+          }}
         >
           <FaUpload className="w-4 h-4" />
           <span>Upload</span>
@@ -86,11 +86,11 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
         <button
           type="button"
           onClick={() => onLogoChange('url', logoUrl || '')}
-          className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-            logoType === 'url'
-              ? 'bg-teal-600 text-white'
-              : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'
-          }`}
+          className="flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          style={{
+            background: logoType === 'url' ? 'var(--brand-primary)' : 'var(--bg-tertiary)',
+            color: logoType === 'url' ? '#fff' : 'var(--text-secondary)'
+          }}
         >
           <FaImage className="w-4 h-4" />
           <span>Use URL</span>
@@ -105,11 +105,11 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
             onDragOver={handleDrag}
             onDrop={handleDrop}
             onClick={() => !preview && fileInputRef.current?.click()}
-            className={`relative border-2 border-dashed rounded-xl p-6 md:p-8 text-center transition-colors cursor-pointer ${
-              dragActive
-                ? 'border-teal-500 bg-teal-500/10'
-                : 'border-white/20 bg-zinc-800/50 hover:bg-zinc-800'
-            }`}
+            className="relative border-2 border-dashed rounded-xl p-6 md:p-8 text-center transition-colors cursor-pointer"
+            style={{
+              borderColor: dragActive ? 'var(--brand-primary)' : 'var(--border-color)',
+              background: dragActive ? 'var(--glass-bg)' : 'var(--bg-tertiary)'
+            }}
           >
             <input
               ref={fileInputRef}
@@ -132,23 +132,27 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
                     e.stopPropagation();
                     clearLogo();
                   }}
-                  className="absolute -top-2 -right-2 p-2.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors shadow-lg"
+                  className="absolute -top-2 -right-2 p-2.5 rounded-full text-white transition-colors shadow-lg"
+                  style={{ background: 'var(--error)' }}
                 >
                   <FaTimes className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="w-14 h-14 md:w-16 md:h-16 mx-auto rounded-full bg-zinc-700 flex items-center justify-center">
-                  <FaUpload className="w-6 h-6 md:w-7 md:h-7 text-gray-400" />
+                <div
+                  className="w-14 h-14 md:w-16 md:h-16 mx-auto rounded-full flex items-center justify-center"
+                  style={{ background: 'var(--bg-secondary)' }}
+                >
+                  <FaUpload className="w-6 h-6 md:w-7 md:h-7" style={{ color: 'var(--text-tertiary)' }} />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-300 mb-1">
+                  <p className="text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>
                     <span className="hidden md:inline">Drag and drop your logo here, or </span>
-                    <span className="text-teal-400 font-medium">tap to upload</span>
+                    <span style={{ color: 'var(--brand-primary)', fontWeight: 500 }}>tap to upload</span>
                   </p>
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                   PNG, JPEG, SVG, or WebP (max 2MB)
                 </p>
               </div>
@@ -162,11 +166,11 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
             value={logoUrl || ''}
             onChange={(e) => handleUrlChange(e.target.value)}
             placeholder="https://example.com/logo.png"
-            className="w-full px-4 py-3 bg-zinc-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-teal-500"
+            className="input"
           />
           {preview && preview.startsWith('http') && (
             <div className="mt-4 relative">
-              <p className="text-xs text-gray-400 mb-2">Preview:</p>
+              <p className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>Preview:</p>
               <div className="relative inline-block">
                 <img
                   src={preview}
@@ -180,7 +184,8 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
                 <button
                   type="button"
                   onClick={clearLogo}
-                  className="absolute -top-2 -right-2 p-2.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors shadow-lg"
+                  className="absolute -top-2 -right-2 p-2.5 rounded-full text-white transition-colors shadow-lg"
+                  style={{ background: 'var(--error)' }}
                 >
                   <FaTimes className="w-3.5 h-3.5" />
                 </button>
@@ -191,8 +196,8 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
       )}
 
       {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="p-3 rounded-lg" style={{ background: 'var(--error-bg)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+          <p className="text-sm" style={{ color: 'var(--error)' }}>{error}</p>
         </div>
       )}
     </div>

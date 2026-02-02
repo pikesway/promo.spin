@@ -113,57 +113,59 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="bg-zinc-900 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden border border-zinc-800"
+          className="rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden"
+          style={{ background: 'var(--modal-bg)', border: '1px solid var(--modal-border)' }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-            <h2 className="text-lg font-semibold text-white">Member Details</h2>
+          <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Member Details</h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: 'var(--text-tertiary)' }}
             >
               <FiX size={20} />
             </button>
           </div>
 
-          <div className="p-4 border-b border-zinc-800 bg-zinc-800/50">
+          <div className="p-4" style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)' }}>
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-full bg-rose-500/20 flex items-center justify-center">
                 <FiUser className="text-rose-400" size={24} />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-white truncate">{member.name}</h3>
-                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <h3 className="text-lg font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{member.name}</h3>
+                <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
                   <FiMail size={14} />
                   <span className="truncate">{member.email}</span>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
                   {member.current_progress}/{threshold}
                 </div>
-                <div className="text-xs text-gray-500">Progress</div>
+                <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Progress</div>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-3 mt-4">
-              <div className="bg-zinc-800 rounded-lg p-3 text-center">
-                <div className="text-lg font-bold text-white">{member.total_visits || 0}</div>
-                <div className="text-xs text-gray-500">Total Visits</div>
+              <div className="rounded-lg p-3 text-center" style={{ background: 'var(--bg-secondary)' }}>
+                <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{member.total_visits || 0}</div>
+                <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Total Visits</div>
               </div>
-              <div className="bg-zinc-800 rounded-lg p-3 text-center">
+              <div className="rounded-lg p-3 text-center" style={{ background: 'var(--bg-secondary)' }}>
                 <div className="text-lg font-bold text-amber-400">{redemptions.length}</div>
-                <div className="text-xs text-gray-500">Rewards Earned</div>
+                <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Rewards Earned</div>
               </div>
-              <div className="bg-zinc-800 rounded-lg p-3 text-center">
+              <div className="rounded-lg p-3 text-center" style={{ background: 'var(--bg-secondary)' }}>
                 <div className="text-lg font-bold text-green-400">
                   {redemptions.filter(r => r.status === 'redeemed' || r.redemptions?.status === 'redeemed').length}
                 </div>
-                <div className="text-xs text-gray-500">Redeemed</div>
+                <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Redeemed</div>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
+            <div className="flex items-center gap-4 mt-4 text-xs" style={{ color: 'var(--text-tertiary)' }}>
               <div className="flex items-center gap-1">
                 <FiHash size={12} />
                 <span className="font-mono">{member.member_code}</span>
@@ -180,24 +182,24 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
             </div>
           </div>
 
-          <div className="flex border-b border-zinc-800">
+          <div className="flex" style={{ borderBottom: '1px solid var(--border-color)' }}>
             <button
               onClick={() => setActiveTab('activity')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'activity'
-                  ? 'text-white border-b-2 border-rose-500'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
+              className="flex-1 py-3 text-sm font-medium transition-colors"
+              style={{
+                color: activeTab === 'activity' ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                borderBottom: activeTab === 'activity' ? '2px solid var(--brand-primary)' : '2px solid transparent'
+              }}
             >
               Activity Log
             </button>
             <button
               onClick={() => setActiveTab('rewards')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'rewards'
-                  ? 'text-white border-b-2 border-rose-500'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
+              className="flex-1 py-3 text-sm font-medium transition-colors"
+              style={{
+                color: activeTab === 'rewards' ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                borderBottom: activeTab === 'rewards' ? '2px solid var(--brand-primary)' : '2px solid transparent'
+              }}
             >
               Rewards ({redemptions.length})
             </button>
@@ -206,11 +208,11 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
           <div className="overflow-y-auto max-h-[40vh] p-4">
             {loading ? (
               <div className="flex items-center justify-center py-8">
-                <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-color)', borderTopColor: 'var(--text-primary)' }} />
               </div>
             ) : activeTab === 'activity' ? (
               activityLog.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">No activity recorded yet</p>
+                <p className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>No activity recorded yet</p>
               ) : (
                 <div className="space-y-3">
                   {activityLog.map((log) => {
@@ -220,17 +222,18 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
                     return (
                       <div
                         key={log.id}
-                        className="flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50"
+                        className="flex items-center gap-3 p-3 rounded-xl"
+                        style={{ background: 'var(--bg-tertiary)' }}
                       >
                         <div className={`w-10 h-10 rounded-full ${config.bg} flex items-center justify-center`}>
                           <Icon className={config.color} size={18} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm font-medium">{config.label}</p>
-                          <p className="text-gray-500 text-xs">{formatDate(log.created_at)}</p>
+                          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{config.label}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{formatDate(log.created_at)}</p>
                         </div>
                         {log.quantity > 1 && (
-                          <span className="text-gray-400 text-sm">x{log.quantity}</span>
+                          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>x{log.quantity}</span>
                         )}
                       </div>
                     );
@@ -238,7 +241,7 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
                 </div>
               )
             ) : redemptions.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No rewards earned yet</p>
+              <p className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>No rewards earned yet</p>
             ) : (
               <div className="space-y-3">
                 {redemptions.map((redemption) => {
@@ -251,18 +254,19 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
                   return (
                     <div
                       key={redemption.id}
-                      className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50"
+                      className="p-4 rounded-xl"
+                      style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <p className="text-white font-medium">{prizeName}</p>
-                          <p className="text-gray-500 text-xs font-mono">{redemption.short_code}</p>
+                          <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{prizeName}</p>
+                          <p className="text-xs font-mono" style={{ color: 'var(--text-tertiary)' }}>{redemption.short_code}</p>
                         </div>
                         <span className={`px-2 py-1 rounded text-xs font-medium ${displayStatus.bg} ${displayStatus.color}`}>
                           {displayStatus.label}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--text-tertiary)' }}>
                         <div className="flex items-center gap-1">
                           <FiCalendar size={12} />
                           <span>Issued {formatShortDate(redemption.created_at)}</span>

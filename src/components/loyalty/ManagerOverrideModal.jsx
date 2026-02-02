@@ -47,16 +47,17 @@ export default function ManagerOverrideModal({ isOpen, onClose, onUnlock, member
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80">
       <div
         className="w-full max-w-sm rounded-2xl overflow-hidden"
-        style={{ background: 'var(--bg-secondary, #18181B)', border: '1px solid rgba(255,255,255,0.1)' }}
+        style={{ background: 'var(--modal-bg)', border: '1px solid var(--modal-border)' }}
       >
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
           <div className="flex items-center gap-2">
             <FiShield className="text-amber-400" size={20} />
-            <h2 className="text-lg font-semibold text-white">Manager Override</h2>
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Manager Override</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+            className="p-2 rounded-full transition-colors"
+            style={{ color: 'var(--text-tertiary)' }}
           >
             <FiX size={20} />
           </button>
@@ -72,18 +73,18 @@ export default function ManagerOverrideModal({ isOpen, onClose, onUnlock, member
               )}
             </div>
             {hasUnlockPinConfigured ? (
-              <p className="text-gray-400 text-sm">
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                 Enter your unlock PIN to unlock
                 {memberName && (
-                  <span className="text-white font-medium"> {memberName}'s</span>
+                  <span className="font-medium" style={{ color: 'var(--text-primary)' }}> {memberName}'s</span>
                 )} account
               </p>
             ) : (
               <div>
-                <p className="text-red-400 text-sm font-medium mb-2">
+                <p className="text-sm font-medium mb-2" style={{ color: 'var(--error)' }}>
                   Unlock PIN Not Configured
                 </p>
-                <p className="text-gray-500 text-xs">
+                <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                   An administrator needs to set up the unlock PIN in the client branding settings before accounts can be unlocked.
                 </p>
               </div>
@@ -104,24 +105,24 @@ export default function ManagerOverrideModal({ isOpen, onClose, onUnlock, member
                   setError('');
                 }}
                 placeholder="Enter unlock PIN"
-                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white text-center text-lg tracking-widest placeholder-gray-500 focus:outline-none focus:border-amber-500 font-mono"
+                className="input w-full text-center text-lg tracking-widest font-mono"
                 autoFocus
               />
               {error && (
-                <p className="text-red-400 text-sm mt-2 text-center">{error}</p>
+                <p className="text-sm mt-2 text-center" style={{ color: 'var(--error)' }}>{error}</p>
               )}
             </div>
           )}
 
           {!hasUnlockPinConfigured && error && (
-            <p className="text-red-400 text-sm mb-4 text-center">{error}</p>
+            <p className="text-sm mb-4 text-center" style={{ color: 'var(--error)' }}>{error}</p>
           )}
 
           <div className="flex gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium transition-colors"
+              className="btn btn-secondary flex-1"
             >
               {hasUnlockPinConfigured ? 'Cancel' : 'Close'}
             </button>
