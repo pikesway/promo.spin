@@ -142,9 +142,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      db: { schema: 'app_bizgamez_agency' }
-    });
+    const supabase = createClient(supabaseUrl, supabaseKey);
     const { redemptionId }: EmailRequest = await req.json();
 
     if (!redemptionId) {
