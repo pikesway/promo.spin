@@ -24,7 +24,8 @@ Deno.serve(async (req: Request) => {
       auth: {
         autoRefreshToken: false,
         persistSession: false
-      }
+      },
+      db: { schema: 'app_bizgamez_agency' }
     });
 
     const authHeader = req.headers.get('Authorization');

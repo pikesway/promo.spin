@@ -44,7 +44,9 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      db: { schema: 'app_bizgamez_agency' }
+    });
 
     const payload: WebhookPayload = await req.json();
     const { score, game_code, name, mobile, email, created_at } = payload;
