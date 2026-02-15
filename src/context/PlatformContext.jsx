@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase/client';
 import { uploadClientLogo as uploadLogoToStorage, deleteClientLogo } from '../utils/storageHelpers';
 import { getDefaultColors } from '../utils/brandingHelpers';
@@ -20,9 +20,37 @@ export const PlatformProvider = ({ children }) => {
   const [leads, setLeads] = useState([]);
   const [redemptions, setRedemptions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const loadedForSession = useRef(null);
 
   useEffect(() => {
-    loadData();
+    const initData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        loadedForSession.current = session.user.id;
+        await loadData();
+      } else {
+        setIsLoading(false);
+      }
+    };
+
+    initData();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user && loadedForSession.current !== session.user.id) {
+        loadedForSession.current = session.user.id;
+        await loadData();
+      } else if (!session) {
+        loadedForSession.current = null;
+        setAgencies([]);
+        setClients([]);
+        setCampaigns([]);
+        setLeads([]);
+        setRedemptions([]);
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const loadData = async () => {
