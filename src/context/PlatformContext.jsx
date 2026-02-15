@@ -56,7 +56,11 @@ export const PlatformProvider = ({ children }) => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [agenciesData, clientsData, campaignsData, leadsData, redemptionsData] = await Promise.all([
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Data load timeout')), 15000)
+      );
+
+      const dataPromise = Promise.all([
         supabase.from('agencies').select('*').order('created_at', { ascending: false }),
         supabase.from('clients').select('*').order('created_at', { ascending: false }),
         supabase.from('campaigns').select('*').order('created_at', { ascending: false }),
@@ -64,11 +68,19 @@ export const PlatformProvider = ({ children }) => {
         supabase.from('redemptions').select('*').order('generated_at', { ascending: false })
       ]);
 
-      if (agenciesData.data) setAgencies(agenciesData.data);
-      if (clientsData.data) setClients(clientsData.data);
-      if (campaignsData.data) setCampaigns(campaignsData.data);
-      if (leadsData.data) setLeads(leadsData.data);
-      if (redemptionsData.data) setRedemptions(redemptionsData.data);
+      const [agenciesData, clientsData, campaignsData, leadsData, redemptionsData] = await Promise.race([dataPromise, timeoutPromise]);
+
+      if (agenciesData.error) console.error('Agencies load error:', agenciesData.error);
+      if (clientsData.error) console.error('Clients load error:', clientsData.error);
+      if (campaignsData.error) console.error('Campaigns load error:', campaignsData.error);
+      if (leadsData.error) console.error('Leads load error:', leadsData.error);
+      if (redemptionsData.error) console.error('Redemptions load error:', redemptionsData.error);
+
+      setAgencies(agenciesData.data || []);
+      setClients(clientsData.data || []);
+      setCampaigns(campaignsData.data || []);
+      setLeads(leadsData.data || []);
+      setRedemptions(redemptionsData.data || []);
     } catch (error) {
       console.error('Error loading platform data:', error);
     }
