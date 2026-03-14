@@ -63,6 +63,7 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
           backgroundColor: config.screens?.enrollment?.backgroundColor || client?.background_color || '#18181B',
           headingColor: config.screens?.enrollment?.headingColor || '#FFFFFF',
           bodyColor: config.screens?.enrollment?.bodyColor || '#FFFFFF',
+          buttonColor: config.screens?.enrollment?.buttonColor || loyalty.card?.primaryColor || client?.primary_color || '#F59E0B',
           buttonTextColor: config.screens?.enrollment?.buttonTextColor || '#FFFFFF',
         },
         reward: {
@@ -74,6 +75,7 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
           backgroundColor: config.screens?.reward?.backgroundColor || client?.background_color || '#18181B',
           headingColor: config.screens?.reward?.headingColor || '#FFFFFF',
           bodyColor: config.screens?.reward?.bodyColor || '#FFFFFF',
+          buttonColor: config.screens?.reward?.buttonColor || loyalty.card?.primaryColor || client?.primary_color || '#F59E0B',
           buttonTextColor: config.screens?.reward?.buttonTextColor || '#FFFFFF',
         }
       }

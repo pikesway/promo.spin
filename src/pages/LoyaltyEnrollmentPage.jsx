@@ -224,12 +224,14 @@ export default function LoyaltyEnrollmentPage() {
   }
 
   const screenConfig = campaign?.config?.screens?.enrollment || {};
-  const primaryColor = campaign?.config?.loyalty?.card?.primaryColor || client?.primary_color || '#F59E0B';
+  const cardPrimaryColor = campaign?.config?.loyalty?.card?.primaryColor || client?.primary_color || '#F59E0B';
   const backgroundColor = screenConfig.backgroundColor || client?.background_color || '#18181B';
   const headingColor = screenConfig.headingColor || '#FFFFFF';
   const bodyColor = screenConfig.bodyColor || '#FFFFFF';
+  const buttonColor = screenConfig.buttonColor || cardPrimaryColor;
   const buttonTextColor = screenConfig.buttonTextColor || '#FFFFFF';
   const backgroundImage = screenConfig.backgroundImage || '';
+  const primaryColor = buttonColor;
 
   const threshold = loyaltyConfig?.threshold || campaign?.config?.loyalty?.threshold || 10;
   const rewardName = loyaltyConfig?.reward_name || loyaltyConfig?.rewardName || campaign?.config?.loyalty?.rewardName || 'Free Reward';

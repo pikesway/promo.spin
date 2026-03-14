@@ -180,6 +180,18 @@ const LoyaltyScreens = ({ loyaltyData, onChange }) => {
 
                       <div>
                         <label className="block text-sm font-medium theme-text-secondary mb-2">
+                          Button Background Color
+                        </label>
+                        <input
+                          type="color"
+                          value={loyaltyData.screens.enrollment.buttonColor}
+                          onChange={(e) => handleScreenChange('enrollment', 'buttonColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium theme-text-secondary mb-2">
                           Button Text Color
                         </label>
                         <input
@@ -231,7 +243,7 @@ const LoyaltyScreens = ({ loyaltyData, onChange }) => {
                         <button
                           className="px-6 py-2 rounded-lg font-medium"
                           style={{
-                            backgroundColor: loyaltyData.card.primaryColor,
+                            backgroundColor: loyaltyData.screens.enrollment.buttonColor,
                             color: loyaltyData.screens.enrollment.buttonTextColor
                           }}
                         >
@@ -359,6 +371,18 @@ const LoyaltyScreens = ({ loyaltyData, onChange }) => {
 
                   <div>
                     <label className="block text-sm font-medium theme-text-secondary mb-2">
+                      Button Background Color
+                    </label>
+                    <input
+                      type="color"
+                      value={loyaltyData.screens.reward.buttonColor}
+                      onChange={(e) => handleScreenChange('reward', 'buttonColor', e.target.value)}
+                      className="w-full h-10 rounded cursor-pointer"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium theme-text-secondary mb-2">
                       Button Text Color
                     </label>
                     <input
@@ -421,7 +445,7 @@ const LoyaltyScreens = ({ loyaltyData, onChange }) => {
                     <button
                       className="px-6 py-2 rounded-lg font-medium"
                       style={{
-                        backgroundColor: loyaltyData.card.primaryColor,
+                        backgroundColor: loyaltyData.screens.reward.buttonColor,
                         color: loyaltyData.screens.reward.buttonTextColor
                       }}
                     >
