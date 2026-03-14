@@ -59,7 +59,6 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
   const sections = [
     { id: 'colors', label: 'Colors' },
     { id: 'stamps', label: 'Stamp Icons' },
-    { id: 'layout', label: 'Layout' },
   ];
 
   const presetColors = [
@@ -125,24 +124,15 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                 </div>
 
                 <div className="bg-white/10 backdrop-blur p-4">
-                  <div
-                    className={`mb-4 ${
-                      loyaltyData.card.layout === 'grid'
-                        ? 'grid grid-cols-5 gap-2'
-                        : 'flex gap-2 overflow-x-auto pb-2'
-                    }`}
-                  >
+                  <div className="mb-4 grid grid-cols-5 gap-2">
                     {Array.from({ length: threshold }).map((_, index) => {
                       const isFilled = index < simulatedProgress;
                       return (
                         <div
                           key={index}
-                          className={`
-                            aspect-square rounded-full flex items-center justify-center
-                            transition-all duration-300
-                            ${loyaltyData.card.layout === 'inline' ? 'flex-shrink-0 w-10 h-10' : ''}
-                            ${isFilled ? 'shadow-lg' : 'border-2'}
-                          `}
+                          className={`aspect-square rounded-full flex items-center justify-center transition-all duration-300 ${
+                            isFilled ? 'shadow-lg' : 'border-2'
+                          }`}
                           style={{
                             backgroundColor: isFilled ? loyaltyData.card.stampFilledColor : 'transparent',
                             borderColor: !isFilled ? loyaltyData.card.stampEmptyColor : 'transparent'
@@ -427,6 +417,45 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                   </div>
                 </div>
               </div>
+
+              <div>
+                <h3 className="text-base font-medium theme-text-primary mb-4">Card Elements</h3>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={loyaltyData.card.showLogo}
+                      onChange={(e) => handleCardChange('showLogo', e.target.checked)}
+                      className="w-4 h-4 rounded border-white/20 text-rose-500 focus:ring-rose-500"
+                    />
+                    <span className="text-sm theme-text-secondary">Show business logo on card</span>
+                  </label>
+
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={loyaltyData.card.showQR}
+                      onChange={(e) => handleCardChange('showQR', e.target.checked)}
+                      className="w-4 h-4 rounded border-white/20 text-rose-500 focus:ring-rose-500"
+                    />
+                    <span className="text-sm theme-text-secondary">Show QR code on card</span>
+                  </label>
+                </div>
+
+                {client?.logo_url && (
+                  <div className="p-4 theme-bg-tertiary rounded-lg border theme-border mt-4">
+                    <h4 className="text-sm font-medium theme-text-primary mb-3">Current Logo</h4>
+                    <img
+                      src={client.logo_url}
+                      alt={client.name}
+                      className="h-12 object-contain"
+                    />
+                    <p className="text-xs theme-text-tertiary mt-2">
+                      Update the logo in Client Branding settings.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -575,87 +604,6 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
             </div>
           )}
 
-          {activeSection === 'layout' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-base font-medium theme-text-primary mb-4">Stamp Layout</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => handleCardChange('layout', 'grid')}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      loyaltyData.card.layout === 'grid'
-                        ? 'border-rose-500 bg-rose-500/10'
-                        : 'theme-border hover:border-white/30'
-                    }`}
-                  >
-                    <div className="grid grid-cols-5 gap-1 mb-2">
-                      {Array.from({ length: 10 }).map((_, i) => (
-                        <div key={i} className="w-4 h-4 rounded-full bg-white/30" />
-                      ))}
-                    </div>
-                    <span className="text-sm theme-text-primary">Grid Layout</span>
-                    <p className="text-xs theme-text-tertiary mt-1">5 stamps per row</p>
-                  </button>
-
-                  <button
-                    onClick={() => handleCardChange('layout', 'inline')}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      loyaltyData.card.layout === 'inline'
-                        ? 'border-rose-500 bg-rose-500/10'
-                        : 'theme-border hover:border-white/30'
-                    }`}
-                  >
-                    <div className="flex gap-1 mb-2 overflow-hidden">
-                      {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={i} className="w-4 h-4 rounded-full bg-white/30 flex-shrink-0" />
-                      ))}
-                    </div>
-                    <span className="text-sm theme-text-primary">Inline Layout</span>
-                    <p className="text-xs theme-text-tertiary mt-1">Single scrollable row</p>
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-base font-medium theme-text-primary mb-4">Card Elements</h3>
-                <div className="space-y-3">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={loyaltyData.card.showLogo}
-                      onChange={(e) => handleCardChange('showLogo', e.target.checked)}
-                      className="w-4 h-4 rounded border-white/20 text-rose-500 focus:ring-rose-500"
-                    />
-                    <span className="text-sm theme-text-secondary">Show business logo on card</span>
-                  </label>
-
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={loyaltyData.card.showQR}
-                      onChange={(e) => handleCardChange('showQR', e.target.checked)}
-                      className="w-4 h-4 rounded border-white/20 text-rose-500 focus:ring-rose-500"
-                    />
-                    <span className="text-sm theme-text-secondary">Show QR code on card</span>
-                  </label>
-                </div>
-              </div>
-
-              {client?.logo_url && (
-                <div className="p-4 theme-bg-tertiary rounded-lg border theme-border">
-                  <h4 className="text-sm font-medium theme-text-primary mb-3">Current Logo</h4>
-                  <img
-                    src={client.logo_url}
-                    alt={client.name}
-                    className="h-12 object-contain"
-                  />
-                  <p className="text-xs theme-text-tertiary mt-2">
-                    Update the logo in Client Branding settings.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -47,7 +47,6 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
         headingColor: loyalty.card?.headingColor || '#FFFFFF',
         bodyColor: loyalty.card?.bodyColor || '#FFFFFF',
         buttonTextColor: loyalty.card?.buttonTextColor || '#FFFFFF',
-        layout: loyalty.card?.layout || 'grid',
         showLogo: loyalty.card?.showLogo !== false,
         showQR: loyalty.card?.showQR !== false,
       },

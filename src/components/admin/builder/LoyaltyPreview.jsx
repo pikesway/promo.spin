@@ -106,24 +106,15 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
                 </div>
 
                 <div className="bg-white/10 backdrop-blur p-4">
-                  <div
-                    className={`mb-4 ${
-                      loyaltyData.card.layout === 'grid'
-                        ? 'grid grid-cols-5 gap-2'
-                        : 'flex gap-2 overflow-x-auto pb-2'
-                    }`}
-                  >
+                  <div className="mb-4 grid grid-cols-5 gap-2">
                     {Array.from({ length: threshold }).map((_, index) => {
                       const isFilled = index < simulatedProgress;
                       return (
                         <div
                           key={index}
-                          className={`
-                            aspect-square rounded-full flex items-center justify-center
-                            transition-all duration-300
-                            ${loyaltyData.card.layout === 'inline' ? 'flex-shrink-0 w-10 h-10' : ''}
-                            ${isFilled ? 'shadow-lg' : 'border-2'}
-                          `}
+                          className={`aspect-square rounded-full flex items-center justify-center transition-all duration-300 ${
+                            isFilled ? 'shadow-lg' : 'border-2'
+                          }`}
                           style={{
                             backgroundColor: isFilled ? loyaltyData.card.stampFilledColor : 'transparent',
                             borderColor: !isFilled ? loyaltyData.card.stampEmptyColor : 'transparent'
