@@ -78,6 +78,16 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    if (campaign.status === "paused" && actionType === "visit") {
+      return new Response(
+        JSON.stringify({
+          error: "This rewards program is temporarily paused and not accepting new visits at this time.",
+          paused: true
+        }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const loyaltyProgram = campaign.loyalty_programs?.[0] || campaign.config?.loyalty || {};
     const threshold = loyaltyProgram.threshold || 10;
 

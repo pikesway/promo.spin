@@ -223,6 +223,73 @@ export default function LoyaltyEnrollmentPage() {
     );
   }
 
+  if (campaign.status === 'paused') {
+    const cardPrimaryColor = campaign?.config?.loyalty?.card?.primaryColor || client?.primary_color || '#F59E0B';
+    const screenConfig = campaign?.config?.screens?.enrollment || {};
+    const backgroundColor = screenConfig.backgroundColor || client?.background_color || '#18181B';
+
+    const isLightBackground = (color) => {
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      return brightness > 155;
+    };
+
+    const isDark = !isLightBackground(backgroundColor);
+
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{ backgroundColor: backgroundColor }}
+      >
+        <div className="w-full max-w-sm text-center">
+          {client?.logo_url && (
+            <img
+              src={client.logo_url}
+              alt={client.name}
+              className="h-16 mx-auto mb-6 object-contain"
+            />
+          )}
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+            style={{ backgroundColor: `${cardPrimaryColor}20` }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-10 h-10"
+              style={{ color: cardPrimaryColor }}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h1
+            className="text-2xl font-bold mb-4"
+            style={{ color: isDark ? '#FFFFFF' : '#000000' }}
+          >
+            Program Temporarily Paused
+          </h1>
+          <p
+            className="text-base mb-6"
+            style={{ color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}
+          >
+            This rewards program is temporarily paused and not accepting new enrollments at this time.
+          </p>
+          <p
+            className="text-sm"
+            style={{ color: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)' }}
+          >
+            Please check back later or contact {client?.name || 'the business'} for more information.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const screenConfig = campaign?.config?.screens?.enrollment || {};
   const cardPrimaryColor = campaign?.config?.loyalty?.card?.primaryColor || client?.primary_color || '#F59E0B';
   const backgroundColor = screenConfig.backgroundColor || client?.background_color || '#18181B';

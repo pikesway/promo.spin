@@ -251,6 +251,7 @@ export default function LoyaltyCardPage() {
   const currentProgress = account.current_progress || 0;
   const stampsRemaining = threshold - currentProgress;
   const rewardUnlocked = account.reward_unlocked;
+  const isPaused = campaign.status === 'paused';
 
   const loyaltyConfig = loyaltyProgram || campaign?.config?.loyalty || {};
   const validationMethod = loyaltyConfig.validation_method || loyaltyConfig.validationMethod || 'pin';
@@ -371,6 +372,17 @@ export default function LoyaltyCardPage() {
           </div>
         </div>
 
+        {isPaused && (
+          <div className="mt-4 p-4 rounded-xl border" style={{ backgroundColor: 'rgba(251, 191, 36, 0.1)', borderColor: 'rgba(251, 191, 36, 0.3)' }}>
+            <p className="text-yellow-300 text-sm text-center font-medium mb-1">
+              Program Temporarily Paused
+            </p>
+            <p className="text-yellow-200 text-xs text-center" style={{ opacity: 0.8 }}>
+              New visits cannot be confirmed at this time. {rewardUnlocked && 'You can still redeem your earned reward.'}
+            </p>
+          </div>
+        )}
+
         <div className="mt-6 space-y-3">
           {rewardUnlocked ? (
             <button
@@ -381,7 +393,7 @@ export default function LoyaltyCardPage() {
               <FiGift size={20} />
               Redeem Your Reward
             </button>
-          ) : (
+          ) : !isPaused ? (
             <button
               onClick={() => handleConfirmAction('visit')}
               className="w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
@@ -390,7 +402,7 @@ export default function LoyaltyCardPage() {
               <FiCheck size={20} />
               Confirm {loyaltyConfig.program_type === 'action' || loyaltyConfig.programType === 'action' ? 'Purchase' : 'Visit'}
             </button>
-          )}
+          ) : null}
 
           <button
             onClick={fetchData}
