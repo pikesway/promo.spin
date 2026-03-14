@@ -169,16 +169,16 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                     })}
                   </div>
 
-                  <div className="text-center" style={{ color: bodyColor }}>
+                  <div className="text-center">
                     {rewardUnlocked ? (
-                      <p className="font-semibold flex items-center justify-center gap-2">
+                      <p className="font-semibold flex items-center justify-center gap-2" style={{ color: bodyColor }}>
                         <FiGift className="text-yellow-300" />
-                        Reward Ready!
+                        <span>Reward Ready!</span>
                       </p>
                     ) : (
-                      <p className="text-sm">
-                        <span className="font-bold text-lg">{stampsRemaining}</span>
-                        <span style={{ opacity: 0.8 }}> stamps until your reward</span>
+                      <p className="text-sm" style={{ color: bodyColor }}>
+                        <span className="font-bold text-lg" style={{ color: bodyColor }}>{stampsRemaining}</span>
+                        <span style={{ color: bodyColor, opacity: 0.8 }}> stamps until your reward</span>
                       </p>
                     )}
                   </div>
