@@ -129,100 +129,6 @@ const IconSequenceConfig = ({ config, onChange }) => {
   );
 };
 
-const IconPositionConfig = ({ config, onChange }) => {
-  const targetIcon = config.targetIcon || 'star';
-  const targetPosition = config.targetPosition || 1;
-  const gridSize = config.gridSize || 6;
-
-  const iconData = getIconById(targetIcon);
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium theme-text-secondary mb-2">
-          Icon Position Challenge
-        </label>
-        <p className="text-xs theme-text-tertiary mb-3">
-          Staff must identify which position the target icon appears at.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium theme-text-secondary mb-2">
-            Target Icon
-          </label>
-          <div className="grid grid-cols-6 gap-2 p-3 theme-bg-tertiary rounded-lg border theme-border max-h-48 overflow-y-auto">
-            {LOYALTY_ICONS.map((icon) => (
-              <button
-                key={icon.id}
-                onClick={() => onChange('targetIcon', icon.id)}
-                className={`p-2 rounded-lg transition-colors ${
-                  targetIcon === icon.id
-                    ? 'bg-rose-500/20 ring-2 ring-rose-500'
-                    : 'hover:bg-white/10'
-                }`}
-              >
-                <SafeIcon icon={icon.icon} className="w-6 h-6 mx-auto" style={{ color: icon.color }} />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium theme-text-secondary mb-2">
-              Grid Size
-            </label>
-            <select
-              value={gridSize}
-              onChange={(e) => onChange('gridSize', parseInt(e.target.value))}
-              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
-            >
-              <option value={4}>4 icons (2x2)</option>
-              <option value={6}>6 icons (2x3)</option>
-              <option value={9}>9 icons (3x3)</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium theme-text-secondary mb-2">
-              Correct Position
-            </label>
-            <select
-              value={targetPosition}
-              onChange={(e) => onChange('targetPosition', parseInt(e.target.value))}
-              className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
-            >
-              {Array.from({ length: gridSize }, (_, i) => (
-                <option key={i + 1} value={i + 1}>Position {i + 1}</option>
-              ))}
-            </select>
-            <p className="text-xs theme-text-tertiary mt-1">
-              The target icon will appear at this position (numbered left-to-right, top-to-bottom).
-            </p>
-          </div>
-
-          {iconData && (
-            <div className="p-3 theme-bg-tertiary rounded-lg border theme-border">
-              <p className="text-xs theme-text-tertiary mb-2">Preview: Staff must find</p>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: `${iconData.color}20` }}
-                >
-                  <SafeIcon icon={iconData.icon} className="w-6 h-6" style={{ color: iconData.color }} />
-                </div>
-                <span className="text-sm theme-text-secondary">at position {targetPosition}</span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const IconGridConfig = ({ config, onChange }) => {
   const selectedIcons = config.selectedIcons || [];
   const gridSize = config.gridSize || 9;
@@ -484,7 +390,6 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
             >
               <option value="pin">PIN Code</option>
               <option value="icon_sequence">Icon Sequence</option>
-              <option value="icon_position">Icon Position</option>
               <option value="icon_grid">Icon Grid Pattern</option>
             </select>
             <p className="text-xs theme-text-tertiary mt-1">
@@ -513,13 +418,6 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
 
           {loyaltyData.validationMethod === 'icon_sequence' && (
             <IconSequenceConfig
-              config={loyaltyData.validationConfig}
-              onChange={handleValidationConfigChange}
-            />
-          )}
-
-          {loyaltyData.validationMethod === 'icon_position' && (
-            <IconPositionConfig
               config={loyaltyData.validationConfig}
               onChange={handleValidationConfigChange}
             />

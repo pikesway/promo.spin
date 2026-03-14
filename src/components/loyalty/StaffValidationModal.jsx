@@ -4,7 +4,6 @@ import { supabase } from '../../supabase/client';
 import PinValidation from './PinValidation';
 import IconGridValidation from './IconGridValidation';
 import IconSequenceValidation from './IconSequenceValidation';
-import IconPositionValidation from './IconPositionValidation';
 
 export default function StaffValidationModal({
   isOpen,
@@ -105,8 +104,6 @@ export default function StaffValidationModal({
         return <IconGridValidation {...commonProps} />;
       case 'icon_sequence':
         return <IconSequenceValidation {...commonProps} />;
-      case 'icon_position':
-        return <IconPositionValidation {...commonProps} />;
       default:
         return <PinValidation {...commonProps} />;
     }

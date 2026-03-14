@@ -77,7 +77,6 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
       case 'pin': return { pinLength: formData.loyaltyPinLength, pinType: formData.loyaltyPinType, pinValue: formData.loyaltyPinValue };
       case 'icon_single': return { targetIcon: formData.loyaltyTargetIcon };
       case 'icon_sequence': return { iconSequence: formData.loyaltyIconSequence };
-      case 'icon_position': return { targetIcon: formData.loyaltyTargetIcon, targetPosition: formData.loyaltyTargetPosition };
       default: return {};
     }
   };
@@ -95,8 +94,7 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
     if (!formData.name || !formData.loyaltyRewardName) return false;
     switch (formData.loyaltyValidationMethod) {
       case 'pin': return formData.loyaltyPinValue && formData.loyaltyPinValue.length === formData.loyaltyPinLength;
-      case 'icon_single':
-      case 'icon_position': return !!formData.loyaltyTargetIcon;
+      case 'icon_single': return !!formData.loyaltyTargetIcon;
       case 'icon_sequence': return formData.loyaltyIconSequence && formData.loyaltyIconSequence.length >= 2;
       default: return true;
     }
@@ -241,7 +239,6 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
                     <option value="pin">PIN Code</option>
                     <option value="icon_single">Icon Selection</option>
                     <option value="icon_sequence">Icon Sequence</option>
-                    <option value="icon_position">Icon Position</option>
                   </select>
                 </div>
 
@@ -272,7 +269,7 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
                   </>
                 )}
 
-                {(formData.loyaltyValidationMethod === 'icon_single' || formData.loyaltyValidationMethod === 'icon_position') && (
+                {formData.loyaltyValidationMethod === 'icon_single' && (
                   <div>
                     <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Select Target Icon</label>
                     <div className="grid grid-cols-8 gap-2">
