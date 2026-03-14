@@ -17,35 +17,34 @@ export const PlatformProvider = ({ children }) => {
   const [campaigns, setCampaigns] = useState([]);
   const [leads, setLeads] = useState([]);
   const [redemptions, setRedemptions] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const loadedForSession = useRef(null);
+  const isLoadingRef = useRef(false);
 
   useEffect(() => {
     const initData = async () => {
-      if (!supabase) { 
-        setIsLoading(false); 
-        return; 
+      if (!supabase) {
+        return;
       }
-      
+
       try {
         const { data, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           console.error('Session error in Platform:', error.message);
+          return;
         }
 
         if (data?.session?.user) {
           loadedForSession.current = data.session.user.id;
-          await loadData();
-        } else {
-          setIsLoading(false);
+          // Load data in background without blocking
+          loadData();
         }
       } catch (err) {
         console.error('Platform initialization error:', err);
-        setIsLoading(false);
       }
     };
-    
+
     initData();
 
     if (!supabase) return;
@@ -53,7 +52,7 @@ export const PlatformProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user && loadedForSession.current !== session.user.id) {
         loadedForSession.current = session.user.id;
-        await loadData();
+        loadData();
       } else if (!session) {
         loadedForSession.current = null;
         setAgencies([]);
@@ -69,38 +68,40 @@ export const PlatformProvider = ({ children }) => {
   }, []);
 
   const loadData = async () => {
-    if (!supabase) {
-      setIsLoading(false);
+    if (!supabase || isLoadingRef.current) {
       return;
     }
 
+    isLoadingRef.current = true;
     setIsLoading(true);
+
     try {
-      // Load data sequentially to avoid race conditions and timeout issues
-      const agenciesData = await supabase.from('agencies').select('*').order('created_at', { ascending: false });
-      setAgencies(agenciesData?.data || []);
+      // Load data in parallel with better error handling
+      const [agenciesResult, clientsResult, campaignsResult, leadsResult, redemptionsResult] = await Promise.allSettled([
+        supabase.from('agencies').select('*').order('created_at', { ascending: false }),
+        supabase.from('clients').select('*').order('created_at', { ascending: false }),
+        supabase.from('campaigns').select('*').order('created_at', { ascending: false }),
+        supabase.from('leads').select('*').order('created_at', { ascending: false }),
+        supabase.from('redemptions').select('*').order('generated_at', { ascending: false })
+      ]);
 
-      const clientsData = await supabase.from('clients').select('*').order('created_at', { ascending: false });
-      setClients(clientsData?.data || []);
+      setAgencies(agenciesResult.status === 'fulfilled' ? (agenciesResult.value?.data || []) : []);
+      setClients(clientsResult.status === 'fulfilled' ? (clientsResult.value?.data || []) : []);
+      setCampaigns(campaignsResult.status === 'fulfilled' ? (campaignsResult.value?.data || []) : []);
+      setLeads(leadsResult.status === 'fulfilled' ? (leadsResult.value?.data || []) : []);
+      setRedemptions(redemptionsResult.status === 'fulfilled' ? (redemptionsResult.value?.data || []) : []);
 
-      const campaignsData = await supabase.from('campaigns').select('*').order('created_at', { ascending: false });
-      setCampaigns(campaignsData?.data || []);
-
-      const leadsData = await supabase.from('leads').select('*').order('created_at', { ascending: false });
-      setLeads(leadsData?.data || []);
-
-      const redemptionsData = await supabase.from('redemptions').select('*').order('generated_at', { ascending: false });
-      setRedemptions(redemptionsData?.data || []);
+      // Log any errors but don't block the app
+      if (agenciesResult.status === 'rejected') console.warn('Failed to load agencies:', agenciesResult.reason);
+      if (clientsResult.status === 'rejected') console.warn('Failed to load clients:', clientsResult.reason);
+      if (campaignsResult.status === 'rejected') console.warn('Failed to load campaigns:', campaignsResult.reason);
+      if (leadsResult.status === 'rejected') console.warn('Failed to load leads:', leadsResult.reason);
+      if (redemptionsResult.status === 'rejected') console.warn('Failed to load redemptions:', redemptionsResult.reason);
     } catch (error) {
       console.error('Error loading platform data:', error);
-      // Set empty arrays on error to allow the app to continue
-      setAgencies([]);
-      setClients([]);
-      setCampaigns([]);
-      setLeads([]);
-      setRedemptions([]);
     } finally {
       setIsLoading(false);
+      isLoadingRef.current = false;
     }
   };
 
