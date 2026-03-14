@@ -20,15 +20,18 @@ Deno.serve(async (req: Request) => {
 
     console.log('[admin-users] Starting request processing');
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+    // Create service role client for admin operations
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
       }
     });
 
+    // Get and validate auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.log('[admin-users] Missing authorization header');
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -36,31 +39,41 @@ Deno.serve(async (req: Request) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    console.log('[admin-users] Token received, validating...');
+
+    // Validate the user's token using service role client
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
     if (authError || !user) {
-      console.log('[admin-users] Auth error:', authError?.message);
+      console.log('[admin-users] Auth error:', authError?.message, authError);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized', details: authError?.message }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log('[admin-users] User authenticated:', user.id);
 
-    const { data: profile } = await supabase
+    // Check if user is admin
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
 
+    if (profileError) {
+      console.log('[admin-users] Profile fetch error:', profileError);
+    }
+
     if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
       console.log('[admin-users] Forbidden - role:', profile?.role);
       return new Response(
-        JSON.stringify({ error: 'Forbidden: Admin access required' }),
+        JSON.stringify({ error: 'Forbidden: Admin access required', role: profile?.role }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('[admin-users] Admin verified, role:', profile.role);
 
     const { method } = req;
     const url = new URL(req.url);
@@ -71,7 +84,7 @@ Deno.serve(async (req: Request) => {
 
       console.log('[admin-users] Creating user with:', { email, full_name, role, client_id: client_id || 'none' });
 
-      const { data: authData, error: createError } = await supabase.auth.admin.createUser({
+      const { data: authData, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
         email_confirm: true,
@@ -105,7 +118,7 @@ Deno.serve(async (req: Request) => {
 
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const { data: existingProfile, error: profileCheckError } = await supabase
+      const { data: existingProfile, error: profileCheckError } = await supabaseAdmin
         .from('profiles')
         .select('id, email, role')
         .eq('id', authData.user.id)
@@ -119,7 +132,7 @@ Deno.serve(async (req: Request) => {
 
       if (!existingProfile) {
         console.log('[admin-users] Creating profile directly');
-        const { error: insertError } = await supabase
+        const { error: insertError } = await supabaseAdmin
           .from('profiles')
           .insert({
             id: authData.user.id,
@@ -156,7 +169,7 @@ Deno.serve(async (req: Request) => {
         if (client_id !== undefined) updateData.client_id = client_id || null;
 
         if (Object.keys(updateData).length > 0) {
-          const { error: updateError } = await supabase
+          const { error: updateError } = await supabaseAdmin
             .from('profiles')
             .update(updateData)
             .eq('id', authData.user.id);
@@ -188,7 +201,7 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
+      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
       if (deleteError) {
         return new Response(
