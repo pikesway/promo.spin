@@ -14,6 +14,7 @@ import AgencyDashboard from './pages/AgencyDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import LoyaltyCardPage from './pages/LoyaltyCardPage';
 import LoyaltyEnrollmentPage from './pages/LoyaltyEnrollmentPage';
+import RedemptionPage from './pages/RedemptionPage';
 import StaffDashboard from './pages/StaffDashboard';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/redeem/:shortCode" element={<RedemptionPage />} />
                 <Route path="/loyalty/:campaignSlug" element={<LoyaltyEnrollmentPage />} />
                 <Route path="/loyalty/:campaignSlug/:memberCode" element={<LoyaltyCardPage />} />
 
