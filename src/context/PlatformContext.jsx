@@ -16,6 +16,7 @@ export const PlatformProvider = ({ children }) => {
   const [clients, setClients] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [leads, setLeads] = useState([]);
+  const [redemptions, setRedemptions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const loadedForSession = useRef(null);
 
@@ -59,6 +60,7 @@ export const PlatformProvider = ({ children }) => {
         setClients([]);
         setCampaigns([]);
         setLeads([]);
+        setRedemptions([]);
         setIsLoading(false);
       }
     });
@@ -74,17 +76,19 @@ export const PlatformProvider = ({ children }) => {
     
     setIsLoading(true);
     try {
-      const [agenciesData, clientsData, campaignsData, leadsData] = await Promise.all([
+      const [agenciesData, clientsData, campaignsData, leadsData, redemptionsData] = await Promise.all([
         supabase.from('agencies').select('*').order('created_at', { ascending: false }),
         supabase.from('clients').select('*').order('created_at', { ascending: false }),
         supabase.from('campaigns').select('*').order('created_at', { ascending: false }),
-        supabase.from('leads').select('*').order('created_at', { ascending: false })
+        supabase.from('leads').select('*').order('created_at', { ascending: false }),
+        supabase.from('redemptions').select('*').order('generated_at', { ascending: false })
       ]);
 
       setAgencies(agenciesData?.data || []);
       setClients(clientsData?.data || []);
       setCampaigns(campaignsData?.data || []);
       setLeads(leadsData?.data || []);
+      setRedemptions(redemptionsData?.data || []);
     } catch (error) {
       console.error('Error loading platform data:', error);
     } finally {
@@ -256,7 +260,7 @@ export const PlatformProvider = ({ children }) => {
   };
 
   const value = {
-    agencies, clients, campaigns, leads, isLoading,
+    agencies, clients, campaigns, leads, redemptions, isLoading,
     createAgency, createClient, updateClient, deleteClient,
     updateClientStatus, uploadClientLogoFile, getClientBranding,
     createCampaign, updateCampaign, deleteCampaign, duplicateCampaign, toggleCampaignStatus,
