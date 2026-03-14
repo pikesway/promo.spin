@@ -11,8 +11,6 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
     name: '',
     type: null,
     slug: '',
-    spinLimit: 'one-per-user',
-    spinDelayHours: 24,
     loyaltyProgramType: 'visit',
     loyaltyThreshold: 10,
     loyaltyValidationMethod: 'pin',
@@ -51,9 +49,6 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
           resetBehavior: 'reset',
           lockoutThreshold: 3
         };
-      } else {
-        fullConfig.settings.spinLimit = formData.spinLimit;
-        fullConfig.settings.spinDelayHours = formData.spinDelayHours;
       }
 
       const newCampaign = await createCampaign({
@@ -79,16 +74,11 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
 
   const buildValidationConfig = () => {
     switch (formData.loyaltyValidationMethod) {
-      case 'pin':
-        return { pinLength: formData.loyaltyPinLength, pinType: formData.loyaltyPinType, pinValue: formData.loyaltyPinValue };
-      case 'icon_single':
-        return { targetIcon: formData.loyaltyTargetIcon };
-      case 'icon_sequence':
-        return { iconSequence: formData.loyaltyIconSequence };
-      case 'icon_position':
-        return { targetIcon: formData.loyaltyTargetIcon, targetPosition: formData.loyaltyTargetPosition };
-      default:
-        return {};
+      case 'pin': return { pinLength: formData.loyaltyPinLength, pinType: formData.loyaltyPinType, pinValue: formData.loyaltyPinValue };
+      case 'icon_single': return { targetIcon: formData.loyaltyTargetIcon };
+      case 'icon_sequence': return { iconSequence: formData.loyaltyIconSequence };
+      case 'icon_position': return { targetIcon: formData.loyaltyTargetIcon, targetPosition: formData.loyaltyTargetPosition };
+      default: return {};
     }
   };
 
@@ -97,40 +87,43 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
     const isAlpha = formData.loyaltyPinType === 'alphanumeric';
     const chars = isAlpha ? 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' : '0123456789';
     let result = '';
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    for (let i = 0; i < length; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
     setFormData({ ...formData, loyaltyPinValue: result });
   };
 
   const isLoyaltyFormValid = () => {
     if (!formData.name || !formData.loyaltyRewardName) return false;
     switch (formData.loyaltyValidationMethod) {
-      case 'pin':
-        return formData.loyaltyPinValue && formData.loyaltyPinValue.length === formData.loyaltyPinLength;
+      case 'pin': return formData.loyaltyPinValue && formData.loyaltyPinValue.length === formData.loyaltyPinLength;
       case 'icon_single':
-      case 'icon_position':
-        return !!formData.loyaltyTargetIcon;
-      case 'icon_sequence':
-        return formData.loyaltyIconSequence && formData.loyaltyIconSequence.length >= 2;
-      default:
-        return true;
+      case 'icon_position': return !!formData.loyaltyTargetIcon;
+      case 'icon_sequence': return formData.loyaltyIconSequence && formData.loyaltyIconSequence.length >= 2;
+      default: return true;
     }
   };
 
   const totalSteps = formData.type === 'loyalty' ? 3 : 2;
 
   const campaignTypes = [
-    { id: 'spin', name: 'Spin to Win', description: 'Classic prize wheel with customizable segments', icon: <FiChevronRight className="transform -rotate-45" style={{ color: '#fff' }} />, color: '#14B8A6' },
-    { id: 'scratch', name: 'Scratch to Win', description: 'Interactive scratch-off card experience', icon: <FiX className="transform rotate-45" style={{ color: '#fff' }} />, color: '#10B981' },
-    { id: 'bizgamez', name: 'BizGamez', description: 'External game with webhook integration', icon: <span className="font-bold" style={{ color: '#fff' }}>BG</span>, color: '#F97316' },
-    { id: 'loyalty', name: 'Loyalty Program', description: 'Digital punch card with staff validation', icon: <FiHeart style={{ color: '#fff' }} />, color: '#F43F5E' }
+    {
+      id: 'bizgamez',
+      name: 'BizGamez',
+      description: 'External game with webhook integration',
+      icon: <span className="font-bold" style={{ color: '#fff' }}>BG</span>,
+      color: '#F97316'
+    },
+    {
+      id: 'loyalty',
+      name: 'Loyalty Program',
+      description: 'Digital punch card with staff validation',
+      icon: <FiHeart style={{ color: '#fff' }} />,
+      color: '#F43F5E'
+    }
   ];
 
   const getAccentColor = () => {
     if (formData.type === 'loyalty') return '#F43F5E';
-    if (formData.type === 'bizgamez') return '#F97316';
-    return '#14B8A6';
+    return '#F97316';
   };
 
   return (
@@ -160,55 +153,19 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
           {step === 1 && (
             <div>
               <h3 className="text-base md:text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Select Campaign Type</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {campaignTypes.map((type) => (
-                  <button key={type.id} onClick={() => handleTypeSelect(type.id)} className="p-4 md:p-5 rounded-xl text-left md:text-center border-2 transition-all active:scale-[0.98]" style={{ background: 'var(--card-bg)', borderColor: 'var(--border-color)' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = type.color; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}>
-                    <div className="flex md:flex-col items-center gap-4 md:gap-3">
-                      <div className="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl" style={{ background: type.color }}>{type.icon}</div>
-                      <div className="flex-1 md:flex-none">
+                  <button key={type.id} onClick={() => handleTypeSelect(type.id)} className="p-4 md:p-5 rounded-xl text-left border-2 transition-all active:scale-[0.98]" style={{ background: 'var(--card-bg)', borderColor: 'var(--border-color)' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = type.color; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}>
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl flex-shrink-0" style={{ background: type.color }}>{type.icon}</div>
+                      <div className="flex-1">
                         <h4 className="text-base font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>{type.name}</h4>
                         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{type.description}</p>
                       </div>
-                      <FiChevronRight className="w-5 h-5 md:hidden" style={{ color: 'var(--icon-muted)' }} />
+                      <FiChevronRight className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--icon-muted)' }} />
                     </div>
                   </button>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {step === 2 && formData.type && formData.type !== 'bizgamez' && formData.type !== 'loyalty' && (
-            <div>
-              <h3 className="text-base md:text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Basic Settings</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Campaign Name *</label>
-                  <input className="input" type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Summer Sale 2026" required />
-                </div>
-                <div>
-                  <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Campaign Slug (URL path)</label>
-                  <input className="input" type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })} placeholder={formData.name ? formData.name.toLowerCase().replace(/\s+/g, '-') : 'summer-sale-2026'} />
-                  <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>Players will access this at: /play/{formData.slug || 'your-campaign-slug'}</p>
-                </div>
-                <div>
-                  <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Play Limit *</label>
-                  <select className="select" value={formData.spinLimit} onChange={(e) => setFormData({ ...formData, spinLimit: e.target.value })}>
-                    <option value="unlimited">Unlimited plays</option>
-                    <option value="one-per-user">One per user</option>
-                    <option value="one-per-session">One per session</option>
-                    <option value="time-limit">Time limit between plays</option>
-                    <option value="calendar-limit">Reset weekly/monthly</option>
-                  </select>
-                </div>
-                {formData.spinLimit === 'time-limit' && (
-                  <div>
-                    <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Hours Between Plays</label>
-                    <input className="input" type="number" min="1" max="168" value={formData.spinDelayHours} onChange={(e) => setFormData({ ...formData, spinDelayHours: parseInt(e.target.value) })} />
-                  </div>
-                )}
-                <div className="p-4 rounded-lg" style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}>
-                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Campaign will inherit <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{client?.name}'s</span> branding. You can customize all screens, prizes, and settings in the editor after creation.</p>
-                </div>
               </div>
             </div>
           )}
@@ -220,7 +177,6 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
                 <div>
                   <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Game Name *</label>
                   <input className="input" type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Fossil Creek Title 1" required />
-                  <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>Internal name for this campaign</p>
                 </div>
                 <div>
                   <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>BizGamez Code *</label>
@@ -287,12 +243,6 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
                     <option value="icon_sequence">Icon Sequence</option>
                     <option value="icon_position">Icon Position</option>
                   </select>
-                  <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
-                    {formData.loyaltyValidationMethod === 'pin' && 'Staff enters a secret PIN to confirm'}
-                    {formData.loyaltyValidationMethod === 'icon_single' && 'Staff selects the correct icon from a grid'}
-                    {formData.loyaltyValidationMethod === 'icon_sequence' && 'Staff selects icons in the correct order'}
-                    {formData.loyaltyValidationMethod === 'icon_position' && 'Staff confirms when icon appears in correct position'}
-                  </p>
                 </div>
 
                 {formData.loyaltyValidationMethod === 'pin' && (
@@ -336,18 +286,6 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
                         );
                       })}
                     </div>
-                  </div>
-                )}
-
-                {formData.loyaltyValidationMethod === 'icon_position' && (
-                  <div>
-                    <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Target Position</label>
-                    <select className="select" value={formData.loyaltyTargetPosition} onChange={(e) => setFormData({ ...formData, loyaltyTargetPosition: e.target.value })}>
-                      <option value="top-left">Top Left</option>
-                      <option value="top-right">Top Right</option>
-                      <option value="bottom-left">Bottom Left</option>
-                      <option value="bottom-right">Bottom Right</option>
-                    </select>
                   </div>
                 )}
 
@@ -398,14 +336,13 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
           )}
         </div>
 
-        {step === 2 && formData.type !== 'loyalty' && (
+        {step === 2 && formData.type === 'bizgamez' && (
           <div className="sticky bottom-0 p-4 md:p-6 flex-shrink-0" style={{ background: 'var(--modal-footer-bg)', borderTop: '1px solid var(--border-color)' }}>
             <div className="flex gap-3">
               <button className="btn btn-secondary flex items-center gap-2" onClick={() => setStep(1)}>
-                <FiChevronLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Back</span>
+                <FiChevronLeft className="w-4 h-4" /> <span className="hidden sm:inline">Back</span>
               </button>
-              <button className="btn flex-1 flex items-center justify-center gap-2" style={{ background: getAccentColor(), color: '#fff', opacity: (formData.type === 'bizgamez' ? !formData.name || !formData.bizgamezCode : !formData.name) ? 0.5 : 1 }} onClick={handleSubmit} disabled={formData.type === 'bizgamez' ? !formData.name || !formData.bizgamezCode : !formData.name}>
+              <button className="btn flex-1 flex items-center justify-center gap-2" style={{ background: '#F97316', color: '#fff', opacity: (!formData.name || !formData.bizgamezCode) ? 0.5 : 1 }} onClick={handleSubmit} disabled={!formData.name || !formData.bizgamezCode}>
                 Create & Open Editor
               </button>
             </div>
@@ -416,12 +353,10 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
           <div className="sticky bottom-0 p-4 md:p-6 flex-shrink-0" style={{ background: 'var(--modal-footer-bg)', borderTop: '1px solid var(--border-color)' }}>
             <div className="flex gap-3">
               <button className="btn btn-secondary flex items-center gap-2" onClick={() => setStep(1)}>
-                <FiChevronLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Back</span>
+                <FiChevronLeft className="w-4 h-4" /> <span className="hidden sm:inline">Back</span>
               </button>
               <button className="btn flex-1 flex items-center justify-center gap-2" style={{ background: '#F43F5E', color: '#fff', opacity: (!formData.name || !formData.loyaltyRewardName) ? 0.5 : 1 }} onClick={() => setStep(3)} disabled={!formData.name || !formData.loyaltyRewardName}>
-                Next: Validation Setup
-                <FiChevronRight className="w-4 h-4" />
+                Next: Validation Setup <FiChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -431,8 +366,7 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
           <div className="sticky bottom-0 p-4 md:p-6 flex-shrink-0" style={{ background: 'var(--modal-footer-bg)', borderTop: '1px solid var(--border-color)' }}>
             <div className="flex gap-3">
               <button className="btn btn-secondary flex items-center gap-2" onClick={() => setStep(2)}>
-                <FiChevronLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Back</span>
+                <FiChevronLeft className="w-4 h-4" /> <span className="hidden sm:inline">Back</span>
               </button>
               <button className="btn flex-1 flex items-center justify-center gap-2" style={{ background: '#F43F5E', color: '#fff', opacity: !isLoyaltyFormValid() ? 0.5 : 1 }} onClick={handleSubmit} disabled={!isLoyaltyFormValid()}>
                 Create Loyalty Program

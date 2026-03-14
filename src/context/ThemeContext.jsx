@@ -79,7 +79,7 @@ export const ThemeProvider = ({ children }) => {
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(resolved);
 
-    if (user) {
+    if (user && supabase) {
       try {
         await supabase
           .from('profiles')
