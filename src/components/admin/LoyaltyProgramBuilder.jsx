@@ -109,7 +109,7 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
     setHasChanges(true);
   };
 
-  const loyaltyUrl = `${window.location.origin}${window.location.pathname}#/loyalty/${campaign.slug}`;
+  const loyaltyUrl = `${window.location.origin}/loyalty/${campaign.slug}`;
 
   const tabs = [
     { id: 'settings', label: 'Settings', icon: FiSettings },

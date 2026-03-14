@@ -26,7 +26,7 @@ const CampaignList = ({
   };
 
   const getLoyaltyUrl = (campaign) => {
-    return `${window.location.origin}${window.location.pathname}#/loyalty/${campaign.slug}`;
+    return `${window.location.origin}/loyalty/${campaign.slug}`;
   };
 
   if (campaigns.length === 0) {

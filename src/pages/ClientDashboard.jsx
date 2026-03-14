@@ -280,14 +280,14 @@ export default function ClientDashboard() {
               <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Share Campaign</h2>
               <div className="text-center mb-4">
                 <div className="bg-white p-3 rounded-xl inline-block">
-                  <QRCode value={`${window.location.origin}${window.location.pathname}#/loyalty/${showQRModal.slug}`} size={160} />
+                  <QRCode value={`${window.location.origin}/loyalty/${showQRModal.slug}`} size={160} />
                 </div>
               </div>
               <div className="mb-3">
                 <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Campaign URL</label>
                 <div className="flex gap-2">
-                  <input className="input flex-1 text-sm" value={`${window.location.origin}${window.location.pathname}#/loyalty/${showQRModal.slug}`} readOnly />
-                  <button className="btn btn-secondary p-2" onClick={() => copyToClipboard(`${window.location.origin}${window.location.pathname}#/loyalty/${showQRModal.slug}`)}>
+                  <input className="input flex-1 text-sm" value={`${window.location.origin}/loyalty/${showQRModal.slug}`} readOnly />
+                  <button className="btn btn-secondary p-2" onClick={() => copyToClipboard(`${window.location.origin}/loyalty/${showQRModal.slug}`)}>
                     <FiCopy size={18} />
                   </button>
                 </div>

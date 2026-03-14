@@ -298,7 +298,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
   const openMemberCard = (member) => {
     const campaign = loyaltyCampaigns.find(c => c.id === member.campaign_id);
     if (campaign) {
-      window.open(`${window.location.origin}${window.location.pathname}#/loyalty/${campaign.slug}/${member.member_code}`, '_blank');
+      window.open(`${window.location.origin}/loyalty/${campaign.slug}/${member.member_code}`, '_blank');
     }
   };
 

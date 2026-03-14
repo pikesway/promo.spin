@@ -347,7 +347,7 @@ export default function LoyaltyCardPage() {
             <div className="flex items-center gap-4">
               <div className="bg-white p-2 rounded-lg shadow-sm">
                 <QRCode
-                  value={`${window.location.origin}/#/loyalty/${campaignSlug}/${memberCode}`}
+                  value={`${window.location.origin}/loyalty/${campaignSlug}/${memberCode}`}
                   size={80}
                   level="M"
                 />
