@@ -252,14 +252,13 @@ export default function LoyaltyCardPage() {
   const stampsRemaining = threshold - currentProgress;
   const rewardUnlocked = account.reward_unlocked;
 
-  const primaryColor = client?.primary_color || campaign?.config?.visual?.background?.gradientStart || '#F59E0B';
-  const backgroundColor = client?.background_color || campaign?.config?.visual?.background?.color || '#18181B';
-
   const loyaltyConfig = loyaltyProgram || campaign?.config?.loyalty || {};
   const validationMethod = loyaltyConfig.validation_method || loyaltyConfig.validationMethod || 'pin';
   const validationConfig = loyaltyConfig.validation_config || loyaltyConfig.validationConfig || {};
 
   const cardConfig = loyaltyConfig.card || {};
+  const primaryColor = cardConfig.primaryColor || client?.primary_color || '#F59E0B';
+  const backgroundColor = cardConfig.backgroundColor || client?.background_color || '#18181B';
   const stampIcon = cardConfig.stampIcon || 'star';
   const customIconUrl = cardConfig.customIconUrl || '';
   const useCustomIcon = stampIcon === 'custom' && customIconUrl;
@@ -337,16 +336,16 @@ export default function LoyaltyCardPage() {
               })}
             </div>
 
-            <div className="text-center" style={{ color: bodyColor }}>
+            <div className="text-center">
               {rewardUnlocked ? (
-                <p className="font-semibold flex items-center justify-center gap-2">
+                <p className="font-semibold flex items-center justify-center gap-2" style={{ color: bodyColor }}>
                   <FiGift className="text-yellow-300" />
-                  Reward Ready!
+                  <span>Reward Ready!</span>
                 </p>
               ) : (
-                <p className="text-sm">
-                  <span className="font-bold text-lg">{stampsRemaining}</span>
-                  <span style={{ opacity: 0.8 }}> stamps until your reward</span>
+                <p className="text-sm" style={{ color: bodyColor }}>
+                  <span className="font-bold text-lg" style={{ color: bodyColor }}>{stampsRemaining}</span>
+                  <span style={{ color: bodyColor, opacity: 0.8 }}> stamps until your reward</span>
                 </p>
               )}
             </div>
