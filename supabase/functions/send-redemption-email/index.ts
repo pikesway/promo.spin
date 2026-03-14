@@ -142,9 +142,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      db: { schema: 'app_bizgamez_agency' }
-    });
+    const supabase = createClient(supabaseUrl, supabaseKey);
     const { redemptionId }: EmailRequest = await req.json();
 
     if (!redemptionId) {
@@ -209,7 +207,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const baseUrl = Deno.env.get("PUBLIC_SITE_URL") || supabaseUrl.replace(".supabase.co", ".vercel.app");
-    const magicLink = `${baseUrl}/#/redeem/${redemption.short_code}?token=${redemption.redemption_token}`;
+    const magicLink = `${baseUrl}/redeem/${redemption.short_code}?token=${redemption.redemption_token}`;
 
     const emailHtml = generateEmailTemplate({
       prizeName: redemption.prize_name,
