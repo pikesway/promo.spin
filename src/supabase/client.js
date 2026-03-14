@@ -6,11 +6,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const isSupabaseConfigured = supabaseUrl && supabaseAnonKey;
 
 export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      db: {
-        schema: 'app_bizgamez_agency'
-      }
-    })
+  ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
 export const checkSupabaseConnection = () => {
