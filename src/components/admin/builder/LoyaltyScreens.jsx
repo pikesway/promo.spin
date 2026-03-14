@@ -138,6 +138,60 @@ const LoyaltyScreens = ({ loyaltyData, onChange }) => {
                     </div>
                   </div>
 
+                  <div className="space-y-4 p-4 theme-bg-tertiary rounded-lg border theme-border">
+                    <h4 className="text-sm font-medium theme-text-primary">Colors</h4>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium theme-text-secondary mb-2">
+                          Background Color
+                        </label>
+                        <input
+                          type="color"
+                          value={loyaltyData.screens.enrollment.backgroundColor}
+                          onChange={(e) => handleScreenChange('enrollment', 'backgroundColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium theme-text-secondary mb-2">
+                          Heading Color
+                        </label>
+                        <input
+                          type="color"
+                          value={loyaltyData.screens.enrollment.headingColor}
+                          onChange={(e) => handleScreenChange('enrollment', 'headingColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium theme-text-secondary mb-2">
+                          Body Text Color
+                        </label>
+                        <input
+                          type="color"
+                          value={loyaltyData.screens.enrollment.bodyColor}
+                          onChange={(e) => handleScreenChange('enrollment', 'bodyColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium theme-text-secondary mb-2">
+                          Button Text Color
+                        </label>
+                        <input
+                          type="color"
+                          value={loyaltyData.screens.enrollment.buttonTextColor}
+                          onChange={(e) => handleScreenChange('enrollment', 'buttonTextColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium theme-text-secondary mb-2">
                       Background Image URL (Optional)
@@ -150,7 +204,7 @@ const LoyaltyScreens = ({ loyaltyData, onChange }) => {
                       className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary placeholder-gray-500"
                     />
                     <p className="text-xs theme-text-tertiary mt-1">
-                      Leave empty to use the card background color.
+                      Leave empty to use the background color above.
                     </p>
                   </div>
 
@@ -159,7 +213,7 @@ const LoyaltyScreens = ({ loyaltyData, onChange }) => {
                     <div
                       className="rounded-lg p-6 text-center"
                       style={{
-                        backgroundColor: loyaltyData.card.backgroundColor,
+                        backgroundColor: loyaltyData.screens.enrollment.backgroundColor,
                         backgroundImage: loyaltyData.screens.enrollment.backgroundImage
                           ? `url(${loyaltyData.screens.enrollment.backgroundImage})`
                           : 'none',
@@ -168,15 +222,18 @@ const LoyaltyScreens = ({ loyaltyData, onChange }) => {
                       }}
                     >
                       <div className="backdrop-blur-sm bg-black/30 rounded-lg p-4">
-                        <h2 className="text-xl font-bold theme-text-primary mb-2">
+                        <h2 className="text-xl font-bold mb-2" style={{ color: loyaltyData.screens.enrollment.headingColor }}>
                           {loyaltyData.screens.enrollment.headline || 'Join Our Rewards Program'}
                         </h2>
-                        <p className="text-sm theme-text-secondary mb-4">
+                        <p className="text-sm mb-4" style={{ color: loyaltyData.screens.enrollment.bodyColor, opacity: 0.9 }}>
                           {loyaltyData.screens.enrollment.subheadline || 'Earn stamps with every visit!'}
                         </p>
                         <button
-                          className="px-6 py-2 rounded-lg theme-text-primary font-medium"
-                          style={{ backgroundColor: loyaltyData.card.primaryColor }}
+                          className="px-6 py-2 rounded-lg font-medium"
+                          style={{
+                            backgroundColor: loyaltyData.card.primaryColor,
+                            color: loyaltyData.screens.enrollment.buttonTextColor
+                          }}
                         >
                           {loyaltyData.screens.enrollment.buttonText || 'Sign Up Now'}
                         </button>
@@ -260,6 +317,60 @@ const LoyaltyScreens = ({ loyaltyData, onChange }) => {
                 </p>
               </div>
 
+              <div className="space-y-4 p-4 theme-bg-tertiary rounded-lg border theme-border">
+                <h4 className="text-sm font-medium theme-text-primary">Colors</h4>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium theme-text-secondary mb-2">
+                      Background Color
+                    </label>
+                    <input
+                      type="color"
+                      value={loyaltyData.screens.reward.backgroundColor}
+                      onChange={(e) => handleScreenChange('reward', 'backgroundColor', e.target.value)}
+                      className="w-full h-10 rounded cursor-pointer"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium theme-text-secondary mb-2">
+                      Heading Color
+                    </label>
+                    <input
+                      type="color"
+                      value={loyaltyData.screens.reward.headingColor}
+                      onChange={(e) => handleScreenChange('reward', 'headingColor', e.target.value)}
+                      className="w-full h-10 rounded cursor-pointer"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium theme-text-secondary mb-2">
+                      Body Text Color
+                    </label>
+                    <input
+                      type="color"
+                      value={loyaltyData.screens.reward.bodyColor}
+                      onChange={(e) => handleScreenChange('reward', 'bodyColor', e.target.value)}
+                      className="w-full h-10 rounded cursor-pointer"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium theme-text-secondary mb-2">
+                      Button Text Color
+                    </label>
+                    <input
+                      type="color"
+                      value={loyaltyData.screens.reward.buttonTextColor}
+                      onChange={(e) => handleScreenChange('reward', 'buttonTextColor', e.target.value)}
+                      className="w-full h-10 rounded cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium theme-text-secondary mb-2">
                   Background Image URL (Optional)
@@ -271,6 +382,9 @@ const LoyaltyScreens = ({ loyaltyData, onChange }) => {
                   placeholder="https://images.pexels.com/..."
                   className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary placeholder-gray-500"
                 />
+                <p className="text-xs theme-text-tertiary mt-1">
+                  Leave empty to use the background color above.
+                </p>
               </div>
 
               <div className="p-4 theme-bg-tertiary rounded-lg border theme-border">
@@ -278,7 +392,7 @@ const LoyaltyScreens = ({ loyaltyData, onChange }) => {
                 <div
                   className="rounded-lg p-6 text-center"
                   style={{
-                    backgroundColor: loyaltyData.card.primaryColor,
+                    backgroundColor: loyaltyData.screens.reward.backgroundColor,
                     backgroundImage: loyaltyData.screens.reward.backgroundImage
                       ? `url(${loyaltyData.screens.reward.backgroundImage})`
                       : 'none',
@@ -287,23 +401,29 @@ const LoyaltyScreens = ({ loyaltyData, onChange }) => {
                   }}
                 >
                   <div className="backdrop-blur-sm bg-black/20 rounded-lg p-4">
-                    <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
-                      <FiGift className="w-8 h-8 theme-text-primary" />
+                    <div
+                      className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4"
+                    >
+                      <FiGift className="w-8 h-8" style={{ color: loyaltyData.screens.reward.headingColor }} />
                     </div>
-                    <h2 className="text-xl font-bold theme-text-primary mb-2">
+                    <h2 className="text-xl font-bold mb-2" style={{ color: loyaltyData.screens.reward.headingColor }}>
                       {loyaltyData.screens.reward.headline || 'Congratulations!'}
                     </h2>
-                    <p className="text-sm theme-text-primary/80 mb-4">
+                    <p className="text-sm mb-4" style={{ color: loyaltyData.screens.reward.bodyColor, opacity: 0.9 }}>
                       {loyaltyData.screens.reward.subheadline || "You've earned your reward!"}
                     </p>
                     <div className="bg-white/10 backdrop-blur rounded-lg p-3 mb-4">
-                      <p className="text-lg font-bold theme-text-primary">{loyaltyData.rewardName}</p>
+                      <p className="text-lg font-bold" style={{ color: loyaltyData.screens.reward.headingColor }}>{loyaltyData.rewardName}</p>
                       {loyaltyData.rewardDescription && (
-                        <p className="text-sm theme-text-primary/70">{loyaltyData.rewardDescription}</p>
+                        <p className="text-sm" style={{ color: loyaltyData.screens.reward.bodyColor, opacity: 0.8 }}>{loyaltyData.rewardDescription}</p>
                       )}
                     </div>
                     <button
-                      className="px-6 py-2 rounded-lg bg-white text-gray-900 font-medium"
+                      className="px-6 py-2 rounded-lg font-medium"
+                      style={{
+                        backgroundColor: loyaltyData.card.primaryColor,
+                        color: loyaltyData.screens.reward.buttonTextColor
+                      }}
                     >
                       {loyaltyData.screens.reward.buttonText || 'Claim Reward'}
                     </button>

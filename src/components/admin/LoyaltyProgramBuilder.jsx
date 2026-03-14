@@ -60,6 +60,10 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
           collectPhone: config.screens?.enrollment?.collectPhone !== false,
           collectEmail: config.screens?.enrollment?.collectEmail !== false,
           backgroundImage: config.screens?.enrollment?.backgroundImage || '',
+          backgroundColor: config.screens?.enrollment?.backgroundColor || client?.background_color || '#18181B',
+          headingColor: config.screens?.enrollment?.headingColor || '#FFFFFF',
+          bodyColor: config.screens?.enrollment?.bodyColor || '#FFFFFF',
+          buttonTextColor: config.screens?.enrollment?.buttonTextColor || '#FFFFFF',
         },
         reward: {
           headline: config.screens?.reward?.headline || 'Congratulations!',
@@ -67,6 +71,10 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
           buttonText: config.screens?.reward?.buttonText || 'Claim Reward',
           expiryDays: config.screens?.reward?.expiryDays || 30,
           backgroundImage: config.screens?.reward?.backgroundImage || '',
+          backgroundColor: config.screens?.reward?.backgroundColor || client?.background_color || '#18181B',
+          headingColor: config.screens?.reward?.headingColor || '#FFFFFF',
+          bodyColor: config.screens?.reward?.bodyColor || '#FFFFFF',
+          buttonTextColor: config.screens?.reward?.buttonTextColor || '#FFFFFF',
         }
       }
     });
@@ -117,8 +125,7 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
   const tabs = [
     { id: 'settings', label: 'Settings', icon: FiSettings },
     { id: 'design', label: 'Card Design', icon: FiLayout },
-    { id: 'screens', label: 'Screens', icon: FiMonitor },
-    { id: 'preview', label: 'Preview', icon: FiEye }
+    { id: 'screens', label: 'Screens', icon: FiMonitor }
   ];
 
   if (!loyaltyData) {
@@ -216,13 +223,7 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
               <LoyaltyScreens
                 loyaltyData={loyaltyData}
                 onChange={handleDataChange}
-              />
-            )}
-            {activeTab === 'preview' && (
-              <LoyaltyPreview
-                loyaltyData={loyaltyData}
                 client={client}
-                loyaltyUrl={loyaltyUrl}
               />
             )}
           </div>

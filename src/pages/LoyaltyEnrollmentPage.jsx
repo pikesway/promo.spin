@@ -223,10 +223,19 @@ export default function LoyaltyEnrollmentPage() {
     );
   }
 
-  const primaryColor = client?.primary_color || '#F59E0B';
-  const backgroundColor = client?.background_color || '#18181B';
+  const screenConfig = campaign?.config?.screens?.enrollment || {};
+  const primaryColor = campaign?.config?.loyalty?.card?.primaryColor || client?.primary_color || '#F59E0B';
+  const backgroundColor = screenConfig.backgroundColor || client?.background_color || '#18181B';
+  const headingColor = screenConfig.headingColor || '#FFFFFF';
+  const bodyColor = screenConfig.bodyColor || '#FFFFFF';
+  const buttonTextColor = screenConfig.buttonTextColor || '#FFFFFF';
+  const backgroundImage = screenConfig.backgroundImage || '';
+
   const threshold = loyaltyConfig?.threshold || campaign?.config?.loyalty?.threshold || 10;
   const rewardName = loyaltyConfig?.reward_name || loyaltyConfig?.rewardName || campaign?.config?.loyalty?.rewardName || 'Free Reward';
+  const headline = screenConfig.headline || 'Join Our Rewards Program';
+  const subheadline = screenConfig.subheadline || 'Earn stamps with every visit and get rewarded!';
+  const buttonText = screenConfig.buttonText || 'Sign Up Now';
 
   const isLightBackground = (color) => {
     const hex = color.replace('#', '');
@@ -250,7 +259,12 @@ export default function LoyaltyEnrollmentPage() {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center py-8 px-4"
-      style={{ background: backgroundColor }}
+      style={{
+        backgroundColor: backgroundColor,
+        backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
     >
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
@@ -267,11 +281,11 @@ export default function LoyaltyEnrollmentPage() {
           >
             <FiHeart size={32} style={{ color: primaryColor }} />
           </div>
-          <h1 className={`text-2xl font-bold ${textColor} mb-2`}>
-            Join {client?.name || 'Our'} Rewards
+          <h1 className="text-2xl font-bold mb-2" style={{ color: headingColor }}>
+            {headline}
           </h1>
-          <p className={mutedTextColor}>
-            Collect {threshold} stamps and earn <span className={`${textColor} font-medium`}>{rewardName}</span>
+          <p style={{ color: bodyColor, opacity: 0.9 }}>
+            {subheadline}
           </p>
         </div>
 
@@ -387,18 +401,18 @@ export default function LoyaltyEnrollmentPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
-            style={{ backgroundColor: primaryColor }}
+            className="w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+            style={{ backgroundColor: primaryColor, color: buttonTextColor }}
           >
             {submitting ? (
               <>
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Joining...
+                <span>Joining...</span>
               </>
             ) : (
               <>
                 <FiHeart size={18} />
-                Join Rewards Program
+                <span>{buttonText}</span>
               </>
             )}
           </button>
