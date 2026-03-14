@@ -67,19 +67,13 @@ export const AuthProvider = ({ children }) => {
 
   const fetchProfile = async (userId) => {
     if (!supabase) return;
-    
-    try {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
-      );
 
-      const queryPromise = supabase
+    try {
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
-
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
       if (error) {
         console.error('Profile fetch error:', error);

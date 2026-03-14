@@ -69,28 +69,36 @@ export const PlatformProvider = ({ children }) => {
   }, []);
 
   const loadData = async () => {
-    if (!supabase) { 
-      setIsLoading(false); 
-      return; 
+    if (!supabase) {
+      setIsLoading(false);
+      return;
     }
-    
+
     setIsLoading(true);
     try {
-      const [agenciesData, clientsData, campaignsData, leadsData, redemptionsData] = await Promise.all([
-        supabase.from('agencies').select('*').order('created_at', { ascending: false }),
-        supabase.from('clients').select('*').order('created_at', { ascending: false }),
-        supabase.from('campaigns').select('*').order('created_at', { ascending: false }),
-        supabase.from('leads').select('*').order('created_at', { ascending: false }),
-        supabase.from('redemptions').select('*').order('generated_at', { ascending: false })
-      ]);
-
+      // Load data sequentially to avoid race conditions and timeout issues
+      const agenciesData = await supabase.from('agencies').select('*').order('created_at', { ascending: false });
       setAgencies(agenciesData?.data || []);
+
+      const clientsData = await supabase.from('clients').select('*').order('created_at', { ascending: false });
       setClients(clientsData?.data || []);
+
+      const campaignsData = await supabase.from('campaigns').select('*').order('created_at', { ascending: false });
       setCampaigns(campaignsData?.data || []);
+
+      const leadsData = await supabase.from('leads').select('*').order('created_at', { ascending: false });
       setLeads(leadsData?.data || []);
+
+      const redemptionsData = await supabase.from('redemptions').select('*').order('generated_at', { ascending: false });
       setRedemptions(redemptionsData?.data || []);
     } catch (error) {
       console.error('Error loading platform data:', error);
+      // Set empty arrays on error to allow the app to continue
+      setAgencies([]);
+      setClients([]);
+      setCampaigns([]);
+      setLeads([]);
+      setRedemptions([]);
     } finally {
       setIsLoading(false);
     }
