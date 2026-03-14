@@ -18,24 +18,44 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        await fetchProfile(session.user.id);
+      if (!supabase) {
+        setLoading(false);
+        return;
       }
+      
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session error:', error.message);
+        }
 
-      setLoading(false);
+        const sessionUser = data?.session?.user ?? null;
+        setUser(sessionUser);
+
+        if (sessionUser) {
+          await fetchProfile(sessionUser.id);
+        }
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+        setUser(null);
+        setProfile(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     initAuth();
 
+    if (!supabase) return;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       (async () => {
-        setUser(session?.user ?? null);
+        const sessionUser = session?.user ?? null;
+        setUser(sessionUser);
 
-        if (session?.user) {
-          await fetchProfile(session.user.id);
+        if (sessionUser) {
+          await fetchProfile(sessionUser.id);
         } else {
           setProfile(null);
         }
@@ -46,6 +66,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const fetchProfile = async (userId) => {
+    if (!supabase) return;
+
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -53,7 +75,11 @@ export const AuthProvider = ({ children }) => {
         .eq('id', userId)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile fetch error:', error);
+        setProfile(null);
+        return;
+      }
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -62,6 +88,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signUp = async (email, password, fullName, role = 'client') => {
+    if (!supabase) return { data: null, error: new Error('Supabase is not configured') };
+    
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -82,6 +110,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signIn = async (email, password) => {
+    if (!supabase) return { data: null, error: new Error('Supabase is not configured') };
+    
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -96,6 +126,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signOut = async () => {
+    if (!supabase) {
+      setProfile(null);
+      return { error: null };
+    }
+    
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -107,6 +142,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateProfile = async (updates) => {
+    if (!supabase) return { data: null, error: new Error('Supabase is not configured') };
+    
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -135,6 +172,14 @@ export const AuthProvider = ({ children }) => {
     return profile?.role === 'client';
   };
 
+  const isStaff = () => {
+    return profile?.role === 'staff';
+  };
+
+  const canManageStaff = () => {
+    return profile?.role === 'super_admin' || profile?.role === 'admin' || profile?.role === 'client';
+  };
+
   const value = {
     user,
     profile,
@@ -146,6 +191,8 @@ export const AuthProvider = ({ children }) => {
     isAdmin,
     isSuperAdmin,
     isClient,
+    isStaff,
+    canManageStaff,
     refreshProfile: () => user ? fetchProfile(user.id) : null
   };
 

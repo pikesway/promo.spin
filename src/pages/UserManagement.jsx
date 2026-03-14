@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabase/client';
-import GlassCard from '../common/GlassCard';
-import { FiEdit2, FiTrash2, FiPlus, FiUsers, FiLock, FiUnlock } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiUsers, FiLock, FiUnlock, FiMail, FiChevronRight } from 'react-icons/fi';
+import FloatingActionButton from '../components/layout/FloatingActionButton';
 
 export default function UserManagement() {
-  const { profile, isSuperAdmin } = useAuth();
+  const { isSuperAdmin } = useAuth();
   const [users, setUsers] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -117,7 +117,8 @@ export default function UserManagement() {
     }
   };
 
-  const handleDelete = async (userId) => {
+  const handleDelete = async (userId, e) => {
+    if (e) e.stopPropagation();
     if (!confirm('Are you sure you want to delete this user?')) return;
 
     try {
@@ -145,7 +146,8 @@ export default function UserManagement() {
     }
   };
 
-  const handleToggleActive = async (user) => {
+  const handleToggleActive = async (user, e) => {
+    if (e) e.stopPropagation();
     try {
       const { error } = await supabase
         .from('profiles')
@@ -199,10 +201,10 @@ export default function UserManagement() {
       admin: { bg: 'rgba(59, 130, 246, 0.1)', text: '#60A5FA', border: 'rgba(59, 130, 246, 0.2)' },
       client: { bg: 'rgba(16, 185, 129, 0.1)', text: '#34D399', border: 'rgba(16, 185, 129, 0.2)' }
     };
-    const color = colors[role];
+    const color = colors[role] || colors.client;
     return (
       <span
-        className="px-2 py-1 rounded text-xs font-medium"
+        className="px-2 py-0.5 rounded text-[10px] md:text-xs font-medium"
         style={{
           background: color.bg,
           color: color.text,
@@ -223,26 +225,27 @@ export default function UserManagement() {
   }
 
   return (
-    <div className="min-h-screen p-6" style={{ background: 'var(--bg-primary)' }}>
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden" style={{ background: 'var(--bg-primary)' }}>
+      <div className="container px-3 md:px-4 py-4 md:py-6">
+        <div className="flex justify-between items-start mb-4 md:mb-6">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-              <FiUsers style={{ color: 'var(--brand-primary)' }} />
-              User Management
+            <h1 className="text-xl md:text-3xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <FiUsers style={{ color: 'var(--info)' }} size={24} />
+              <span className="hidden md:inline">User Management</span>
+              <span className="md:hidden">Users</span>
             </h1>
-            <p className="mt-1" style={{ color: 'var(--text-secondary)' }}>Manage system users and their access</p>
+            <p className="text-sm mt-1 hidden md:block" style={{ color: 'var(--text-secondary)' }}>Manage system users and their access</p>
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="btn btn-primary"
+            className="btn btn-primary hidden md:flex"
           >
             <FiPlus /> Add User
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg" style={{
+          <div className="mb-4 p-3 rounded-lg text-sm" style={{
             background: 'var(--error-bg)',
             border: '1px solid var(--error)',
             color: 'var(--error)'
@@ -252,7 +255,7 @@ export default function UserManagement() {
         )}
 
         {success && (
-          <div className="mb-4 p-3 rounded-lg" style={{
+          <div className="mb-4 p-3 rounded-lg text-sm" style={{
             background: 'var(--success-bg)',
             border: '1px solid var(--success)',
             color: 'var(--success)'
@@ -261,25 +264,25 @@ export default function UserManagement() {
           </div>
         )}
 
-        <GlassCard>
+        <div className="hidden md:block glass-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-secondary)' }}>Name</th>
-                  <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-secondary)' }}>Email</th>
-                  <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-secondary)' }}>Role</th>
-                  <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-secondary)' }}>Client</th>
-                  <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-secondary)' }}>Status</th>
-                  <th className="text-right py-3 px-4 font-semibold" style={{ color: 'var(--text-secondary)' }}>Actions</th>
+                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Name</th>
+                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Email</th>
+                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Role</th>
+                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Client</th>
+                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Status</th>
+                  <th className="text-right py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((user) => (
                   <tr
                     key={user.id}
-                    style={{ borderBottom: '1px solid var(--border-color)' }}
-                    className="hover:bg-white/5 transition-colors"
+                    className="transition-colors"
+                    style={{ borderBottom: '1px solid var(--divider)' }}
                   >
                     <td className="py-3 px-4" style={{ color: 'var(--text-primary)' }}>{user.full_name || '-'}</td>
                     <td className="py-3 px-4" style={{ color: 'var(--text-primary)' }}>{user.email}</td>
@@ -298,39 +301,33 @@ export default function UserManagement() {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1">
                         {canEditUser(user) && (
                           <>
                             <button
                               onClick={() => handleToggleActive(user)}
                               className="p-2 transition-colors"
-                              style={{ color: 'var(--text-tertiary)' }}
-                              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--brand-primary)'}
-                              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                              style={{ color: 'var(--text-secondary)' }}
                               title={user.is_active ? 'Deactivate' : 'Activate'}
                             >
-                              {user.is_active ? <FiLock /> : <FiUnlock />}
+                              {user.is_active ? <FiLock size={16} /> : <FiUnlock size={16} />}
                             </button>
                             <button
                               onClick={() => handleEdit(user)}
                               className="p-2 transition-colors"
-                              style={{ color: 'var(--text-tertiary)' }}
-                              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--brand-primary)'}
-                              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                              style={{ color: 'var(--text-secondary)' }}
                               title="Edit"
                             >
-                              <FiEdit2 />
+                              <FiEdit2 size={16} />
                             </button>
                             {isSuperAdmin() && (
                               <button
                                 onClick={() => handleDelete(user.id)}
                                 className="p-2 transition-colors"
-                                style={{ color: 'var(--text-tertiary)' }}
-                                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--error)'}
-                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                                style={{ color: 'var(--text-secondary)' }}
                                 title="Delete"
                               >
-                                <FiTrash2 />
+                                <FiTrash2 size={16} />
                               </button>
                             )}
                           </>
@@ -342,17 +339,70 @@ export default function UserManagement() {
               </tbody>
             </table>
           </div>
-        </GlassCard>
+        </div>
+
+        <div className="md:hidden flex flex-col gap-2">
+          {users.map((user) => (
+            <div
+              key={user.id}
+              onClick={() => canEditUser(user) && handleEdit(user)}
+              className={`glass-card p-3 ${canEditUser(user) ? 'cursor-pointer' : ''}`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--bg-tertiary)' }}>
+                  <FiUsers size={18} style={{ color: 'var(--text-secondary)' }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>{user.full_name || 'Unnamed'}</span>
+                    {getRoleBadge(user.role)}
+                  </div>
+                  <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    <FiMail size={12} />
+                    <span className="truncate">{user.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[10px] font-medium"
+                      style={{
+                        background: user.is_active ? 'var(--success-bg)' : 'var(--error-bg)',
+                        color: user.is_active ? 'var(--success)' : 'var(--error)'
+                      }}
+                    >
+                      {user.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                    {user.clients?.name && (
+                      <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{user.clients.name}</span>
+                    )}
+                  </div>
+                </div>
+                {canEditUser(user) && (
+                  <FiChevronRight size={20} style={{ color: 'var(--text-tertiary)' }} className="flex-shrink-0" />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center p-4 z-50" style={{ background: 'rgba(0, 0, 0, 0.8)' }}>
-          <GlassCard className="w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-              {editingUser ? 'Edit User' : 'Add New User'}
-            </h2>
+      <FloatingActionButton
+        onClick={() => setShowModal(true)}
+        label="Add User"
+      />
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" style={{ background: 'var(--overlay-bg)' }}>
+          <div
+            className="glass-card w-full md:max-w-md md:mx-4 rounded-t-2xl md:rounded-2xl max-h-[90vh] overflow-auto"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}
+          >
+            <div className="sticky top-0 p-4" style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                {editingUser ? 'Edit User' : 'Add New User'}
+              </h2>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
                   Email
@@ -443,9 +493,7 @@ export default function UserManagement() {
                   checked={formData.is_active}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                   className="w-4 h-4 rounded"
-                  style={{
-                    accentColor: 'var(--brand-primary)'
-                  }}
+                  style={{ accentColor: 'var(--brand-primary)' }}
                 />
                 <label htmlFor="is_active" className="ml-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
                   Active
@@ -462,7 +510,7 @@ export default function UserManagement() {
                 </div>
               )}
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={handleCloseModal}
@@ -480,7 +528,7 @@ export default function UserManagement() {
                 </button>
               </div>
             </form>
-          </GlassCard>
+          </div>
         </div>
       )}
     </div>

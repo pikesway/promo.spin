@@ -70,30 +70,30 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2">
         <button
           type="button"
           onClick={() => onLogoChange('upload', null)}
-          className={`flex-1 px-4 py-2 rounded-lg text-sm transition-colors ${
-            logoType === 'upload'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white/5 text-gray-400 hover:bg-white/10'
-          }`}
+          className="flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          style={{
+            background: logoType === 'upload' ? 'var(--brand-primary)' : 'var(--bg-tertiary)',
+            color: logoType === 'upload' ? '#fff' : 'var(--text-secondary)'
+          }}
         >
-          <FaUpload className="inline mr-2" />
-          Upload Image
+          <FaUpload className="w-4 h-4" />
+          <span>Upload</span>
         </button>
         <button
           type="button"
           onClick={() => onLogoChange('url', logoUrl || '')}
-          className={`flex-1 px-4 py-2 rounded-lg text-sm transition-colors ${
-            logoType === 'url'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white/5 text-gray-400 hover:bg-white/10'
-          }`}
+          className="flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          style={{
+            background: logoType === 'url' ? 'var(--brand-primary)' : 'var(--bg-tertiary)',
+            color: logoType === 'url' ? '#fff' : 'var(--text-secondary)'
+          }}
         >
-          <FaImage className="inline mr-2" />
-          Use URL
+          <FaImage className="w-4 h-4" />
+          <span>Use URL</span>
         </button>
       </div>
 
@@ -104,11 +104,12 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
-            className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              dragActive
-                ? 'border-blue-500 bg-blue-500/10'
-                : 'border-white/20 bg-white/5 hover:bg-white/10'
-            }`}
+            onClick={() => !preview && fileInputRef.current?.click()}
+            className="relative border-2 border-dashed rounded-xl p-6 md:p-8 text-center transition-colors cursor-pointer"
+            style={{
+              borderColor: dragActive ? 'var(--brand-primary)' : 'var(--border-color)',
+              background: dragActive ? 'var(--glass-bg)' : 'var(--bg-tertiary)'
+            }}
           >
             <input
               ref={fileInputRef}
@@ -123,32 +124,35 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
                 <img
                   src={preview}
                   alt={`${clientName} logo`}
-                  className="max-h-32 mx-auto rounded-lg"
+                  className="max-h-28 md:max-h-32 mx-auto rounded-lg"
                 />
                 <button
                   type="button"
-                  onClick={clearLogo}
-                  className="absolute top-0 right-0 -mt-2 -mr-2 p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearLogo();
+                  }}
+                  className="absolute -top-2 -right-2 p-2.5 rounded-full text-white transition-colors shadow-lg"
+                  style={{ background: 'var(--error)' }}
                 >
-                  <FaTimes />
+                  <FaTimes className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
               <div className="space-y-3">
-                <FaUpload className="mx-auto text-4xl text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-300 mb-1">
-                    Drag and drop your logo here, or
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-blue-500 hover:text-blue-400 text-sm font-medium"
-                  >
-                    browse files
-                  </button>
+                <div
+                  className="w-14 h-14 md:w-16 md:h-16 mx-auto rounded-full flex items-center justify-center"
+                  style={{ background: 'var(--bg-secondary)' }}
+                >
+                  <FaUpload className="w-6 h-6 md:w-7 md:h-7" style={{ color: 'var(--text-tertiary)' }} />
                 </div>
-                <p className="text-xs text-gray-500">
+                <div>
+                  <p className="text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>
+                    <span className="hidden md:inline">Drag and drop your logo here, or </span>
+                    <span style={{ color: 'var(--brand-primary)', fontWeight: 500 }}>tap to upload</span>
+                  </p>
+                </div>
+                <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                   PNG, JPEG, SVG, or WebP (max 2MB)
                 </p>
               </div>
@@ -162,16 +166,16 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
             value={logoUrl || ''}
             onChange={(e) => handleUrlChange(e.target.value)}
             placeholder="https://example.com/logo.png"
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            className="input"
           />
           {preview && preview.startsWith('http') && (
             <div className="mt-4 relative">
-              <p className="text-xs text-gray-400 mb-2">Preview:</p>
+              <p className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>Preview:</p>
               <div className="relative inline-block">
                 <img
                   src={preview}
                   alt={`${clientName} logo`}
-                  className="max-h-32 rounded-lg"
+                  className="max-h-28 md:max-h-32 rounded-lg"
                   onError={() => {
                     setError('Failed to load image from URL');
                     setPreview('');
@@ -180,9 +184,10 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
                 <button
                   type="button"
                   onClick={clearLogo}
-                  className="absolute top-0 right-0 -mt-2 -mr-2 p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                  className="absolute -top-2 -right-2 p-2.5 rounded-full text-white transition-colors shadow-lg"
+                  style={{ background: 'var(--error)' }}
                 >
-                  <FaTimes />
+                  <FaTimes className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -191,8 +196,8 @@ const LogoUploader = ({ logoType, logoUrl, onLogoChange, clientName = 'Client' }
       )}
 
       {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="p-3 rounded-lg" style={{ background: 'var(--error-bg)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+          <p className="text-sm" style={{ color: 'var(--error)' }}>{error}</p>
         </div>
       )}
     </div>
