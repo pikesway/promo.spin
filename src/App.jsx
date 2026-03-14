@@ -12,6 +12,8 @@ import ProfileSettings from './pages/ProfileSettings';
 import UserManagement from './pages/UserManagement';
 import AgencyDashboard from './pages/AgencyDashboard';
 import ClientDashboard from './pages/ClientDashboard';
+import ClientDetailPage from './pages/ClientDetailPage';
+import AuditLogPage from './pages/AuditLogPage';
 import LoyaltyCardPage from './pages/LoyaltyCardPage';
 import LoyaltyEnrollmentPage from './pages/LoyaltyEnrollmentPage';
 import RedemptionPage from './pages/RedemptionPage';
@@ -48,6 +50,14 @@ function App() {
                   }
                 />
                 <Route
+                  path="/agency/users"
+                  element={
+                    <ProtectedRoute requireAdmin={true}>
+                      <UserManagement />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/users"
                   element={
                     <ProtectedRoute requireAdmin={true}>
@@ -60,6 +70,22 @@ function App() {
                   element={
                     <ProtectedRoute requireAdmin={true}>
                       <AgencyDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/agency/clients/:clientId"
+                  element={
+                    <ProtectedRoute requireAdmin={true}>
+                      <ClientDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/agency/audit"
+                  element={
+                    <ProtectedRoute requireAdmin={true}>
+                      <AuditLogPage />
                     </ProtectedRoute>
                   }
                 />

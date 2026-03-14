@@ -1,7 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../supabase/client';
-import { uploadClientLogo as uploadLogoToStorage, deleteClientLogo } from '../utils/storageHelpers';
-import { getDefaultColors } from '../utils/brandingHelpers';
 
 const PlatformContext = createContext();
 
@@ -12,32 +10,28 @@ export const usePlatform = () => {
 };
 
 export const PlatformProvider = ({ children }) => {
-  const [agencies, setAgencies] = useState([]);
   const [clients, setClients] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [leads, setLeads] = useState([]);
   const [redemptions, setRedemptions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [impersonation, setImpersonation] = useState({ clientId: null, brandId: null });
   const loadedForSession = useRef(null);
   const isLoadingRef = useRef(false);
 
   useEffect(() => {
     const initData = async () => {
-      if (!supabase) {
-        return;
-      }
+      if (!supabase) return;
 
       try {
         const { data, error } = await supabase.auth.getSession();
-
         if (error) {
           console.error('Session error in Platform:', error.message);
           return;
         }
-
         if (data?.session?.user) {
           loadedForSession.current = data.session.user.id;
-          // Load data in background without blocking
           loadData();
         }
       } catch (err) {
@@ -55,8 +49,8 @@ export const PlatformProvider = ({ children }) => {
         loadData();
       } else if (!session) {
         loadedForSession.current = null;
-        setAgencies([]);
         setClients([]);
+        setBrands([]);
         setCampaigns([]);
         setLeads([]);
         setRedemptions([]);
@@ -68,213 +62,367 @@ export const PlatformProvider = ({ children }) => {
   }, []);
 
   const loadData = async () => {
-    if (!supabase || isLoadingRef.current) {
-      return;
-    }
+    if (!supabase || isLoadingRef.current) return;
 
     isLoadingRef.current = true;
     setIsLoading(true);
 
     try {
-      // Load data in parallel with better error handling
-      const [agenciesResult, clientsResult, campaignsResult, leadsResult, redemptionsResult] = await Promise.allSettled([
-        supabase.from('agencies').select('*').order('created_at', { ascending: false }),
-        supabase.from('clients').select('*').order('created_at', { ascending: false }),
+      const [clientsResult, brandsResult, campaignsResult, leadsResult, redemptionsResult] = await Promise.allSettled([
+        supabase.from('clients').select('*').order('name'),
+        supabase.from('brands').select('*').order('name'),
         supabase.from('campaigns').select('*').order('created_at', { ascending: false }),
-        supabase.from('leads').select('*').order('created_at', { ascending: false }),
-        supabase.from('redemptions').select('*').order('generated_at', { ascending: false })
+        supabase.from('leads').select('*').order('created_at', { ascending: false }).limit(500),
+        supabase.from('redemptions').select('*').order('generated_at', { ascending: false }).limit(200)
       ]);
 
-      setAgencies(agenciesResult.status === 'fulfilled' ? (agenciesResult.value?.data || []) : []);
-      setClients(clientsResult.status === 'fulfilled' ? (clientsResult.value?.data || []) : []);
-      setCampaigns(campaignsResult.status === 'fulfilled' ? (campaignsResult.value?.data || []) : []);
-      setLeads(leadsResult.status === 'fulfilled' ? (leadsResult.value?.data || []) : []);
-      setRedemptions(redemptionsResult.status === 'fulfilled' ? (redemptionsResult.value?.data || []) : []);
-
-      // Log any errors but don't block the app
-      if (agenciesResult.status === 'rejected') console.warn('Failed to load agencies:', agenciesResult.reason);
-      if (clientsResult.status === 'rejected') console.warn('Failed to load clients:', clientsResult.reason);
-      if (campaignsResult.status === 'rejected') console.warn('Failed to load campaigns:', campaignsResult.reason);
-      if (leadsResult.status === 'rejected') console.warn('Failed to load leads:', leadsResult.reason);
-      if (redemptionsResult.status === 'rejected') console.warn('Failed to load redemptions:', redemptionsResult.reason);
-    } catch (error) {
-      console.error('Error loading platform data:', error);
+      if (clientsResult.status === 'fulfilled' && !clientsResult.value.error) {
+        setClients(clientsResult.value.data || []);
+      }
+      if (brandsResult.status === 'fulfilled' && !brandsResult.value.error) {
+        setBrands(brandsResult.value.data || []);
+      }
+      if (campaignsResult.status === 'fulfilled' && !campaignsResult.value.error) {
+        setCampaigns(campaignsResult.value.data || []);
+      }
+      if (leadsResult.status === 'fulfilled' && !leadsResult.value.error) {
+        setLeads(leadsResult.value.data || []);
+      }
+      if (redemptionsResult.status === 'fulfilled' && !redemptionsResult.value.error) {
+        setRedemptions(redemptionsResult.value.data || []);
+      }
+    } catch (err) {
+      console.error('Error loading platform data:', err);
     } finally {
-      setIsLoading(false);
       isLoadingRef.current = false;
+      setIsLoading(false);
     }
   };
 
-  const createAgency = async (agencyData) => {
-    if (!supabase) throw new Error('Supabase is not configured');
-    const newAgency = {
-      name: agencyData.name,
-      email: agencyData.email,
-      subdomain: agencyData.subdomain || agencyData.name.toLowerCase().replace(/\s+/g, '-'),
-      settings: agencyData.settings || {},
-      status: 'active'
-    };
-    const { data, error } = await supabase.from('agencies').insert(newAgency).select().single();
-    if (error) throw error;
-    setAgencies(prev => [data, ...prev]);
-    return data;
-  };
+  const refreshData = () => loadData();
+
+  // ============================================================================
+  // IMPERSONATION
+  // ============================================================================
+
+  const startImpersonation = useCallback(async (clientId, brandId = null) => {
+    setImpersonation({ clientId, brandId });
+    if (supabase) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          await supabase.from('audit_logs').insert({
+            actor_user_id: session.user.id,
+            impersonated_client_id: clientId,
+            impersonated_brand_id: brandId,
+            action_type: 'impersonation_start',
+            entity_type: 'client',
+            entity_id: clientId,
+            metadata: { brand_id: brandId }
+          });
+        }
+      } catch (err) {
+        console.error('Failed to log impersonation start:', err);
+      }
+    }
+  }, []);
+
+  const stopImpersonation = useCallback(async () => {
+    if (supabase && (impersonation.clientId || impersonation.brandId)) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          await supabase.from('audit_logs').insert({
+            actor_user_id: session.user.id,
+            impersonated_client_id: impersonation.clientId,
+            impersonated_brand_id: impersonation.brandId,
+            action_type: 'impersonation_end',
+            entity_type: 'client',
+            entity_id: impersonation.clientId,
+            metadata: {}
+          });
+        }
+      } catch (err) {
+        console.error('Failed to log impersonation end:', err);
+      }
+    }
+    setImpersonation({ clientId: null, brandId: null });
+  }, [impersonation]);
+
+  const logAuditAction = useCallback(async (actionType, entityType, entityId, metadata = {}) => {
+    if (!supabase) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user && (impersonation.clientId || impersonation.brandId)) {
+        await supabase.from('audit_logs').insert({
+          actor_user_id: session.user.id,
+          impersonated_client_id: impersonation.clientId,
+          impersonated_brand_id: impersonation.brandId,
+          action_type: actionType,
+          entity_type: entityType,
+          entity_id: entityId,
+          metadata
+        });
+        await supabase.from('client_notifications').insert({
+          client_id: impersonation.clientId,
+          title: `Admin action: ${actionType.replace(/_/g, ' ')}`,
+          message: `A platform administrator made a change to your ${entityType} on your behalf.`
+        });
+      }
+    } catch (err) {
+      console.error('Failed to log audit action:', err);
+    }
+  }, [impersonation]);
+
+  // ============================================================================
+  // CLIENT CRUD
+  // ============================================================================
 
   const createClient = async (clientData) => {
-    if (!supabase) throw new Error('Supabase is not configured');
-    let logoUrl = clientData.logoUrl || clientData.logo_url || null;
-    if (clientData.logo_type === 'upload' && clientData.logo_file) {
-      const uploadResult = await uploadLogoToStorage(clientData.logo_file, `temp-${Date.now()}`);
-      if (uploadResult.error) throw new Error('Failed to upload logo');
-      logoUrl = uploadResult.data.url;
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .insert(clientData)
+        .select()
+        .single();
+      if (error) throw error;
+      setClients(prev => [...prev, data]);
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
     }
-    const defaults = getDefaultColors();
-    const newClient = {
-      agency_id: clientData.agencyId || clientData.agency_id,
-      name: clientData.name,
-      email: clientData.email,
-      logo_type: clientData.logo_type || 'url',
-      logo_url: logoUrl,
-      primary_color: clientData.primary_color || defaults.primary,
-      secondary_color: clientData.secondary_color || defaults.secondary,
-      background_color: clientData.background_color || defaults.background,
-      status: clientData.status || 'prospect',
-      status_notes: clientData.status_notes || null,
-      settings: clientData.settings || {}
-    };
-    const { data, error } = await supabase.from('clients').insert(newClient).select().single();
-    if (error) throw error;
-    setClients(prev => [data, ...prev]);
-    return data;
   };
 
-  const updateClient = async (clientId, updates) => {
-    if (!supabase) throw new Error('Supabase is not configured');
-    const cleanUpdates = { ...updates };
-    if (cleanUpdates.logo_type === 'upload' && cleanUpdates.logo_file) {
-      const client = clients.find(c => c.id === clientId);
-      if (client?.logo_url && client?.logo_type === 'upload') await deleteClientLogo(client.logo_url);
-      const uploadResult = await uploadLogoToStorage(cleanUpdates.logo_file, clientId);
-      if (uploadResult.error) throw new Error('Failed to upload logo');
-      cleanUpdates.logo_url = uploadResult.data.url;
+  const updateClient = async (id, updates) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      setClients(prev => prev.map(c => c.id === id ? data : c));
+      await logAuditAction('client_updated', 'client', id, updates);
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
     }
-    delete cleanUpdates.logo_file;
-    const { data, error } = await supabase.from('clients').update(cleanUpdates).eq('id', clientId).select().single();
-    if (error) throw error;
-    setClients(prev => prev.map(c => c.id === clientId ? data : c));
-    return data;
   };
 
-  const deleteClient = async (clientId) => {
-    if (!supabase) throw new Error('Supabase is not configured');
-    const { error } = await supabase.from('clients').delete().eq('id', clientId);
-    if (error) throw error;
-    setClients(prev => prev.filter(c => c.id !== clientId));
+  const deleteClient = async (id) => {
+    if (!supabase) return { error: new Error('Supabase not configured') };
+    try {
+      const { error } = await supabase.from('clients').delete().eq('id', id);
+      if (error) throw error;
+      setClients(prev => prev.filter(c => c.id !== id));
+      setBrands(prev => prev.filter(b => b.client_id !== id));
+      setCampaigns(prev => prev.filter(c => c.client_id !== id));
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
   };
 
-  const updateClientStatus = async (clientId, status, notes) => {
-    return updateClient(clientId, { status, status_notes: notes || null });
+  // ============================================================================
+  // BRAND CRUD
+  // ============================================================================
+
+  const createBrand = async (brandData) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('brands')
+        .insert(brandData)
+        .select()
+        .single();
+      if (error) throw error;
+      setBrands(prev => [...prev, data]);
+      await logAuditAction('brand_created', 'brand', data.id, { name: data.name });
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
   };
 
-  const uploadClientLogoFile = async (file, clientId) => {
-    return uploadLogoToStorage(file, clientId);
+  const updateBrand = async (id, updates) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('brands')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      setBrands(prev => prev.map(b => b.id === id ? data : b));
+      await logAuditAction('brand_updated', 'brand', id, updates);
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
   };
 
-  const getClientBranding = (clientId) => {
-    const client = clients.find(c => c.id === clientId);
-    if (!client) return null;
-    return { logo_type: client.logo_type, logo_url: client.logo_url, primary_color: client.primary_color, secondary_color: client.secondary_color, background_color: client.background_color };
+  const deleteBrand = async (id) => {
+    if (!supabase) return { error: new Error('Supabase not configured') };
+    try {
+      const { error } = await supabase.from('brands').delete().eq('id', id);
+      if (error) throw error;
+      setBrands(prev => prev.filter(b => b.id !== id));
+      setCampaigns(prev => prev.filter(c => c.brand_id !== id));
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
   };
+
+  // ============================================================================
+  // CAMPAIGN CRUD
+  // ============================================================================
 
   const createCampaign = async (campaignData) => {
-    if (!supabase) throw new Error('Supabase is not configured');
-    const slug = campaignData.slug || `${campaignData.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
-    const newCampaign = {
-      client_id: campaignData.clientId,
-      name: campaignData.name,
-      slug,
-      type: campaignData.type,
-      status: campaignData.status || 'draft',
-      start_date: campaignData.startDate || null,
-      end_date: campaignData.endDate || null,
-      config: campaignData.config || {},
-      analytics: {}
-    };
-    const { data, error } = await supabase.from('campaigns').insert(newCampaign).select().single();
-    if (error) throw error;
-    setCampaigns(prev => [data, ...prev]);
-    return data;
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .insert(campaignData)
+        .select()
+        .single();
+      if (error) throw error;
+      setCampaigns(prev => [data, ...prev]);
+      await logAuditAction('campaign_created', 'campaign', data.id, { name: data.name });
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
   };
 
-  const updateCampaign = async (campaignId, updates) => {
-    if (!supabase) throw new Error('Supabase is not configured');
-    const { data, error } = await supabase.from('campaigns').update(updates).eq('id', campaignId).select().single();
-    if (error) throw error;
-    setCampaigns(prev => prev.map(c => c.id === campaignId ? data : c));
-    return data;
+  const updateCampaign = async (id, updates) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      setCampaigns(prev => prev.map(c => c.id === id ? data : c));
+      await logAuditAction('campaign_updated', 'campaign', id, updates);
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
   };
 
-  const deleteCampaign = async (campaignId) => {
-    if (!supabase) throw new Error('Supabase is not configured');
-    const { error } = await supabase.from('campaigns').delete().eq('id', campaignId);
-    if (error) throw error;
-    setCampaigns(prev => prev.filter(c => c.id !== campaignId));
+  const deleteCampaign = async (id) => {
+    if (!supabase) return { error: new Error('Supabase not configured') };
+    try {
+      const { error } = await supabase.from('campaigns').delete().eq('id', id);
+      if (error) throw error;
+      setCampaigns(prev => prev.filter(c => c.id !== id));
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
   };
 
-  const duplicateCampaign = async (campaignId) => {
-    if (!supabase) throw new Error('Supabase is not configured');
-    const campaign = campaigns.find(c => c.id === campaignId);
-    if (!campaign) throw new Error('Campaign not found');
-    const existingSlugs = campaigns.map(c => c.slug);
-    let newSlug = `${campaign.slug}-copy`;
-    let counter = 1;
-    while (existingSlugs.includes(newSlug)) { newSlug = `${campaign.slug}-copy-${counter}`; counter++; }
-    const newCampaign = {
-      client_id: campaign.client_id, name: `${campaign.name} (Copy)`, slug: newSlug,
-      type: campaign.type, status: 'draft', start_date: null, end_date: null,
-      config: { ...campaign.config }, analytics: {}
-    };
-    const { data, error } = await supabase.from('campaigns').insert(newCampaign).select().single();
-    if (error) throw error;
-    setCampaigns(prev => [data, ...prev]);
-    return data;
+  const duplicateCampaign = async (campaign) => {
+    const { id, created_at, updated_at, slug, ...rest } = campaign;
+    const newSlug = `${slug}-copy-${Date.now()}`;
+    return createCampaign({ ...rest, slug: newSlug, status: 'draft', name: `${campaign.name} (Copy)` });
   };
 
-  const toggleCampaignStatus = async (campaignId, currentStatus) => {
-    if (!supabase) throw new Error('Supabase is not configured');
+  const toggleCampaignStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'paused' : 'active';
-    const { data, error } = await supabase.from('campaigns').update({ status: newStatus }).eq('id', campaignId).select().single();
-    if (error) throw error;
-    setCampaigns(prev => prev.map(c => c.id === campaignId ? data : c));
-    return data;
+    return updateCampaign(id, { status: newStatus });
   };
 
-  const getClientsByAgency = (agencyId) => clients.filter(c => c.agency_id === agencyId);
+  // ============================================================================
+  // FILTER HELPERS
+  // ============================================================================
+
+  const getBrandsByClient = (clientId) => brands.filter(b => b.client_id === clientId);
+
+  const getCampaignsByBrand = (brandId) => campaigns.filter(c => c.brand_id === brandId);
+
   const getCampaignsByClient = (clientId) => campaigns.filter(c => c.client_id === clientId);
+
+  const getLeadsByBrand = (brandId) => leads.filter(l => l.brand_id === brandId);
+
   const getLeadsByClient = (clientId) => leads.filter(l => l.client_id === clientId);
-  const getLeadsByCampaign = (campaignId) => leads.filter(l => l.campaign_id === campaignId);
-  const getCampaignBySlug = (slug) => campaigns.find(c => c.slug === slug);
+
+  const getCampaignBySlug = (slug) => campaigns.find(c => c.slug === slug) || null;
 
   const getCampaignAnalytics = (campaignId) => {
     const campaignLeads = leads.filter(l => l.campaign_id === campaignId);
-    const campaign = campaigns.find(c => c.id === campaignId);
-    const storedAnalytics = campaign?.analytics || {};
+    const campaignRedemptions = redemptions.filter(r => r.campaign_id === campaignId);
     return {
-      views: storedAnalytics.views || 0,
-      leads: campaignLeads.length,
-      wins: storedAnalytics.wins || 0,
-      totalPlays: storedAnalytics.views || 0,
-      win_rate: 0
+      totalLeads: campaignLeads.length,
+      totalRedemptions: campaignRedemptions.length,
+      conversionRate: campaignLeads.length > 0
+        ? Math.round((campaignRedemptions.length / campaignLeads.length) * 100)
+        : 0,
     };
   };
 
+  const getClientUsage = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    if (!client) return null;
+    const clientBrands = brands.filter(b => b.client_id === clientId && b.active);
+    const clientCampaigns = campaigns.filter(c => c.client_id === clientId && c.status === 'active');
+    return {
+      activeBrands: clientBrands.length,
+      activeBrandsLimit: client.active_brands_limit,
+      activeCampaigns: clientCampaigns.length,
+      activeCampaignsLimit: client.active_campaigns_limit,
+      activeUsersLimit: client.active_users_limit,
+    };
+  };
+
+  const getBrandMemberCount = async (brandId) => {
+    if (!supabase) return 0;
+    const { count } = await supabase
+      .from('loyalty_accounts')
+      .select('*', { count: 'exact', head: true })
+      .eq('brand_id', brandId);
+    return count || 0;
+  };
+
   const value = {
-    agencies, clients, campaigns, leads, redemptions, isLoading,
-    createAgency, createClient, updateClient, deleteClient,
-    updateClientStatus, uploadClientLogoFile, getClientBranding,
-    createCampaign, updateCampaign, deleteCampaign, duplicateCampaign, toggleCampaignStatus,
-    getClientsByAgency, getCampaignsByClient, getLeadsByClient, getLeadsByCampaign,
-    getCampaignBySlug, getCampaignAnalytics, refreshData: loadData
+    clients,
+    brands,
+    campaigns,
+    leads,
+    redemptions,
+    isLoading,
+    impersonation,
+    startImpersonation,
+    stopImpersonation,
+    logAuditAction,
+    refreshData,
+    createClient,
+    updateClient,
+    deleteClient,
+    createBrand,
+    updateBrand,
+    deleteBrand,
+    createCampaign,
+    updateCampaign,
+    deleteCampaign,
+    duplicateCampaign,
+    toggleCampaignStatus,
+    getBrandsByClient,
+    getCampaignsByBrand,
+    getCampaignsByClient,
+    getLeadsByBrand,
+    getLeadsByClient,
+    getCampaignBySlug,
+    getCampaignAnalytics,
+    getClientUsage,
+    getBrandMemberCount,
   };
 
   return (

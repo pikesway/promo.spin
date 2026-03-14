@@ -22,10 +22,10 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
         return;
       }
-      
+
       try {
         const { data, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           console.error('Session error:', error.message);
         }
@@ -87,9 +87,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signUp = async (email, password, fullName, role = 'client') => {
+  const signUp = async (email, password, fullName, role = 'client_user') => {
     if (!supabase) return { data: null, error: new Error('Supabase is not configured') };
-    
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     if (!supabase) return { data: null, error: new Error('Supabase is not configured') };
-    
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }) => {
       setProfile(null);
       return { error: null };
     }
-    
+
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -143,7 +143,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (updates) => {
     if (!supabase) return { data: null, error: new Error('Supabase is not configured') };
-    
+
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -168,16 +168,36 @@ export const AuthProvider = ({ children }) => {
     return profile?.role === 'super_admin';
   };
 
+  const isClientAdmin = () => {
+    return profile?.role === 'client_admin' || profile?.role === 'client';
+  };
+
+  const isClientUser = () => {
+    return profile?.role === 'client_user' || profile?.role === 'staff';
+  };
+
   const isClient = () => {
-    return profile?.role === 'client';
+    return isClientAdmin() || isClientUser();
   };
 
   const isStaff = () => {
-    return profile?.role === 'staff';
+    return isClientUser();
+  };
+
+  const canManageUsers = () => {
+    return isAdmin() || isClientAdmin();
   };
 
   const canManageStaff = () => {
-    return profile?.role === 'super_admin' || profile?.role === 'admin' || profile?.role === 'client';
+    return isAdmin() || isClientAdmin();
+  };
+
+  const canManageBrands = () => {
+    return isAdmin() || isClientAdmin();
+  };
+
+  const getClientId = () => {
+    return profile?.client_id ?? null;
   };
 
   const value = {
@@ -190,9 +210,14 @@ export const AuthProvider = ({ children }) => {
     updateProfile,
     isAdmin,
     isSuperAdmin,
+    isClientAdmin,
+    isClientUser,
     isClient,
     isStaff,
+    canManageUsers,
     canManageStaff,
+    canManageBrands,
+    getClientId,
     refreshProfile: () => user ? fetchProfile(user.id) : null
   };
 

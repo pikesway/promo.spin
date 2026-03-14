@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar, FiHeart } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar, FiHeart, FiTag, FiChevronDown } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
 import { useAuth } from '../context/AuthContext';
 import CampaignWizard from '../components/CampaignWizard';
@@ -8,6 +8,7 @@ import BizGamezCampaignBuilder from '../components/admin/BizGamezCampaignBuilder
 import LoyaltyProgramBuilder from '../components/admin/LoyaltyProgramBuilder';
 import CampaignList from '../components/admin/CampaignList';
 import LoyaltyMemberManagement from '../components/admin/LoyaltyMemberManagement';
+import ClientLimitsPanel from '../components/agency/ClientLimitsPanel';
 import QRCode from 'qrcode.react';
 import StatusBadge from '../components/StatusBadge';
 import ClientBrandingForm from '../components/ClientBrandingForm';
@@ -16,17 +17,36 @@ import FloatingActionButton from '../components/layout/FloatingActionButton';
 export default function ClientDashboard() {
   const { clientId } = useParams();
   const navigate = useNavigate();
-  const { signOut, isClient } = useAuth();
-  const { clients, campaigns, leads, getCampaignsByClient, getLeadsByClient, deleteCampaign, duplicateCampaign, toggleCampaignStatus, updateClient, getCampaignAnalytics } = usePlatform();
+  const { signOut, isClient, isClientAdmin } = useAuth();
+  const {
+    clients, brands, campaigns, leads,
+    getCampaignsByBrand, getCampaignsByClient,
+    deleteCampaign, duplicateCampaign, toggleCampaignStatus,
+    updateClient, getCampaignAnalytics, getClientUsage,
+    getBrandsByClient
+  } = usePlatform();
+
   const [activeTab, setActiveTab] = useState('campaigns');
   const [showWizard, setShowWizard] = useState(false);
   const [showQRModal, setShowQRModal] = useState(null);
   const [showBrandingModal, setShowBrandingModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
+  const [selectedBrandId, setSelectedBrandId] = useState('all');
+  const [showBrandDropdown, setShowBrandDropdown] = useState(false);
 
   const client = clients.find(c => c.id === clientId);
-  const clientCampaigns = getCampaignsByClient(clientId);
-  const clientLeads = getLeadsByClient(clientId);
+  const clientBrands = getBrandsByClient(clientId);
+  const selectedBrand = selectedBrandId !== 'all' ? clientBrands.find(b => b.id === selectedBrandId) : null;
+
+  const clientCampaigns = selectedBrandId === 'all'
+    ? getCampaignsByClient(clientId)
+    : getCampaignsByBrand(selectedBrandId);
+
+  const clientLeads = selectedBrandId === 'all'
+    ? leads.filter(l => l.client_id === clientId)
+    : leads.filter(l => l.brand_id === selectedBrandId);
+
+  const usage = getClientUsage(clientId);
 
   const campaignsByStatus = {
     draft: clientCampaigns.filter(c => c.status === 'draft'),
@@ -37,10 +57,18 @@ export default function ClientDashboard() {
 
   const exportLeadsCSV = () => {
     if (clientLeads.length === 0) { alert('No leads to export'); return; }
-    const headers = ['Date', 'Campaign', 'Name', 'Email', 'Phone'];
+    const headers = ['Date', 'Campaign', 'Brand', 'Name', 'Email', 'Phone'];
     const rows = clientLeads.map(lead => {
       const campaign = campaigns.find(c => c.id === lead.campaign_id);
-      return [new Date(lead.created_at).toLocaleDateString(), campaign?.name || 'Unknown', lead.data.name || '', lead.data.email || '', lead.data.phone || ''];
+      const brand = clientBrands.find(b => b.id === lead.brand_id);
+      return [
+        new Date(lead.created_at).toLocaleDateString(),
+        campaign?.name || 'Unknown',
+        brand?.name || 'Unknown',
+        lead.data?.name || '',
+        lead.data?.email || '',
+        lead.data?.phone || ''
+      ];
     });
     const csvContent = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -91,7 +119,6 @@ export default function ClientDashboard() {
     if (editingCampaign.type === 'loyalty') {
       return <LoyaltyProgramBuilder campaign={editingCampaign} client={client} onBack={() => setEditingCampaign(null)} />;
     }
-    // Fallback for unknown types
     setEditingCampaign(null);
     return null;
   }
@@ -131,11 +158,71 @@ export default function ClientDashboard() {
               </div>
             </div>
             <div className="hidden md:flex gap-2 flex-shrink-0">
-              <button className="btn btn-ghost p-2" onClick={() => setShowBrandingModal(true)}><FiSettings size={18} /></button>
+              {isClientAdmin() && (
+                <button className="btn btn-ghost p-2" onClick={() => setShowBrandingModal(true)}><FiSettings size={18} /></button>
+              )}
               <button className="btn btn-ghost p-2" onClick={handleSignOut}><FiLogOut size={18} /></button>
             </div>
           </div>
         </div>
+
+        {clientBrands.length > 0 && (
+          <div className="glass-card p-3 mb-4 flex items-center gap-3">
+            <FiTag size={14} style={{ color: 'var(--text-tertiary)' }} />
+            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Brand:</span>
+            <div className="relative">
+              <button
+                onClick={() => setShowBrandDropdown(!showBrandDropdown)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+              >
+                {selectedBrand ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: selectedBrand.primary_color || 'var(--accent)' }} />
+                    {selectedBrand.name}
+                  </>
+                ) : (
+                  'All Brands'
+                )}
+                <FiChevronDown size={12} />
+              </button>
+              {showBrandDropdown && (
+                <div className="absolute top-full left-0 mt-1 z-20 rounded-xl shadow-xl min-w-[160px]"
+                  style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
+                  <button
+                    onClick={() => { setSelectedBrandId('all'); setShowBrandDropdown(false); }}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-white/10 transition-colors rounded-t-xl"
+                    style={{ color: selectedBrandId === 'all' ? 'var(--accent)' : 'var(--text-primary)' }}
+                  >
+                    All Brands
+                  </button>
+                  {clientBrands.map(brand => (
+                    <button
+                      key={brand.id}
+                      onClick={() => { setSelectedBrandId(brand.id); setShowBrandDropdown(false); }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-white/10 transition-colors flex items-center gap-2"
+                      style={{ color: selectedBrandId === brand.id ? 'var(--accent)' : 'var(--text-primary)' }}
+                    >
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: brand.primary_color || 'var(--accent)' }} />
+                      {brand.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {selectedBrand && (
+              <span className="text-xs ml-auto" style={{ color: 'var(--text-tertiary)' }}>
+                {clientCampaigns.length} campaign{clientCampaigns.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+        )}
+
+        {isClientAdmin() && usage && (
+          <div className="mb-4">
+            <ClientLimitsPanel client={client} usage={usage} editable={false} />
+          </div>
+        )}
 
         <div className="flex gap-2 mb-4 pb-2 -mx-3 px-3 overflow-x-auto hide-scrollbar" style={{ borderBottom: '1px solid var(--border-color)' }}>
           {['campaigns', 'leads', 'loyalty'].map(tab => (
@@ -163,7 +250,9 @@ export default function ClientDashboard() {
           <>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg md:text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>Overview</h2>
-              <button className="btn btn-primary hidden md:flex" onClick={() => setShowWizard(true)}><FiPlus /> Create Campaign</button>
+              {isClientAdmin() && (
+                <button className="btn btn-primary hidden md:flex" onClick={() => setShowWizard(true)}><FiPlus /> Create Campaign</button>
+              )}
             </div>
             <div className="horizontal-scroll hide-scrollbar md:grid-cols-4 mb-4 md:mb-6 -mx-3 px-3 md:mx-0 md:px-0">
               {Object.entries(campaignsByStatus).map(([status, statusCampaigns]) => (
@@ -180,10 +269,10 @@ export default function ClientDashboard() {
               <h3 className="text-base md:text-xl font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>All Campaigns</h3>
               <CampaignList
                 campaigns={clientCampaigns}
-                onEditCampaign={setEditingCampaign}
-                onDeleteCampaign={handleDeleteCampaign}
-                onDuplicateCampaign={handleDuplicateCampaign}
-                onToggleStatus={handleToggleStatus}
+                onEditCampaign={isClientAdmin() ? setEditingCampaign : null}
+                onDeleteCampaign={isClientAdmin() ? handleDeleteCampaign : null}
+                onDuplicateCampaign={isClientAdmin() ? handleDuplicateCampaign : null}
+                onToggleStatus={isClientAdmin() ? handleToggleStatus : null}
                 onShowQR={setShowQRModal}
                 getCampaignAnalytics={getCampaignAnalytics}
               />
@@ -208,7 +297,7 @@ export default function ClientDashboard() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          {['Date', 'Campaign', 'Name', 'Email', 'Phone'].map(h => (
+                          {['Date', 'Brand', 'Campaign', 'Name', 'Email', 'Phone'].map(h => (
                             <th key={h} className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>{h}</th>
                           ))}
                         </tr>
@@ -216,13 +305,15 @@ export default function ClientDashboard() {
                       <tbody>
                         {clientLeads.map(lead => {
                           const campaign = campaigns.find(c => c.id === lead.campaign_id);
+                          const brand = clientBrands.find(b => b.id === lead.brand_id);
                           return (
                             <tr key={lead.id} style={{ borderBottom: '1px solid var(--divider)' }}>
                               <td className="p-3" style={{ color: 'var(--text-primary)' }}>{new Date(lead.created_at).toLocaleDateString()}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{brand?.name || '—'}</td>
                               <td className="p-3" style={{ color: 'var(--text-primary)' }}>{campaign?.name || 'Unknown'}</td>
-                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.data.name || '-'}</td>
-                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.data.email || '-'}</td>
-                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.data.phone || '-'}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.data?.name || '-'}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.data?.email || '-'}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.data?.phone || '-'}</td>
                             </tr>
                           );
                         })}
@@ -233,21 +324,22 @@ export default function ClientDashboard() {
                 <div className="md:hidden flex flex-col gap-2">
                   {clientLeads.map(lead => {
                     const campaign = campaigns.find(c => c.id === lead.campaign_id);
+                    const brand = clientBrands.find(b => b.id === lead.brand_id);
                     return (
                       <div key={lead.id} className="glass-card p-3">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <FiUser size={14} style={{ color: 'var(--text-secondary)' }} />
-                            <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{lead.data.name || 'Unknown'}</span>
+                            <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{lead.data?.name || 'Unknown'}</span>
                           </div>
                           <span className="text-xs flex items-center gap-1" style={{ color: 'var(--text-tertiary)' }}>
                             <FiCalendar size={12} />{new Date(lead.created_at).toLocaleDateString()}
                           </span>
                         </div>
-                        <div className="text-xs mb-1 truncate" style={{ color: 'var(--text-secondary)' }}>{campaign?.name || 'Unknown Campaign'}</div>
+                        <div className="text-xs mb-1 truncate" style={{ color: 'var(--text-tertiary)' }}>{brand?.name} · {campaign?.name || 'Unknown Campaign'}</div>
                         <div className="flex flex-wrap gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
-                          {lead.data.email && <span className="flex items-center gap-1"><FiMail size={12} /><span className="truncate max-w-[140px]">{lead.data.email}</span></span>}
-                          {lead.data.phone && <span className="flex items-center gap-1"><FiPhone size={12} />{lead.data.phone}</span>}
+                          {lead.data?.email && <span className="flex items-center gap-1"><FiMail size={12} /><span className="truncate max-w-[140px]">{lead.data.email}</span></span>}
+                          {lead.data?.phone && <span className="flex items-center gap-1"><FiPhone size={12} />{lead.data.phone}</span>}
                         </div>
                       </div>
                     );
@@ -263,11 +355,15 @@ export default function ClientDashboard() {
         )}
       </div>
 
-      <FloatingActionButton onClick={() => setShowWizard(true)} label="Create Campaign" />
+      {isClientAdmin() && (
+        <FloatingActionButton onClick={() => setShowWizard(true)} label="Create Campaign" />
+      )}
 
       {showWizard && (
         <CampaignWizard
           clientId={clientId}
+          brandId={selectedBrandId !== 'all' ? selectedBrandId : (clientBrands[0]?.id || null)}
+          brands={clientBrands}
           onClose={() => setShowWizard(false)}
           onCampaignCreated={(campaign) => { setShowWizard(false); setEditingCampaign(campaign); }}
         />

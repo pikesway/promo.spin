@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiUsers, FiGift, FiCheck, FiCalendar, FiLogOut, FiRefreshCw, FiChevronRight } from 'react-icons/fi';
+import { FiSearch, FiUsers, FiGift, FiCheck, FiCalendar, FiLogOut, FiRefreshCw, FiTag } from 'react-icons/fi';
 import { supabase } from '../supabase/client';
 import { useAuth } from '../context/AuthContext';
 import StaffValidationModal from '../components/loyalty/StaffValidationModal';
@@ -8,14 +8,16 @@ import ManagerOverrideModal from '../components/loyalty/ManagerOverrideModal';
 
 export default function StaffDashboard() {
   const navigate = useNavigate();
-  const { user, profile, signOut, isStaff } = useAuth();
+  const { user, profile, signOut, isStaff, isClientUser } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState(null);
+  const [brands, setBrands] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [loyaltyMembers, setLoyaltyMembers] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBrandId, setSelectedBrandId] = useState('all');
   const [selectedCampaign, setSelectedCampaign] = useState('all');
   const [selectedMember, setSelectedMember] = useState(null);
   const [showValidation, setShowValidation] = useState(false);
@@ -44,15 +46,43 @@ export default function StaffDashboard() {
 
       setClient(clientData);
 
-      const { data: campaignData } = await supabase
-        .from('campaigns')
-        .select('*, loyalty_programs(*)')
+      let brandsQuery = supabase
+        .from('brands')
+        .select('*')
         .eq('client_id', profile.client_id)
-        .eq('type', 'loyalty');
+        .eq('active', true);
 
-      setCampaigns(campaignData || []);
+      if (isClientUser && isClientUser()) {
+        const { data: permData } = await supabase
+          .from('user_brand_permissions')
+          .select('brand_id')
+          .eq('user_id', user?.id)
+          .eq('active', true);
 
-      const campaignIds = (campaignData || []).map(c => c.id);
+        if (permData && permData.length > 0) {
+          const permittedBrandIds = permData.map(p => p.brand_id);
+          brandsQuery = brandsQuery.in('id', permittedBrandIds);
+        }
+      }
+
+      const { data: brandsData } = await brandsQuery;
+      setBrands(brandsData || []);
+
+      const brandIds = (brandsData || []).map(b => b.id);
+
+      let campaignData = [];
+      if (brandIds.length > 0) {
+        const { data } = await supabase
+          .from('campaigns')
+          .select('*, loyalty_programs(*)')
+          .in('brand_id', brandIds)
+          .eq('type', 'loyalty');
+        campaignData = data || [];
+      }
+
+      setCampaigns(campaignData);
+
+      const campaignIds = campaignData.map(c => c.id);
 
       if (campaignIds.length > 0) {
         const { data: memberData } = await supabase
@@ -84,18 +114,14 @@ export default function StaffDashboard() {
         const pendingRewards = (memberData || []).filter(m => m.reward_unlocked).length;
         const activeMembers = (memberData || []).length;
 
-        setStats({
-          todayConfirmations,
-          pendingRewards,
-          activeMembers
-        });
+        setStats({ todayConfirmations, pendingRewards, activeMembers });
       }
     } catch (err) {
       console.error('Error loading staff dashboard:', err);
     } finally {
       setLoading(false);
     }
-  }, [profile?.client_id]);
+  }, [profile?.client_id, user?.id]);
 
   useEffect(() => {
     fetchData();
@@ -107,16 +133,20 @@ export default function StaffDashboard() {
     }
   }, [profile, isStaff, navigate, loading]);
 
+  const visibleCampaigns = selectedBrandId === 'all'
+    ? campaigns
+    : campaigns.filter(c => c.brand_id === selectedBrandId);
+
   const filteredMembers = loyaltyMembers.filter(member => {
+    const campaign = campaigns.find(c => c.id === member.campaign_id);
+    const matchesBrand = selectedBrandId === 'all' || campaign?.brand_id === selectedBrandId;
     const matchesSearch = searchQuery === '' ||
       member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.phone?.includes(searchQuery) ||
       member.member_code?.toLowerCase().includes(searchQuery.toLowerCase());
-
     const matchesCampaign = selectedCampaign === 'all' || member.campaign_id === selectedCampaign;
-
-    return matchesSearch && matchesCampaign;
+    return matchesBrand && matchesSearch && matchesCampaign;
   });
 
   const handleMemberAction = (member, type) => {
@@ -127,11 +157,9 @@ export default function StaffDashboard() {
 
   const getValidationConfig = () => {
     if (!selectedMember) return { method: 'pin', config: {} };
-
     const campaign = campaigns.find(c => c.id === selectedMember.campaign_id);
     const loyaltyProgram = campaign?.loyalty_programs?.[0];
     const loyaltyConfig = loyaltyProgram || campaign?.config?.loyalty || {};
-
     return {
       method: loyaltyConfig.validation_method || loyaltyConfig.validationMethod || 'pin',
       config: loyaltyConfig.validation_config || loyaltyConfig.validationConfig || {},
@@ -139,9 +167,16 @@ export default function StaffDashboard() {
     };
   };
 
+  const getUnlockPin = () => {
+    if (!selectedMember) return null;
+    const campaign = campaigns.find(c => c.id === selectedMember.campaign_id);
+    if (!campaign?.brand_id) return null;
+    const brand = brands.find(b => b.id === campaign.brand_id);
+    return brand?.unlock_pin || null;
+  };
+
   const handleValidationSuccess = async () => {
     setShowValidation(false);
-
     if (!selectedMember) return;
 
     try {
@@ -242,10 +277,7 @@ export default function StaffDashboard() {
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--bg-primary)' }}>
         <div className="text-center">
           <p className="text-gray-400 mb-4">Your account is not associated with a client.</p>
-          <button
-            onClick={handleSignOut}
-            className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
-          >
+          <button onClick={handleSignOut} className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors">
             Sign Out
           </button>
         </div>
@@ -254,6 +286,7 @@ export default function StaffDashboard() {
   }
 
   const validationConfig = getValidationConfig();
+  const unlockPin = getUnlockPin();
 
   return (
     <div className="min-h-screen w-full" style={{ background: 'var(--bg-primary)' }}>
@@ -261,22 +294,14 @@ export default function StaffDashboard() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             {client?.logo_url && (
-              <img
-                src={client.logo_url}
-                alt=""
-                className="w-10 h-10 rounded-lg object-contain"
-              />
+              <img src={client.logo_url} alt="" className="w-10 h-10 rounded-lg object-contain" />
             )}
             <div>
               <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{client?.name || 'Staff Dashboard'}</h1>
               <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>{profile?.full_name || profile?.email}</p>
             </div>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="p-2 rounded-lg transition-colors"
-            style={{ color: 'var(--text-secondary)' }}
-          >
+          <button onClick={handleSignOut} className="p-2 rounded-lg transition-colors" style={{ color: 'var(--text-secondary)' }}>
             <FiLogOut size={20} />
           </button>
         </div>
@@ -305,6 +330,29 @@ export default function StaffDashboard() {
           </div>
         </div>
 
+        {brands.length > 1 && (
+          <div className="glass-card p-3 mb-4 flex items-center gap-2 overflow-x-auto hide-scrollbar">
+            <FiTag size={13} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+            <button
+              onClick={() => { setSelectedBrandId('all'); setSelectedCampaign('all'); }}
+              className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-colors flex-shrink-0 ${selectedBrandId === 'all' ? 'text-white' : 'text-gray-400 bg-white/5 hover:bg-white/10'}`}
+              style={selectedBrandId === 'all' ? { background: 'var(--accent)' } : {}}
+            >
+              All Brands
+            </button>
+            {brands.map(brand => (
+              <button
+                key={brand.id}
+                onClick={() => { setSelectedBrandId(brand.id); setSelectedCampaign('all'); }}
+                className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-colors flex-shrink-0 flex items-center gap-1.5 ${selectedBrandId === brand.id ? 'text-white' : 'text-gray-400 bg-white/5 hover:bg-white/10'}`}
+                style={selectedBrandId === brand.id ? { background: brand.primary_color || 'var(--accent)' } : {}}
+              >
+                {brand.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="glass-card p-4 mb-6">
           <div className="flex gap-3 mb-4">
             <div className="flex-1 relative">
@@ -317,35 +365,24 @@ export default function StaffDashboard() {
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-white/30"
               />
             </div>
-            <button
-              onClick={fetchData}
-              className="p-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 border border-white/10"
-            >
+            <button onClick={fetchData} className="p-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 border border-white/10">
               <FiRefreshCw size={18} />
             </button>
           </div>
 
-          {campaigns.length > 1 && (
+          {visibleCampaigns.length > 1 && (
             <div className="flex gap-2 mb-4 overflow-x-auto hide-scrollbar -mx-4 px-4">
               <button
                 onClick={() => setSelectedCampaign('all')}
-                className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
-                  selectedCampaign === 'all'
-                    ? 'bg-rose-500 text-white'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
-                }`}
+                className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${selectedCampaign === 'all' ? 'bg-rose-500 text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
               >
                 All Programs
               </button>
-              {campaigns.map(c => (
+              {visibleCampaigns.map(c => (
                 <button
                   key={c.id}
                   onClick={() => setSelectedCampaign(c.id)}
-                  className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
-                    selectedCampaign === c.id
-                      ? 'bg-rose-500 text-white'
-                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
-                  }`}
+                  className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${selectedCampaign === c.id ? 'bg-rose-500 text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
                 >
                   {c.name}
                 </button>
@@ -364,11 +401,7 @@ export default function StaffDashboard() {
                 const threshold = campaign?.loyalty_programs?.[0]?.threshold || campaign?.config?.loyalty?.threshold || 10;
 
                 return (
-                  <div
-                    key={member.id}
-                    className="p-3 rounded-xl transition-colors"
-                    style={{ background: 'var(--glass-bg)' }}
-                  >
+                  <div key={member.id} className="p-3 rounded-xl transition-colors" style={{ background: 'var(--glass-bg)' }}>
                     <div className="flex items-center gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -472,7 +505,7 @@ export default function StaffDashboard() {
         onClose={() => setShowManagerOverride(false)}
         onUnlock={async () => setShowManagerOverride(false)}
         memberName={selectedMember?.name}
-        unlockPin={client?.unlock_pin}
+        unlockPin={unlockPin}
       />
     </div>
   );

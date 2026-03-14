@@ -1,536 +1,316 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { usePlatform } from '../context/PlatformContext';
 import { supabase } from '../supabase/client';
-import { FiEdit2, FiTrash2, FiPlus, FiUsers, FiLock, FiUnlock, FiMail, FiChevronRight } from 'react-icons/fi';
-import FloatingActionButton from '../components/layout/FloatingActionButton';
+import { FiPlus, FiEdit2, FiLock, FiUnlock, FiArrowLeft, FiSearch, FiUsers } from 'react-icons/fi';
+import UserBrandPermissionsModal from '../components/agency/UserBrandPermissionsModal';
+
+const ROLES = [
+  { value: 'admin', label: 'Admin (Agency)' },
+  { value: 'client_admin', label: 'Client Admin' },
+  { value: 'client_user', label: 'Client User' },
+];
 
 export default function UserManagement() {
+  const navigate = useNavigate();
   const { isSuperAdmin } = useAuth();
+  const { clients } = usePlatform();
   const [users, setUsers] = useState([]);
-  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [clientFilter, setClientFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    full_name: '',
-    role: 'client',
-    client_id: null,
-    is_active: true
-  });
+  const [selectedUserForPerms, setSelectedUserForPerms] = useState(null);
+  const [form, setForm] = useState({ email: '', password: '', full_name: '', role: 'client_user', client_id: '', is_active: true });
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchUsers();
-    fetchClients();
   }, []);
 
   const fetchUsers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*, clients(name)')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setUsers(data || []);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    } finally {
-      setLoading(false);
-    }
+    if (!supabase) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from('profiles')
+      .select('*, clients(name, primary_color)')
+      .order('created_at', { ascending: false });
+    setUsers(data || []);
+    setLoading(false);
   };
 
-  const fetchClients = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('id, name')
-        .order('name');
-
-      if (error) throw error;
-      setClients(data || []);
-    } catch (error) {
-      console.error('Error fetching clients:', error);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const openCreate = () => {
+    setEditingUser(null);
+    setForm({ email: '', password: '', full_name: '', role: 'client_user', client_id: '', is_active: true });
     setError('');
-    setSuccess('');
-    setSubmitting(true);
-
-    try {
-      if (editingUser) {
-        const updates = {
-          full_name: formData.full_name,
-          role: formData.role,
-          client_id: formData.client_id || null,
-          is_active: formData.is_active
-        };
-
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update(updates)
-          .eq('id', editingUser.id);
-
-        if (updateError) throw updateError;
-        setSuccess('User updated successfully');
-      } else {
-        const { data: { session } } = await supabase.auth.getSession();
-        const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users/create`;
-
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-            full_name: formData.full_name,
-            role: formData.role,
-            client_id: formData.client_id
-          })
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(result.error || 'Failed to create user');
-        }
-
-        setSuccess('User created successfully');
-      }
-
-      await fetchUsers();
-      handleCloseModal();
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (userId, e) => {
-    if (e) e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this user?')) return;
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users/${userId}`;
-
-      const response = await fetch(apiUrl, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        }
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to delete user');
-      }
-
-      setSuccess('User deleted successfully');
-      await fetchUsers();
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  const handleToggleActive = async (user, e) => {
-    if (e) e.stopPropagation();
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_active: !user.is_active })
-        .eq('id', user.id);
-
-      if (error) throw error;
-      setSuccess(`User ${!user.is_active ? 'activated' : 'deactivated'} successfully`);
-      await fetchUsers();
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  const handleEdit = (user) => {
-    setEditingUser(user);
-    setFormData({
-      email: user.email,
-      password: '',
-      full_name: user.full_name || '',
-      role: user.role,
-      client_id: user.client_id,
-      is_active: user.is_active
-    });
     setShowModal(true);
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEditingUser(null);
-    setFormData({
-      email: '',
-      password: '',
-      full_name: '',
-      role: 'client',
-      client_id: null,
-      is_active: true
-    });
+  const openEdit = (user) => {
+    setEditingUser(user);
+    setForm({ email: user.email, password: '', full_name: user.full_name || '', role: user.role, client_id: user.client_id || '', is_active: user.is_active });
     setError('');
+    setShowModal(true);
   };
 
-  const canEditUser = (user) => {
-    if (isSuperAdmin()) return true;
-    if (user.role === 'super_admin' || user.role === 'admin') return false;
-    return true;
+  const handleSave = async () => {
+    if (!form.email.trim()) { setError('Email is required.'); return; }
+    if (!editingUser && !form.password.trim()) { setError('Password is required for new users.'); return; }
+
+    setSaving(true);
+    setError('');
+    try {
+      if (editingUser) {
+        await supabase.from('profiles').update({
+          full_name: form.full_name,
+          role: form.role,
+          client_id: form.client_id || null,
+          is_active: form.is_active,
+        }).eq('id', editingUser.id);
+      } else {
+        const { error: fnError } = await supabase.functions.invoke('admin-users', {
+          body: {
+            action: 'create',
+            email: form.email,
+            password: form.password,
+            fullName: form.full_name,
+            role: form.role,
+            clientId: form.client_id || null,
+          }
+        });
+        if (fnError) throw fnError;
+      }
+      await fetchUsers();
+      setShowModal(false);
+    } catch (err) {
+      setError(err.message || 'Failed to save user.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const getRoleBadge = (role) => {
-    const colors = {
-      super_admin: { bg: 'rgba(168, 85, 247, 0.1)', text: '#C084FC', border: 'rgba(168, 85, 247, 0.2)' },
-      admin: { bg: 'rgba(59, 130, 246, 0.1)', text: '#60A5FA', border: 'rgba(59, 130, 246, 0.2)' },
-      client: { bg: 'rgba(16, 185, 129, 0.1)', text: '#34D399', border: 'rgba(16, 185, 129, 0.2)' }
-    };
-    const color = colors[role] || colors.client;
-    return (
-      <span
-        className="px-2 py-0.5 rounded text-[10px] md:text-xs font-medium"
-        style={{
-          background: color.bg,
-          color: color.text,
-          border: `1px solid ${color.border}`
-        }}
-      >
-        {role.replace('_', ' ').toUpperCase()}
-      </span>
-    );
+  const handleToggleActive = async (user) => {
+    await supabase.from('profiles').update({ is_active: !user.is_active }).eq('id', user.id);
+    setUsers(prev => prev.map(u => u.id === user.id ? { ...u, is_active: !user.is_active } : u));
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-        <div className="spinner"></div>
-      </div>
-    );
-  }
+  const filteredUsers = users.filter(u => {
+    const matchesClient = clientFilter === 'all' || u.client_id === clientFilter;
+    const q = search.toLowerCase();
+    const matchesSearch = !q || (u.email || '').toLowerCase().includes(q) || (u.full_name || '').toLowerCase().includes(q);
+    return matchesClient && matchesSearch;
+  });
+
+  const groupedByClient = clients.reduce((acc, client) => {
+    const clientUsers = filteredUsers.filter(u => u.client_id === client.id);
+    if (clientUsers.length > 0 || clientFilter === client.id) acc[client.id] = { client, users: clientUsers };
+    return acc;
+  }, {});
+  const agencyUsers = filteredUsers.filter(u => !u.client_id || u.role === 'admin' || u.role === 'super_admin');
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden" style={{ background: 'var(--bg-primary)' }}>
-      <div className="container px-3 md:px-4 py-4 md:py-6">
-        <div className="flex justify-between items-start mb-4 md:mb-6">
-          <div>
-            <h1 className="text-xl md:text-3xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-              <FiUsers style={{ color: 'var(--info)' }} size={24} />
-              <span className="hidden md:inline">User Management</span>
-              <span className="md:hidden">Users</span>
-            </h1>
-            <p className="text-sm mt-1 hidden md:block" style={{ color: 'var(--text-secondary)' }}>Manage system users and their access</p>
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="flex items-center gap-3 mb-6">
+          <button onClick={() => navigate('/agency')} className="p-2 rounded-lg hover:bg-white/10 transition-colors" style={{ color: 'var(--text-secondary)' }}>
+            <FiArrowLeft size={18} />
+          </button>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>User Management</h1>
+            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>{users.length} total users</p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="btn btn-primary hidden md:flex"
-          >
-            <FiPlus /> Add User
+          <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium"
+            style={{ background: 'var(--accent)', color: '#fff' }}>
+            <FiPlus size={14} />
+            New User
           </button>
         </div>
 
-        {error && (
-          <div className="mb-4 p-3 rounded-lg text-sm" style={{
-            background: 'var(--error-bg)',
-            border: '1px solid var(--error)',
-            color: 'var(--error)'
-          }}>
-            {error}
+        <div className="flex gap-3 mb-6">
+          <div className="relative flex-1">
+            <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search users..."
+              className="w-full pl-9 pr-4 py-2 rounded-lg text-sm"
+              style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+            />
           </div>
-        )}
-
-        {success && (
-          <div className="mb-4 p-3 rounded-lg text-sm" style={{
-            background: 'var(--success-bg)',
-            border: '1px solid var(--success)',
-            color: 'var(--success)'
-          }}>
-            {success}
-          </div>
-        )}
-
-        <div className="hidden md:block glass-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Name</th>
-                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Email</th>
-                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Role</th>
-                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Client</th>
-                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Status</th>
-                  <th className="text-right py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="transition-colors"
-                    style={{ borderBottom: '1px solid var(--divider)' }}
-                  >
-                    <td className="py-3 px-4" style={{ color: 'var(--text-primary)' }}>{user.full_name || '-'}</td>
-                    <td className="py-3 px-4" style={{ color: 'var(--text-primary)' }}>{user.email}</td>
-                    <td className="py-3 px-4">{getRoleBadge(user.role)}</td>
-                    <td className="py-3 px-4" style={{ color: 'var(--text-primary)' }}>{user.clients?.name || '-'}</td>
-                    <td className="py-3 px-4">
-                      <span
-                        className="px-2 py-1 rounded text-xs font-medium"
-                        style={{
-                          background: user.is_active ? 'var(--success-bg)' : 'var(--error-bg)',
-                          color: user.is_active ? 'var(--success)' : 'var(--error)',
-                          border: `1px solid ${user.is_active ? 'var(--success)' : 'var(--error)'}`
-                        }}
-                      >
-                        {user.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex justify-end gap-1">
-                        {canEditUser(user) && (
-                          <>
-                            <button
-                              onClick={() => handleToggleActive(user)}
-                              className="p-2 transition-colors"
-                              style={{ color: 'var(--text-secondary)' }}
-                              title={user.is_active ? 'Deactivate' : 'Activate'}
-                            >
-                              {user.is_active ? <FiLock size={16} /> : <FiUnlock size={16} />}
-                            </button>
-                            <button
-                              onClick={() => handleEdit(user)}
-                              className="p-2 transition-colors"
-                              style={{ color: 'var(--text-secondary)' }}
-                              title="Edit"
-                            >
-                              <FiEdit2 size={16} />
-                            </button>
-                            {isSuperAdmin() && (
-                              <button
-                                onClick={() => handleDelete(user.id)}
-                                className="p-2 transition-colors"
-                                style={{ color: 'var(--text-secondary)' }}
-                                title="Delete"
-                              >
-                                <FiTrash2 size={16} />
-                              </button>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <select
+            value={clientFilter}
+            onChange={e => setClientFilter(e.target.value)}
+            className="px-3 py-2 rounded-lg text-sm"
+            style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+          >
+            <option value="all">All clients</option>
+            {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
         </div>
 
-        <div className="md:hidden flex flex-col gap-2">
-          {users.map((user) => (
-            <div
-              key={user.id}
-              onClick={() => canEditUser(user) && handleEdit(user)}
-              className={`glass-card p-3 ${canEditUser(user) ? 'cursor-pointer' : ''}`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--bg-tertiary)' }}>
-                  <FiUsers size={18} style={{ color: 'var(--text-secondary)' }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>{user.full_name || 'Unnamed'}</span>
-                    {getRoleBadge(user.role)}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    <FiMail size={12} />
-                    <span className="truncate">{user.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span
-                      className="px-1.5 py-0.5 rounded text-[10px] font-medium"
-                      style={{
-                        background: user.is_active ? 'var(--success-bg)' : 'var(--error-bg)',
-                        color: user.is_active ? 'var(--success)' : 'var(--error)'
-                      }}
-                    >
-                      {user.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                    {user.clients?.name && (
-                      <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{user.clients.name}</span>
-                    )}
-                  </div>
-                </div>
-                {canEditUser(user) && (
-                  <FiChevronRight size={20} style={{ color: 'var(--text-tertiary)' }} className="flex-shrink-0" />
-                )}
+        {loading ? (
+          <p className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>Loading...</p>
+        ) : (
+          <div className="space-y-6">
+            {agencyUsers.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                  <FiUsers size={13} />
+                  Agency / Admin
+                </h3>
+                <UserTable users={agencyUsers} onEdit={openEdit} onToggle={handleToggleActive} onPermissions={null} />
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+
+            {Object.values(groupedByClient).map(({ client, users: clientUsers }) => (
+              <div key={client.id}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-5 h-5 rounded flex items-center justify-center text-xs font-bold"
+                    style={{ background: `${client.primary_color}20`, color: client.primary_color }}>
+                    {client.name.charAt(0)}
+                  </div>
+                  <h3 className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>{client.name}</h3>
+                  <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>({clientUsers.length})</span>
+                </div>
+                <UserTable
+                  users={clientUsers}
+                  onEdit={openEdit}
+                  onToggle={handleToggleActive}
+                  onPermissions={(user) => setSelectedUserForPerms(user)}
+                  clientId={client.id}
+                />
+              </div>
+            ))}
+
+            {filteredUsers.length === 0 && (
+              <p className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>No users found.</p>
+            )}
+          </div>
+        )}
       </div>
 
-      <FloatingActionButton
-        onClick={() => setShowModal(true)}
-        label="Add User"
-      />
-
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" style={{ background: 'var(--overlay-bg)' }}>
-          <div
-            className="glass-card w-full md:max-w-md md:mx-4 rounded-t-2xl md:rounded-2xl max-h-[90vh] overflow-auto"
-            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}
-          >
-            <div className="sticky top-0 p-4" style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
-              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                {editingUser ? 'Edit User' : 'Add New User'}
-              </h2>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
+            <h2 className="text-lg font-semibold mb-5" style={{ color: 'var(--text-primary)' }}>
+              {editingUser ? 'Edit User' : 'New User'}
+            </h2>
 
-            <form onSubmit={handleSubmit} className="p-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  disabled={editingUser}
-                  required
-                  className="input"
-                />
+            {error && (
+              <div className="mb-4 px-3 py-2.5 rounded-lg text-sm" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171' }}>
+                {error}
               </div>
+            )}
 
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Full Name</label>
+                <input type="text" value={form.full_name} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm"
+                  style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
+              </div>
+              <div>
+                <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Email *</label>
+                <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                  disabled={!!editingUser}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm disabled:opacity-60"
+                  style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
+              </div>
               {!editingUser && (
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
-                    minLength={6}
-                    className="input"
-                  />
+                  <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Password *</label>
+                  <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-lg text-sm"
+                    style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
                 </div>
               )}
-
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.full_name}
-                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  required
-                  className="input"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
-                  Role
-                </label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="input"
-                  disabled={!isSuperAdmin() && (editingUser?.role === 'admin' || editingUser?.role === 'super_admin')}
-                >
-                  <option value="client">Client</option>
-                  {isSuperAdmin() && (
-                    <>
-                      <option value="admin">Admin</option>
-                      <option value="super_admin">Super Admin</option>
-                    </>
-                  )}
+                <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Role</label>
+                <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm"
+                  style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
+                  {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
               </div>
-
-              {formData.role === 'client' && (
+              {(form.role === 'client_admin' || form.role === 'client_user' || form.role === 'client' || form.role === 'staff') && (
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
-                    Client
-                  </label>
-                  <select
-                    value={formData.client_id || ''}
-                    onChange={(e) => setFormData({ ...formData, client_id: e.target.value || null })}
-                    className="input"
-                  >
-                    <option value="">Select a client</option>
-                    {clients.map((client) => (
-                      <option key={client.id} value={client.id}>
-                        {client.name}
-                      </option>
-                    ))}
+                  <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Client</label>
+                  <select value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-lg text-sm"
+                    style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
+                    <option value="">No client</option>
+                    {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
               )}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.is_active} onChange={e => setForm(p => ({ ...p, is_active: e.target.checked }))} className="rounded" />
+                <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Active</span>
+              </label>
+            </div>
 
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="is_active"
-                  checked={formData.is_active}
-                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="w-4 h-4 rounded"
-                  style={{ accentColor: 'var(--brand-primary)' }}
-                />
-                <label htmlFor="is_active" className="ml-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  Active
-                </label>
-              </div>
-
-              {error && (
-                <div className="p-3 rounded-lg text-sm" style={{
-                  background: 'var(--error-bg)',
-                  border: '1px solid var(--error)',
-                  color: 'var(--error)'
-                }}>
-                  {error}
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  disabled={submitting}
-                  className="btn btn-secondary flex-1"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="btn btn-primary flex-1"
-                >
-                  {submitting ? 'Saving...' : editingUser ? 'Update' : 'Create'}
-                </button>
-              </div>
-            </form>
+            <div className="flex justify-end gap-3 mt-6 pt-4" style={{ borderTop: '1px solid var(--border-color)' }}>
+              <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded-lg text-sm" style={{ color: 'var(--text-secondary)' }}>Cancel</button>
+              <button onClick={handleSave} disabled={saving} className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+                style={{ background: 'var(--accent)', color: '#fff' }}>
+                {saving ? 'Saving...' : editingUser ? 'Save Changes' : 'Create User'}
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {selectedUserForPerms && (
+        <UserBrandPermissionsModal
+          user={selectedUserForPerms}
+          clientId={selectedUserForPerms.client_id}
+          onClose={() => setSelectedUserForPerms(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function UserTable({ users, onEdit, onToggle, onPermissions, clientId }) {
+  if (users.length === 0) return <p className="text-xs px-1" style={{ color: 'var(--text-tertiary)' }}>No users.</p>;
+
+  return (
+    <div className="glass-card divide-y" style={{ divideColor: 'var(--border-color)' }}>
+      {users.map(user => (
+        <div key={user.id} className="px-4 py-3 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+            style={{ background: 'var(--glass-bg)', color: 'var(--text-secondary)' }}>
+            {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{user.full_name || '—'}</p>
+            <p className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>{user.email}</p>
+          </div>
+          <span className="text-xs px-2 py-1 rounded hidden sm:block" style={{ background: 'var(--glass-bg)', color: 'var(--text-secondary)' }}>
+            {user.role}
+          </span>
+          <div className="flex gap-1 flex-shrink-0">
+            {onPermissions && (
+              <button onClick={() => onPermissions(user)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-xs"
+                style={{ color: 'var(--text-tertiary)' }} title="Edit brand permissions">
+                Perms
+              </button>
+            )}
+            <button onClick={() => onEdit(user)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+              style={{ color: 'var(--text-tertiary)' }}>
+              <FiEdit2 size={13} />
+            </button>
+            <button onClick={() => onToggle(user)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+              style={{ color: user.is_active ? '#10B981' : 'var(--text-tertiary)' }}>
+              {user.is_active ? <FiUnlock size={13} /> : <FiLock size={13} />}
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

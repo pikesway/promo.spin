@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import MobileBottomNav from './MobileBottomNav';
 import GlobalHeader from './GlobalHeader';
+import ImpersonationBar from '../agency/ImpersonationBar';
 
 const PUBLIC_ROUTES = ['/loyalty'];
 
@@ -17,6 +18,7 @@ export default function AppLayout({ children }) {
   return (
     <div className="w-full max-w-full overflow-x-hidden">
       {showHeader && <GlobalHeader />}
+      {user && !isPublicRoute && !isAuthRoute && <ImpersonationBar />}
       <main className={`${showBottomNav ? 'safe-bottom' : ''} ${showHeader ? 'pt-14' : ''}`}>
         {children}
       </main>
