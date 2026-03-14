@@ -266,6 +266,12 @@ export default function LoyaltyCardPage() {
   const iconData = getIconById(stampIcon) || LOYALTY_ICONS[0];
   const StampIconComponent = iconData?.icon || FiCheck;
 
+  const headingColor = cardConfig.headingColor || '#FFFFFF';
+  const bodyColor = cardConfig.bodyColor || '#FFFFFF';
+  const buttonTextColor = cardConfig.buttonTextColor || '#FFFFFF';
+  const stampFilledColor = cardConfig.stampFilledColor || '#FFFFFF';
+  const stampEmptyColor = cardConfig.stampEmptyColor || 'rgba(255,255,255,0.2)';
+
   return (
     <div
       className="min-h-screen flex flex-col items-center py-6 px-4"
@@ -284,8 +290,10 @@ export default function LoyaltyCardPage() {
                 className="h-12 mx-auto mb-2 object-contain"
               />
             )}
-            <h1 className="text-white font-bold text-lg">{client?.name || 'Loyalty Program'}</h1>
-            <p className="text-white/80 text-sm mt-1">
+            <h1 className="font-bold text-lg" style={{ color: headingColor }}>
+              {client?.name || 'Loyalty Program'}
+            </h1>
+            <p className="text-sm mt-1" style={{ color: bodyColor, opacity: 0.9 }}>
               {loyaltyConfig.reward_name || loyaltyConfig.rewardName || 'Free Reward'}
             </p>
           </div>
@@ -301,11 +309,12 @@ export default function LoyaltyCardPage() {
                       aspect-square rounded-full flex items-center justify-center
                       transition-all duration-300
                       ${successAnimation && index === currentProgress - 1 ? 'scale-125' : ''}
-                      ${isFilled
-                        ? 'bg-white shadow-lg'
-                        : 'bg-white/20 border-2 border-white/30'
-                      }
+                      ${isFilled ? 'shadow-lg' : 'border-2'}
                     `}
+                    style={{
+                      backgroundColor: isFilled ? stampFilledColor : 'transparent',
+                      borderColor: !isFilled ? stampEmptyColor : 'transparent'
+                    }}
                   >
                     {isFilled && (
                       <div
@@ -319,7 +328,7 @@ export default function LoyaltyCardPage() {
                             className="w-5 h-5 object-contain"
                           />
                         ) : (
-                          <StampIconComponent className="text-white" size={14} />
+                          <StampIconComponent style={{ color: '#FFFFFF' }} size={14} />
                         )}
                       </div>
                     )}
@@ -328,7 +337,7 @@ export default function LoyaltyCardPage() {
               })}
             </div>
 
-            <div className="text-center text-white">
+            <div className="text-center" style={{ color: bodyColor }}>
               {rewardUnlocked ? (
                 <p className="font-semibold flex items-center justify-center gap-2">
                   <FiGift className="text-yellow-300" />
@@ -337,7 +346,7 @@ export default function LoyaltyCardPage() {
               ) : (
                 <p className="text-sm">
                   <span className="font-bold text-lg">{stampsRemaining}</span>
-                  <span className="opacity-80"> stamps until your reward</span>
+                  <span style={{ opacity: 0.8 }}> stamps until your reward</span>
                 </p>
               )}
             </div>
@@ -367,8 +376,8 @@ export default function LoyaltyCardPage() {
           {rewardUnlocked ? (
             <button
               onClick={handleRedeemReward}
-              className="w-full py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-              style={{ backgroundColor: primaryColor }}
+              className="w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              style={{ backgroundColor: primaryColor, color: buttonTextColor }}
             >
               <FiGift size={20} />
               Redeem Your Reward
@@ -376,8 +385,8 @@ export default function LoyaltyCardPage() {
           ) : (
             <button
               onClick={() => handleConfirmAction('visit')}
-              className="w-full py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-              style={{ backgroundColor: primaryColor }}
+              className="w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              style={{ backgroundColor: primaryColor, color: buttonTextColor }}
             >
               <FiCheck size={20} />
               Confirm {loyaltyConfig.program_type === 'action' || loyaltyConfig.programType === 'action' ? 'Purchase' : 'Visit'}
@@ -386,7 +395,8 @@ export default function LoyaltyCardPage() {
 
           <button
             onClick={fetchData}
-            className="w-full py-3 rounded-xl font-medium text-gray-400 hover:text-white hover:bg-white/10 flex items-center justify-center gap-2 transition-colors"
+            className="w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors hover:bg-white/10"
+            style={{ color: bodyColor, opacity: 0.7 }}
           >
             <FiRefreshCw size={16} />
             Refresh Card
