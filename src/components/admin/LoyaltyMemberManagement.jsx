@@ -53,11 +53,13 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
 
       const { data: redemptionData } = await supabase
         .from('loyalty_redemptions')
-        .select('status')
+        .select('status, redemption_id(status)')
         .in('campaign_id', campaignIds);
 
       const rewardsIssued = (progressData || []).length;
-      const rewardsRedeemed = (redemptionData || []).filter(r => r.status === 'redeemed').length;
+      const rewardsRedeemed = (redemptionData || []).filter(r =>
+        r.status === 'redeemed' || r.redemption_id?.status === 'redeemed'
+      ).length;
 
       setStats({
         totalMembers,
