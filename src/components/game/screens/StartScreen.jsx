@@ -44,11 +44,11 @@ const StartScreen = ({ game, onNext, hasSpun, nextSpinTime }) => {
     if (isOnePerUser || (isTimeLimit && nextSpinTime)) {
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-8 text-center max-w-md w-full">
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center max-w-md w-full">
             <h1 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: fonts.primary }}>
               Already Played
             </h1>
-
+            
             {isOnePerUser && (
               <p className="text-gray-600 mb-6" style={{ fontFamily: fonts.secondary }}>
                 You have already played this game. Thank you for participating!
@@ -79,11 +79,11 @@ const StartScreen = ({ game, onNext, hasSpun, nextSpinTime }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-8 text-center max-w-md w-full">
+      <div className="bg-white rounded-lg shadow-lg p-8 text-center max-w-md w-full">
         {screenData.logo && (
-          <img
-            src={screenData.logo}
-            alt="Logo"
+          <img 
+            src={screenData.logo} 
+            alt="Logo" 
             className="mx-auto mb-6 max-h-20 object-contain"
             onError={(e) => e.target.style.display = 'none'}
           />
@@ -94,7 +94,7 @@ const StartScreen = ({ game, onNext, hasSpun, nextSpinTime }) => {
         <p className="text-gray-600 mb-6" style={{ fontFamily: fonts.secondary }}>
           {screenData.subheading || 'Try your luck and win amazing prizes'}
         </p>
-
+        
         {screenData.rulesText && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
             <p className="text-sm text-gray-700" style={{ fontFamily: fonts.secondary }}>

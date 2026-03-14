@@ -34,13 +34,13 @@ const RedemptionLog = () => {
   return (
     <div className="space-y-6">
       <div className="relative">
-        <SafeIcon icon={FiSearch} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
-        <input
-          type="text"
-          placeholder="Search codes or prizes..."
+        <SafeIcon icon={FiSearch} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+        <input 
+          type="text" 
+          placeholder="Search codes or prizes..." 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="input w-full pl-11"
+          className="w-full bg-charcoal-800 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
         />
       </div>
 
@@ -50,7 +50,7 @@ const RedemptionLog = () => {
             <div className="flex items-start space-x-4">
               <div className={`
                 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
-                ${item.status === 'redeemed' ? 'bg-green-500/10 text-green-400' : 'bg-teal-500/10 text-teal-400'}
+                ${item.status === 'redeemed' ? 'bg-green-500/10 text-green-400' : 'bg-indigo-500/10 text-indigo-400'}
               `}>
                 <span className="font-mono font-bold text-sm">
                   {item.shortCode.substring(0,2)}
@@ -58,27 +58,24 @@ const RedemptionLog = () => {
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <h4 className="font-bold text-lg tracking-tight" style={{ color: 'var(--text-primary)' }}>{item.shortCode}</h4>
+                  <h4 className="font-bold text-white text-lg tracking-tight">{item.shortCode}</h4>
                   <StatusBadge status={item.status} />
                 </div>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{item.prizeName}</p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>{games.find(g => g.id === item.gameId)?.name}</p>
+                <p className="text-gray-400 text-sm">{item.prizeName}</p>
+                <p className="text-xs text-gray-600 mt-1">{games.find(g => g.id === item.gameId)?.name}</p>
               </div>
             </div>
 
-            <div
-              className="flex items-center justify-between w-full md:w-auto md:space-x-6 pt-4 md:pt-0"
-              style={{ borderTop: '1px solid var(--border-color)', borderTopWidth: 'inherit' }}
-            >
+            <div className="flex items-center justify-between w-full md:w-auto md:space-x-6 border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
               <div className="text-right">
-                <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Expires</div>
-                <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                <div className="text-xs text-gray-500">Expires</div>
+                <div className="text-sm text-gray-300">
                   {item.expiresAt ? new Date(item.expiresAt).toLocaleDateString() : 'Never'}
                 </div>
               </div>
-
+              
               {item.status === 'active' && (
-                <button
+                <button 
                   onClick={() => { if(confirm('Void coupon?')) updateStatus(item.id, 'voided'); }}
                   className="bg-red-500/10 hover:bg-red-500/20 text-red-400 p-2 rounded-lg transition-colors"
                 >

@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import SafeIcon from './SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
-const { FiUpload, FiX } = FiIcons;
+const { FiUpload, FiImage, FiX } = FiIcons;
 
 const ImageUploader = ({ label, value, onChange, helpText }) => {
   const fileInputRef = useRef(null);
@@ -18,12 +18,13 @@ const ImageUploader = ({ label, value, onChange, helpText }) => {
     setError('');
     if (!file) return;
 
+    // Simple validation
     if (!file.type.startsWith('image/')) {
       setError('Please select an image file');
       return;
     }
 
-    if (file.size > 500000) {
+    if (file.size > 500000) { // 500KB limit for localStorage safety
       setError('Image too large. Please use an image under 500KB.');
       return;
     }
@@ -57,52 +58,42 @@ const ImageUploader = ({ label, value, onChange, helpText }) => {
 
   return (
     <div className="w-full">
-      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
         {label}
       </label>
-
+      
       {!value ? (
         <div
-          className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors"
-          style={{
-            borderColor: isDragging ? 'var(--brand-primary)' : 'var(--border-color)',
-            background: isDragging ? 'var(--glass-bg)' : 'var(--bg-tertiary)'
-          }}
+          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+            isDragging 
+              ? 'border-blue-500 bg-blue-50' 
+              : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+          }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
         >
-          <div
-            className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
-            style={{ background: 'var(--bg-tertiary)' }}
-          >
-            <SafeIcon icon={FiUpload} className="w-6 h-6" style={{ color: 'var(--icon-secondary)' }} />
+          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <SafeIcon icon={FiUpload} className="w-6 h-6 text-gray-400" />
           </div>
-          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Click to upload</p>
-          <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>or drag and drop PNG, JPG (max 500KB)</p>
+          <p className="text-sm font-medium text-gray-900">Click to upload</p>
+          <p className="text-xs text-gray-500 mt-1">or drag and drop PNG, JPG (max 500KB)</p>
         </div>
       ) : (
-        <div
-          className="relative rounded-lg p-2"
-          style={{ border: '1px solid var(--border-color)', background: 'var(--bg-tertiary)' }}
-        >
-          <div
-            className="aspect-video w-full h-32 relative rounded overflow-hidden mb-2"
-            style={{ background: 'var(--bg-secondary)' }}
-          >
-            <img
-              src={value}
-              alt="Preview"
+        <div className="relative border border-gray-200 rounded-lg p-2 bg-gray-50">
+          <div className="aspect-video w-full h-32 relative rounded overflow-hidden bg-gray-200 mb-2">
+            <img 
+              src={value} 
+              alt="Preview" 
               className="w-full h-full object-contain"
             />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs truncate max-w-[200px]" style={{ color: 'var(--text-tertiary)' }}>Image selected</span>
+            <span className="text-xs text-gray-500 truncate max-w-[200px]">Image selected</span>
             <button
               onClick={() => onChange('')}
-              className="text-sm font-medium flex items-center space-x-1"
-              style={{ color: 'var(--error)' }}
+              className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center space-x-1"
             >
               <SafeIcon icon={FiX} className="w-4 h-4" />
               <span>Remove</span>
@@ -112,11 +103,11 @@ const ImageUploader = ({ label, value, onChange, helpText }) => {
       )}
 
       {error && (
-        <p className="text-xs mt-2" style={{ color: 'var(--error)' }}>{error}</p>
+        <p className="text-xs text-red-600 mt-2">{error}</p>
       )}
-
+      
       {helpText && !error && (
-        <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>{helpText}</p>
+        <p className="text-xs text-gray-500 mt-2">{helpText}</p>
       )}
 
       <input
@@ -126,23 +117,19 @@ const ImageUploader = ({ label, value, onChange, helpText }) => {
         accept="image/*"
         onChange={handleFileChange}
       />
-
+      
+      {/* Fallback URL input for external images */}
       <div className="mt-2">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>URL</span>
+            <span className="text-gray-400 text-xs">URL</span>
           </div>
           <input
             type="text"
             value={value && value.startsWith('data:') ? '' : value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Or paste image URL..."
-            className="w-full rounded-md py-1 pl-10 pr-3 text-xs"
-            style={{
-              background: 'var(--input-bg)',
-              border: '1px solid var(--input-border)',
-              color: 'var(--text-primary)'
-            }}
+            className="w-full border border-gray-300 rounded-md py-1 pl-10 pr-3 text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>

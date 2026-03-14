@@ -7,7 +7,7 @@ import RedemptionLog from './RedemptionLog';
 import SafeIcon from '../../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
-const { FiPlus, FiGrid, FiBarChart2, FiGift, FiLogOut } = FiIcons;
+const { FiPlus, FiGrid, FiBarChart2, FiGift, FiLogOut, FiMenu, FiX } = FiIcons;
 
 const AdminDashboard = () => {
   const { createGame, isLocalMode } = useGame();
@@ -16,6 +16,7 @@ const AdminDashboard = () => {
   const [showBuilder, setShowBuilder] = useState(false);
 
   const handleCreateGame = () => {
+    // Default game structure
     const defaultGame = {
       name: 'New Spin Game',
       is_active: true,
@@ -44,7 +45,7 @@ const AdminDashboard = () => {
         thankYou: { enabled: true, headline: 'Thank You!', buttonText: 'Visit Website' }
       }
     };
-
+    
     const newGame = createGame(defaultGame);
     setSelectedGame(newGame);
     setShowBuilder(true);
@@ -57,13 +58,13 @@ const AdminDashboard = () => {
 
   if (showBuilder && selectedGame) {
     return (
-      <div className="premium-admin-wrapper min-h-screen" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-        <GameBuilder
-          game={selectedGame}
+      <div className="premium-admin-wrapper min-h-screen bg-charcoal-900 text-white">
+        <GameBuilder 
+          game={selectedGame} 
           onBack={() => {
             setShowBuilder(false);
             setSelectedGame(null);
-          }}
+          }} 
         />
       </div>
     );
@@ -76,64 +77,69 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden font-sans" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-
-      <aside className="hidden md:flex flex-col w-64" style={{ borderRight: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
+    <div className="flex h-screen bg-charcoal-900 text-white overflow-hidden font-sans selection:bg-indigo-500 selection:text-white">
+      
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex flex-col w-64 border-r border-white/5 bg-charcoal-800/50 backdrop-blur-xl">
         <div className="p-8">
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--brand-primary)' }}>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
             GretaAdmin
           </h1>
-          <p className="text-xs mt-1 uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>v2.0 Premium</p>
+          <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider">v2.0 Premium</p>
         </div>
-
+        
         <nav className="flex-1 px-4 space-y-2">
           {navItems.map(item => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group"
-              style={{
-                background: activeTab === item.id ? 'var(--glass-bg)' : 'transparent',
-                color: activeTab === item.id ? 'var(--brand-primary)' : 'var(--text-secondary)',
-                border: activeTab === item.id ? '1px solid var(--border-color)' : '1px solid transparent'
-              }}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                activeTab === item.id 
+                  ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-neon' 
+                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
+              }`}
             >
-              <SafeIcon icon={item.icon} className="w-5 h-5" style={{ color: activeTab === item.id ? 'var(--brand-primary)' : 'inherit' }} />
+              <SafeIcon icon={item.icon} className={`w-5 h-5 ${activeTab === item.id ? 'text-indigo-400' : 'group-hover:text-white'}`} />
               <span className="font-medium text-sm">{item.label}</span>
             </button>
           ))}
         </nav>
 
-        <div className="p-4" style={{ borderTop: '1px solid var(--border-color)' }}>
-          <button className="w-full flex items-center space-x-3 px-4 py-3 transition-colors" style={{ color: 'var(--text-tertiary)' }}>
-            <SafeIcon icon={FiLogOut} className="w-5 h-5" />
-            <span className="text-sm">Logout</span>
-          </button>
+        <div className="p-4 border-t border-white/5">
+           <button className="w-full flex items-center space-x-3 px-4 py-3 text-gray-500 hover:text-white transition-colors">
+              <SafeIcon icon={FiLogOut} className="w-5 h-5" />
+              <span className="text-sm">Logout</span>
+           </button>
         </div>
       </aside>
 
+      {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-full relative overflow-hidden">
-        <header className="md:hidden h-16 flex items-center justify-between px-4 z-20" style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
-          <h1 className="text-lg font-bold" style={{ color: 'var(--brand-primary)' }}>
+        {/* Mobile Top Bar */}
+        <header className="md:hidden h-16 border-b border-white/5 bg-charcoal-800/80 backdrop-blur-md flex items-center justify-between px-4 z-20">
+          <h1 className="text-lg font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
             GretaAdmin
           </h1>
-          <div className="w-8 h-8 rounded-full" style={{ background: 'var(--brand-primary)' }}></div>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600"></div>
         </header>
 
+        {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto admin-scroll p-4 md:p-8 pb-24 md:pb-8">
+          
+          {/* Header Action Area */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 fade-in">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+              <h2 className="text-3xl font-bold text-white tracking-tight">
                 {navItems.find(i => i.id === activeTab)?.label}
               </h2>
-              <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+              <p className="text-gray-400 text-sm mt-1">
                 Manage your campaigns and performance
               </p>
             </div>
             {activeTab === 'games' && (
-              <button
+              <button 
                 onClick={handleCreateGame}
-                className="btn btn-primary px-5 py-2.5 font-medium flex items-center justify-center space-x-2 active:scale-95"
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all flex items-center justify-center space-x-2 active:scale-95"
               >
                 <SafeIcon icon={FiPlus} className="w-5 h-5" />
                 <span>Create Campaign</span>
@@ -141,13 +147,15 @@ const AdminDashboard = () => {
             )}
           </div>
 
+          {/* Local Mode Warning */}
           {isLocalMode && (
-            <div className="mb-6 p-4 rounded-xl text-sm flex items-center" style={{ background: 'var(--warning-bg)', border: '1px solid rgba(245, 158, 11, 0.2)', color: 'var(--warning-text, var(--warning))' }}>
-              <span className="w-2 h-2 rounded-full mr-3 animate-pulse" style={{ background: 'var(--warning)' }}></span>
-              Local Mode: Data is saved to your browser only. Connect Supabase for cloud sync.
+            <div className="mb-6 p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-200 text-sm flex items-center">
+               <span className="w-2 h-2 rounded-full bg-orange-400 mr-3 animate-pulse"></span>
+               Local Mode: Data is saved to your browser only. Connect Supabase for cloud sync.
             </div>
           )}
 
+          {/* Tab Content */}
           <div className="premium-admin-wrapper">
             {activeTab === 'games' && <GameList onEditGame={handleEditGame} />}
             {activeTab === 'reports' && <LeadReporting />}
@@ -155,21 +163,21 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 flex justify-around items-center px-2 z-30 pb-safe" style={{ background: 'var(--bg-primary)', borderTop: '1px solid var(--border-color)' }}>
+        {/* Mobile Bottom Navigation */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-charcoal-900/90 backdrop-blur-xl border-t border-white/10 flex justify-around items-center px-2 z-30 pb-safe">
           {navItems.map(item => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className="flex flex-col items-center justify-center w-full h-full space-y-1 active:scale-90 transition-transform"
             >
-              <div className="p-1.5 rounded-xl" style={{ background: activeTab === item.id ? 'var(--glass-bg)' : 'transparent' }}>
-                <SafeIcon
-                  icon={item.icon}
-                  className="w-6 h-6"
-                  style={{ color: activeTab === item.id ? 'var(--brand-primary)' : 'var(--text-tertiary)' }}
+              <div className={`p-1.5 rounded-xl ${activeTab === item.id ? 'bg-indigo-500/20' : 'bg-transparent'}`}>
+                <SafeIcon 
+                  icon={item.icon} 
+                  className={`w-6 h-6 ${activeTab === item.id ? 'text-indigo-400' : 'text-gray-500'}`} 
                 />
               </div>
-              <span className="text-[10px] font-medium" style={{ color: activeTab === item.id ? 'var(--brand-primary)' : 'var(--text-tertiary)' }}>
+              <span className={`text-[10px] font-medium ${activeTab === item.id ? 'text-indigo-400' : 'text-gray-500'}`}>
                 {item.label}
               </span>
             </button>
