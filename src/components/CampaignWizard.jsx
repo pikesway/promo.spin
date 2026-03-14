@@ -4,7 +4,7 @@ import { usePlatform } from '../context/PlatformContext';
 import { initializeCampaignConfig } from '../utils/campaignAdapter';
 import { LOYALTY_ICONS, getIconById } from '../constants/loyaltyIcons';
 
-export default function CampaignWizard({ clientId, onClose, onCampaignCreated }) {
+export default function CampaignWizard({ clientId, brandId, brands = [], onClose, onCampaignCreated }) {
   const { createCampaign, clients } = usePlatform();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -24,6 +24,7 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
     loyaltyRewardDescription: ''
   });
 
+  const [selectedBrandId, setSelectedBrandId] = useState(brandId || (brands[0]?.id ?? null));
   const client = useMemo(() => clients.find(c => c.id === clientId), [clients, clientId]);
 
   const handleTypeSelect = (type) => {
@@ -52,13 +53,14 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
       }
 
       const newCampaign = await createCampaign({
-        clientId,
+        client_id: clientId,
+        brand_id: selectedBrandId,
         name: formData.name,
         slug,
         type: formData.type,
         status: 'draft',
-        startDate: null,
-        endDate: null,
+        start_date: null,
+        end_date: null,
         config: fullConfig
       });
 
@@ -151,6 +153,20 @@ export default function CampaignWizard({ clientId, onClose, onCampaignCreated })
           {step === 1 && (
             <div>
               <h3 className="text-base md:text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Select Campaign Type</h3>
+              {brands.length > 1 && (
+                <div className="mb-4">
+                  <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Brand</label>
+                  <select
+                    className="select"
+                    value={selectedBrandId || ''}
+                    onChange={(e) => setSelectedBrandId(e.target.value || null)}
+                  >
+                    {brands.map(b => (
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {campaignTypes.map((type) => (
                   <button key={type.id} onClick={() => handleTypeSelect(type.id)} className="p-4 md:p-5 rounded-xl text-left border-2 transition-all active:scale-[0.98]" style={{ background: 'var(--card-bg)', borderColor: 'var(--border-color)' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = type.color; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}>

@@ -329,7 +329,9 @@ export const PlatformProvider = ({ children }) => {
     }
   };
 
-  const duplicateCampaign = async (campaign) => {
+  const duplicateCampaign = async (campaignId) => {
+    const campaign = campaigns.find(c => c.id === campaignId);
+    if (!campaign) return { data: null, error: new Error('Campaign not found') };
     const { id, created_at, updated_at, slug, ...rest } = campaign;
     const newSlug = `${slug}-copy-${Date.now()}`;
     return createCampaign({ ...rest, slug: newSlug, status: 'draft', name: `${campaign.name} (Copy)` });

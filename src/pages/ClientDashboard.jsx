@@ -269,6 +269,7 @@ export default function ClientDashboard() {
               <h3 className="text-base md:text-xl font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>All Campaigns</h3>
               <CampaignList
                 campaigns={clientCampaigns}
+                brands={clientBrands}
                 onEditCampaign={isClientAdmin() ? setEditingCampaign : null}
                 onDeleteCampaign={isClientAdmin() ? handleDeleteCampaign : null}
                 onDuplicateCampaign={isClientAdmin() ? handleDuplicateCampaign : null}
