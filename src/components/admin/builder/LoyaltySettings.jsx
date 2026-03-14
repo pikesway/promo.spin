@@ -4,28 +4,88 @@ import { FiInfo, FiPlus, FiX, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import { LOYALTY_ICONS, getIconById } from '../../../constants/loyaltyIcons';
 import SafeIcon from '../../../common/SafeIcon';
 
+const IconSingleConfig = ({ config, onChange }) => {
+  const targetIcon = config.targetIcon || 'heart';
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium theme-text-secondary mb-2">
+          Select Target Icon
+        </label>
+        <p className="text-xs theme-text-tertiary mb-3">
+          Staff must select this specific icon from a grid to validate a visit.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-8 gap-2">
+        {LOYALTY_ICONS.map((iconData) => {
+          const isSelected = targetIcon === iconData.id;
+          return (
+            <button
+              key={iconData.id}
+              onClick={() => onChange('targetIcon', iconData.id)}
+              className="p-3 rounded-lg transition-all"
+              style={{
+                background: isSelected ? 'rgba(244, 63, 94, 0.2)' : 'var(--bg-tertiary)',
+                boxShadow: isSelected ? '0 0 0 2px #F43F5E' : 'none'
+              }}
+            >
+              <SafeIcon
+                icon={iconData.icon}
+                className="w-6 h-6 mx-auto"
+                style={{ color: isSelected ? iconData.color : 'var(--text-tertiary)' }}
+              />
+            </button>
+          );
+        })}
+      </div>
+
+      {targetIcon && (
+        <div className="p-3 theme-bg-tertiary rounded-lg border theme-border">
+          <p className="text-xs theme-text-tertiary mb-2">Staff must find this icon:</p>
+          <div className="flex gap-2">
+            {(() => {
+              const iconData = getIconById(targetIcon);
+              if (!iconData) return null;
+              return (
+                <div
+                  className="w-12 h-12 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: `${iconData.color}20` }}
+                >
+                  <SafeIcon icon={iconData.icon} className="w-7 h-7" style={{ color: iconData.color }} />
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const IconSequenceConfig = ({ config, onChange }) => {
-  const sequence = config.sequence || [];
+  const iconSequence = config.iconSequence || [];
   const [showPicker, setShowPicker] = useState(false);
 
   const addIcon = (iconId) => {
-    if (sequence.length < 5) {
-      onChange('sequence', [...sequence, iconId]);
+    if (iconSequence.length < 5) {
+      onChange('iconSequence', [...iconSequence, iconId]);
     }
     setShowPicker(false);
   };
 
   const removeIcon = (index) => {
-    const newSequence = sequence.filter((_, i) => i !== index);
-    onChange('sequence', newSequence);
+    const newSequence = iconSequence.filter((_, i) => i !== index);
+    onChange('iconSequence', newSequence);
   };
 
   const moveIcon = (index, direction) => {
-    const newSequence = [...sequence];
+    const newSequence = [...iconSequence];
     const newIndex = index + direction;
-    if (newIndex >= 0 && newIndex < sequence.length) {
+    if (newIndex >= 0 && newIndex < iconSequence.length) {
       [newSequence[index], newSequence[newIndex]] = [newSequence[newIndex], newSequence[index]];
-      onChange('sequence', newSequence);
+      onChange('iconSequence', newSequence);
     }
   };
 
@@ -33,7 +93,7 @@ const IconSequenceConfig = ({ config, onChange }) => {
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium theme-text-secondary mb-2">
-          Icon Sequence (1-5 icons)
+          Icon Sequence (2-5 icons)
         </label>
         <p className="text-xs theme-text-tertiary mb-3">
           Staff must tap these icons in order to validate a visit. This sequence is kept secret from customers.
@@ -41,7 +101,7 @@ const IconSequenceConfig = ({ config, onChange }) => {
       </div>
 
       <div className="flex flex-wrap gap-2 min-h-[60px] p-3 theme-bg-tertiary rounded-lg border theme-border">
-        {sequence.map((iconId, index) => {
+        {iconSequence.map((iconId, index) => {
           const iconData = getIconById(iconId);
           if (!iconData) return null;
           return (
@@ -56,7 +116,7 @@ const IconSequenceConfig = ({ config, onChange }) => {
               >
                 <SafeIcon icon={iconData.icon} className="w-5 h-5" style={{ color: iconData.color }} />
               </div>
-              {sequence.length > 1 && (
+              {iconSequence.length > 1 && (
                 <div className="flex flex-col ml-1">
                   <button
                     onClick={() => moveIcon(index, -1)}
@@ -67,7 +127,7 @@ const IconSequenceConfig = ({ config, onChange }) => {
                   </button>
                   <button
                     onClick={() => moveIcon(index, 1)}
-                    disabled={index === sequence.length - 1}
+                    disabled={index === iconSequence.length - 1}
                     className="p-0.5 hover:bg-white/10 rounded disabled:opacity-30"
                   >
                     <FiArrowDown className="w-3 h-3 theme-text-tertiary" />
@@ -83,7 +143,7 @@ const IconSequenceConfig = ({ config, onChange }) => {
             </div>
           );
         })}
-        {sequence.length < 5 && (
+        {iconSequence.length < 5 && (
           <button
             onClick={() => setShowPicker(true)}
             className="w-12 h-12 rounded-lg border-2 border-dashed border-white/20 flex items-center justify-center hover:border-rose-500/50 hover:bg-rose-500/10 transition-colors"
@@ -93,8 +153,8 @@ const IconSequenceConfig = ({ config, onChange }) => {
         )}
       </div>
 
-      {sequence.length === 0 && (
-        <p className="text-xs text-amber-400">Add at least 1 icon to complete the sequence.</p>
+      {iconSequence.length < 2 && (
+        <p className="text-xs text-amber-400">Add at least 2 icons to complete the sequence.</p>
       )}
 
       {showPicker && (
@@ -129,106 +189,6 @@ const IconSequenceConfig = ({ config, onChange }) => {
   );
 };
 
-const IconGridConfig = ({ config, onChange }) => {
-  const selectedIcons = config.selectedIcons || [];
-  const gridSize = config.gridSize || 9;
-
-  const toggleIcon = (iconId) => {
-    if (selectedIcons.includes(iconId)) {
-      onChange('selectedIcons', selectedIcons.filter(id => id !== iconId));
-    } else if (selectedIcons.length < Math.floor(gridSize / 2)) {
-      onChange('selectedIcons', [...selectedIcons, iconId]);
-    }
-  };
-
-  const maxSelectable = Math.floor(gridSize / 2);
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium theme-text-secondary mb-2">
-          Icon Grid Pattern
-        </label>
-        <p className="text-xs theme-text-tertiary mb-3">
-          Staff must select all the correct icons from a grid. Select 2-{maxSelectable} icons that staff must identify.
-        </p>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium theme-text-secondary mb-2">
-          Grid Size
-        </label>
-        <select
-          value={gridSize}
-          onChange={(e) => {
-            const newSize = parseInt(e.target.value);
-            onChange('gridSize', newSize);
-            const newMax = Math.floor(newSize / 2);
-            if (selectedIcons.length > newMax) {
-              onChange('selectedIcons', selectedIcons.slice(0, newMax));
-            }
-          }}
-          className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
-        >
-          <option value={6}>6 icons (2x3)</option>
-          <option value={9}>9 icons (3x3)</option>
-          <option value={12}>12 icons (3x4)</option>
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium theme-text-secondary mb-2">
-          Select Target Icons ({selectedIcons.length}/{maxSelectable} max)
-        </label>
-        <div className="grid grid-cols-6 gap-2 p-3 theme-bg-tertiary rounded-lg border theme-border">
-          {LOYALTY_ICONS.map((icon) => {
-            const isSelected = selectedIcons.includes(icon.id);
-            return (
-              <button
-                key={icon.id}
-                onClick={() => toggleIcon(icon.id)}
-                disabled={!isSelected && selectedIcons.length >= maxSelectable}
-                className={`p-2 rounded-lg transition-colors ${
-                  isSelected
-                    ? 'bg-rose-500/20 ring-2 ring-rose-500'
-                    : 'hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed'
-                }`}
-              >
-                <SafeIcon icon={icon.icon} className="w-6 h-6 mx-auto" style={{ color: icon.color }} />
-                <span className="text-xs theme-text-tertiary block mt-1">{icon.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {selectedIcons.length < 2 && (
-        <p className="text-xs text-amber-400">Select at least 2 icons for the pattern.</p>
-      )}
-
-      {selectedIcons.length >= 2 && (
-        <div className="p-3 theme-bg-tertiary rounded-lg border theme-border">
-          <p className="text-xs theme-text-tertiary mb-2">Staff must find these {selectedIcons.length} icons:</p>
-          <div className="flex flex-wrap gap-2">
-            {selectedIcons.map(iconId => {
-              const iconData = getIconById(iconId);
-              if (!iconData) return null;
-              return (
-                <div
-                  key={iconId}
-                  className="w-10 h-10 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: `${iconData.color}20` }}
-                >
-                  <SafeIcon icon={iconData.icon} className="w-6 h-6" style={{ color: iconData.color }} />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
 
 const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
   const qrRef = useRef();
@@ -389,8 +349,8 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
               className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
             >
               <option value="pin">PIN Code</option>
+              <option value="icon_single">Icon Selection</option>
               <option value="icon_sequence">Icon Sequence</option>
-              <option value="icon_grid">Icon Grid Pattern</option>
             </select>
             <p className="text-xs theme-text-tertiary mt-1">
               Staff must complete this verification to add stamps.
@@ -404,8 +364,8 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
               </label>
               <input
                 type="text"
-                value={loyaltyData.validationConfig.pin || ''}
-                onChange={(e) => handleValidationConfigChange('pin', e.target.value)}
+                value={loyaltyData.validationConfig.pin || loyaltyData.validationConfig.pinValue || ''}
+                onChange={(e) => handleValidationConfigChange('pinValue', e.target.value)}
                 maxLength={6}
                 placeholder="1234"
                 className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary placeholder-gray-500 font-mono tracking-widest"
@@ -416,15 +376,15 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
             </div>
           )}
 
-          {loyaltyData.validationMethod === 'icon_sequence' && (
-            <IconSequenceConfig
+          {loyaltyData.validationMethod === 'icon_single' && (
+            <IconSingleConfig
               config={loyaltyData.validationConfig}
               onChange={handleValidationConfigChange}
             />
           )}
 
-          {loyaltyData.validationMethod === 'icon_grid' && (
-            <IconGridConfig
+          {loyaltyData.validationMethod === 'icon_sequence' && (
+            <IconSequenceConfig
               config={loyaltyData.validationConfig}
               onChange={handleValidationConfigChange}
             />
