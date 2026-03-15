@@ -274,7 +274,7 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
                       onClick={() => setFormData({ ...formData, loyaltyBirthdayEnabled: !formData.loyaltyBirthdayEnabled })}
                       className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${formData.loyaltyBirthdayEnabled ? 'bg-green-500' : 'bg-gray-600'}`}
                     >
-                      <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow ${formData.loyaltyBirthdayEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                      <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow ${formData.loyaltyBirthdayEnabled === true ? 'left-6' : 'left-1'}`} />
                     </button>
                   </div>
                   {formData.loyaltyBirthdayEnabled && (

@@ -346,7 +346,7 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
                 onClick={() => handleChange('birthdayRewardEnabled', !loyaltyData.birthdayRewardEnabled)}
                 className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${loyaltyData.birthdayRewardEnabled ? 'bg-green-500' : 'bg-gray-600'}`}
               >
-                <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow ${loyaltyData.birthdayRewardEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow ${loyaltyData.birthdayRewardEnabled === true ? 'left-6' : 'left-1'}`} />
               </button>
             </div>
             {loyaltyData.birthdayRewardEnabled && (
