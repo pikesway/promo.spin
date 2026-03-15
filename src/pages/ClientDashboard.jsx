@@ -23,7 +23,7 @@ export default function ClientDashboard() {
   const { clientId } = useParams();
   const navigate = useNavigate();
   const {
-    signOut, isClient, isAdmin, isClientAdmin, isClientUser,
+    signOut, isClient, isAdmin, isClientAdmin, isClientUser, isStaff,
     canAddCampaign, canEditCampaign, canDeleteCampaign, canActivatePause, canViewStats,
     getPermittedBrandIds
   } = useAuth();
@@ -233,7 +233,7 @@ export default function ClientDashboard() {
               </div>
             </div>
             <div className="hidden md:flex gap-2 flex-shrink-0 items-center">
-              {isClientUser() && (
+              {(isClientUser() || isStaff()) && (
                 <button
                   onClick={() => navigate('/staff')}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
@@ -252,7 +252,7 @@ export default function ClientDashboard() {
               <button className="btn btn-ghost p-2" onClick={handleSignOut}><FiLogOut size={18} /></button>
             </div>
           </div>
-          {isClientUser() && (
+          {(isClientUser() || isStaff()) && (
             <div className="flex gap-2 mt-3 md:hidden">
               <button
                 onClick={() => navigate('/staff')}
