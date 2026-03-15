@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar, FiHeart, FiTag, FiChevronDown, FiUsers, FiBarChart2 } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar, FiHeart, FiTag, FiChevronDown, FiUsers, FiBarChart2, FiX } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabase/client';
@@ -45,6 +45,7 @@ export default function ClientDashboard() {
   const [dashboardError, setDashboardError] = useState(null);
   const [copiedText, setCopiedText] = useState(null);
   const [clientUsers, setClientUsers] = useState([]);
+  const [showLimitsModal, setShowLimitsModal] = useState(false);
 
   const client = clients.find(c => c.id === clientId);
   const allClientBrands = getBrandsByClient(clientId);
@@ -241,6 +242,9 @@ export default function ClientDashboard() {
                   Staff Terminal
                 </button>
               )}
+              {isFullAccess && usage && (
+                <button className="btn btn-ghost p-2" onClick={() => setShowLimitsModal(true)} title="Usage &amp; Limits"><FiBarChart2 size={18} /></button>
+              )}
               {isFullAccess && (
                 <button className="btn btn-ghost p-2" onClick={() => setShowBrandingModal(true)}><FiSettings size={18} /></button>
               )}
@@ -310,12 +314,6 @@ export default function ClientDashboard() {
                 {clientCampaigns.length} campaign{clientCampaigns.length !== 1 ? 's' : ''}
               </span>
             )}
-          </div>
-        )}
-
-        {isFullAccess && usage && (
-          <div className="mb-4">
-            <ClientLimitsPanel client={client} usage={usage} editable={false} />
           </div>
         )}
 
@@ -541,6 +539,35 @@ export default function ClientDashboard() {
             </div>
             <div className="p-4">
               <ClientBrandingForm client={client} onSave={handleSaveBranding} onCancel={() => setShowBrandingModal(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showLimitsModal && usage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowLimitsModal(false); }}
+        >
+          <div className="w-full max-w-lg" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="glass-card p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>Usage &amp; Limits</h2>
+                <button
+                  onClick={() => setShowLimitsModal(false)}
+                  className="p-1.5 rounded-lg transition-colors hover:bg-white/10"
+                  style={{ color: 'var(--text-tertiary)' }}
+                >
+                  <FiX size={16} />
+                </button>
+              </div>
+              <ClientLimitsPanel
+                client={client}
+                usage={usage}
+                editable={false}
+                hideHeader
+              />
             </div>
           </div>
         </div>
