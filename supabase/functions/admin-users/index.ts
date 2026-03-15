@@ -20,7 +20,6 @@ Deno.serve(async (req: Request) => {
 
     console.log('[admin-users] Starting request processing');
 
-    // Create service role client for admin operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
@@ -28,7 +27,6 @@ Deno.serve(async (req: Request) => {
       }
     });
 
-    // Get and validate auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.log('[admin-users] Missing authorization header');
@@ -41,7 +39,6 @@ Deno.serve(async (req: Request) => {
     const token = authHeader.replace('Bearer ', '');
     console.log('[admin-users] Token received, validating...');
 
-    // Validate the user's token using service role client
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
     if (authError || !user) {
@@ -54,10 +51,9 @@ Deno.serve(async (req: Request) => {
 
     console.log('[admin-users] User authenticated:', user.id);
 
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabaseAdmin
+    const { data: callerProfile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('role')
+      .select('role, client_id')
       .eq('id', user.id)
       .single();
 
@@ -65,129 +61,177 @@ Deno.serve(async (req: Request) => {
       console.log('[admin-users] Profile fetch error:', profileError);
     }
 
-    if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
-      console.log('[admin-users] Forbidden - role:', profile?.role);
+    const allowedRoles = ['admin', 'super_admin', 'client_admin'];
+    if (!callerProfile || !allowedRoles.includes(callerProfile.role)) {
+      console.log('[admin-users] Forbidden - role:', callerProfile?.role);
       return new Response(
-        JSON.stringify({ error: 'Forbidden: Admin access required', role: profile?.role }),
+        JSON.stringify({ error: 'Forbidden: Admin access required', role: callerProfile?.role }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('[admin-users] Admin verified, role:', profile.role);
+    console.log('[admin-users] Caller verified, role:', callerProfile.role);
 
     const { method } = req;
     const url = new URL(req.url);
 
-    if (method === 'POST' && url.pathname.endsWith('/create')) {
+    if (method === 'POST') {
       const body = await req.json();
-      const { email, password, full_name, role, client_id } = body;
+      const action = body.action || (url.pathname.endsWith('/create') ? 'create' : null);
 
-      console.log('[admin-users] Creating user with:', { email, full_name, role, client_id: client_id || 'none' });
+      if (action === 'create') {
+        const email: string = body.email;
+        const password: string = body.password;
+        const full_name: string = body.fullName || body.full_name;
+        const role: string = body.role;
+        const client_id: string | null = body.clientId || body.client_id || null;
+        const brand_ids: string[] = body.brandIds || [];
 
-      const { data: authData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: {
-          full_name,
-          role
+        if (callerProfile.role === 'client_admin') {
+          const targetClientId = client_id || callerProfile.client_id;
+          if (!targetClientId || targetClientId !== callerProfile.client_id) {
+            return new Response(
+              JSON.stringify({ error: 'Forbidden: Client admins can only create users for their own client' }),
+              { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          if (role !== 'client_user') {
+            return new Response(
+              JSON.stringify({ error: 'Forbidden: Client admins can only create client_user accounts' }),
+              { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
         }
-      });
 
-      if (createError) {
-        console.error('[admin-users] Auth createUser error:', {
-          message: createError.message,
-          status: createError.status,
-          name: createError.name,
-          code: (createError as any).code,
-          details: JSON.stringify(createError)
+        console.log('[admin-users] Creating user with:', { email, full_name, role, client_id: client_id || 'none' });
+
+        const { data: authData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: {
+            full_name,
+            role
+          }
         });
-        return new Response(
-          JSON.stringify({
-            error: `Auth error: ${createError.message}`,
-            details: {
-              code: (createError as any).code,
-              status: createError.status
-            }
-          }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
 
-      console.log('[admin-users] Auth user created successfully:', authData.user.id);
-
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const { data: existingProfile, error: profileCheckError } = await supabaseAdmin
-        .from('profiles')
-        .select('id, email, role')
-        .eq('id', authData.user.id)
-        .maybeSingle();
-
-      console.log('[admin-users] Profile check:', {
-        exists: !!existingProfile,
-        profileCheckError: profileCheckError?.message,
-        profile: existingProfile
-      });
-
-      if (!existingProfile) {
-        console.log('[admin-users] Creating profile directly');
-        const { error: insertError } = await supabaseAdmin
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            email,
-            full_name: full_name || '',
-            role: role || 'client',
-            client_id: client_id || null,
-            is_active: true
-          });
-
-        if (insertError) {
-          console.error('[admin-users] Profile insert error:', {
-            message: insertError.message,
-            code: insertError.code,
-            details: insertError.details,
-            hint: insertError.hint
+        if (createError) {
+          console.error('[admin-users] Auth createUser error:', {
+            message: createError.message,
+            status: createError.status,
+            name: createError.name,
+            code: (createError as any).code,
+            details: JSON.stringify(createError)
           });
           return new Response(
             JSON.stringify({
-              error: `Profile creation failed: ${insertError.message}`,
+              error: `Auth error: ${createError.message}`,
               details: {
-                code: insertError.code,
-                hint: insertError.hint
+                code: (createError as any).code,
+                status: createError.status
               }
             }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        console.log('[admin-users] Profile created successfully');
-      } else {
-        console.log('[admin-users] Updating existing profile');
-        const updateData: { role?: string; client_id?: string | null } = {};
-        if (role) updateData.role = role;
-        if (client_id !== undefined) updateData.client_id = client_id || null;
 
-        if (Object.keys(updateData).length > 0) {
-          const { error: updateError } = await supabaseAdmin
+        console.log('[admin-users] Auth user created successfully:', authData.user.id);
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const { data: existingProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('id, email, role')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          console.log('[admin-users] Creating profile directly');
+          const { error: insertError } = await supabaseAdmin
             .from('profiles')
-            .update(updateData)
-            .eq('id', authData.user.id);
-
-          if (updateError) {
-            console.error('[admin-users] Profile update error:', {
-              message: updateError.message,
-              code: updateError.code
+            .insert({
+              id: authData.user.id,
+              email,
+              full_name: full_name || '',
+              role: role || 'client_user',
+              client_id: client_id || null,
+              is_active: true
             });
-          } else {
-            console.log('[admin-users] Profile updated successfully');
+
+          if (insertError) {
+            console.error('[admin-users] Profile insert error:', {
+              message: insertError.message,
+              code: insertError.code,
+              details: insertError.details,
+              hint: insertError.hint
+            });
+            return new Response(
+              JSON.stringify({
+                error: `Profile creation failed: ${insertError.message}`,
+                details: {
+                  code: insertError.code,
+                  hint: insertError.hint
+                }
+              }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          console.log('[admin-users] Profile created successfully');
+        } else {
+          console.log('[admin-users] Updating existing profile');
+          const updateData: { role?: string; client_id?: string | null } = {};
+          if (role) updateData.role = role;
+          if (client_id !== undefined) updateData.client_id = client_id || null;
+
+          if (Object.keys(updateData).length > 0) {
+            const { error: updateError } = await supabaseAdmin
+              .from('profiles')
+              .update(updateData)
+              .eq('id', authData.user.id);
+
+            if (updateError) {
+              console.error('[admin-users] Profile update error:', {
+                message: updateError.message,
+                code: updateError.code
+              });
+            } else {
+              console.log('[admin-users] Profile updated successfully');
+            }
           }
         }
+
+        if (role === 'client_user' && brand_ids.length > 0) {
+          const brandPermissions = brand_ids.map((brand_id: string) => ({
+            user_id: authData.user.id,
+            brand_id,
+            is_brand_manager: false,
+            can_add_campaign: true,
+            can_edit_campaign: true,
+            can_activate_pause_campaign: true,
+            can_delete_campaign: false,
+            active: true,
+          }));
+
+          const { error: permsError } = await supabaseAdmin
+            .from('user_brand_permissions')
+            .insert(brandPermissions);
+
+          if (permsError) {
+            console.error('[admin-users] Brand permissions insert error:', permsError.message);
+          } else {
+            console.log('[admin-users] Brand permissions created for', brand_ids.length, 'brands');
+          }
+        }
+
+        return new Response(
+          JSON.stringify({ data: authData }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       return new Response(
-        JSON.stringify({ data: authData }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Unknown action' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

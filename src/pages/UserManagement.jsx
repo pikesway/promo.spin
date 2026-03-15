@@ -6,16 +6,21 @@ import { supabase } from '../supabase/client';
 import { FiPlus, FiEdit2, FiLock, FiUnlock, FiArrowLeft, FiSearch, FiUsers } from 'react-icons/fi';
 import UserBrandPermissionsModal from '../components/agency/UserBrandPermissionsModal';
 
+const SELECT_STYLE = { background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' };
+const INPUT_STYLE = { background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' };
+
 const ROLES = [
   { value: 'admin', label: 'Admin (Agency)' },
   { value: 'client_admin', label: 'Client Admin' },
   { value: 'client_user', label: 'Client User' },
 ];
 
+const EMPTY_FORM = { email: '', password: '', full_name: '', role: 'client_user', client_id: '', brand_ids: [], is_active: true };
+
 export default function UserManagement() {
   const navigate = useNavigate();
   const { isSuperAdmin } = useAuth();
-  const { clients } = usePlatform();
+  const { clients, brands } = usePlatform();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -23,7 +28,7 @@ export default function UserManagement() {
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [selectedUserForPerms, setSelectedUserForPerms] = useState(null);
-  const [form, setForm] = useState({ email: '', password: '', full_name: '', role: 'client_user', client_id: '', is_active: true });
+  const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -44,14 +49,14 @@ export default function UserManagement() {
 
   const openCreate = () => {
     setEditingUser(null);
-    setForm({ email: '', password: '', full_name: '', role: 'client_user', client_id: '', is_active: true });
+    setForm(EMPTY_FORM);
     setError('');
     setShowModal(true);
   };
 
   const openEdit = (user) => {
     setEditingUser(user);
-    setForm({ email: user.email, password: '', full_name: user.full_name || '', role: user.role, client_id: user.client_id || '', is_active: user.is_active });
+    setForm({ email: user.email, password: '', full_name: user.full_name || '', role: user.role, client_id: user.client_id || '', brand_ids: [], is_active: user.is_active });
     setError('');
     setShowModal(true);
   };
@@ -59,6 +64,8 @@ export default function UserManagement() {
   const handleSave = async () => {
     if (!form.email.trim()) { setError('Email is required.'); return; }
     if (!editingUser && !form.password.trim()) { setError('Password is required for new users.'); return; }
+    const needsClient = form.role === 'client_admin' || form.role === 'client_user';
+    if (needsClient && !form.client_id) { setError('Please select a client.'); return; }
 
     setSaving(true);
     setError('');
@@ -71,16 +78,18 @@ export default function UserManagement() {
           is_active: form.is_active,
         }).eq('id', editingUser.id);
       } else {
-        const { error: fnError } = await supabase.functions.invoke('admin-users', {
-          body: {
-            action: 'create',
-            email: form.email,
-            password: form.password,
-            fullName: form.full_name,
-            role: form.role,
-            clientId: form.client_id || null,
-          }
-        });
+        const body = {
+          action: 'create',
+          email: form.email,
+          password: form.password,
+          fullName: form.full_name,
+          role: form.role,
+          clientId: form.client_id || null,
+        };
+        if (form.role === 'client_user' && form.brand_ids.length > 0) {
+          body.brandIds = form.brand_ids;
+        }
+        const { error: fnError } = await supabase.functions.invoke('admin-users', { body });
         if (fnError) throw fnError;
       }
       await fetchUsers();
@@ -90,6 +99,15 @@ export default function UserManagement() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const toggleBrandId = (brandId) => {
+    setForm(p => ({
+      ...p,
+      brand_ids: p.brand_ids.includes(brandId)
+        ? p.brand_ids.filter(id => id !== brandId)
+        : [...p.brand_ids, brandId],
+    }));
   };
 
   const handleToggleActive = async (user) => {
@@ -110,6 +128,8 @@ export default function UserManagement() {
     return acc;
   }, {});
   const agencyUsers = filteredUsers.filter(u => !u.client_id || u.role === 'admin' || u.role === 'super_admin');
+
+  const brandsForSelectedClient = brands.filter(b => b.client_id === form.client_id);
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
@@ -138,14 +158,14 @@ export default function UserManagement() {
               onChange={e => setSearch(e.target.value)}
               placeholder="Search users..."
               className="w-full pl-9 pr-4 py-2 rounded-lg text-sm"
-              style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+              style={INPUT_STYLE}
             />
           </div>
           <select
             value={clientFilter}
             onChange={e => setClientFilter(e.target.value)}
             className="px-3 py-2 rounded-lg text-sm"
-            style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+            style={SELECT_STYLE}
           >
             <option value="all">All clients</option>
             {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -195,7 +215,7 @@ export default function UserManagement() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
-          <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
+          <div className="w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
             <h2 className="text-lg font-semibold mb-5" style={{ color: 'var(--text-primary)' }}>
               {editingUser ? 'Edit User' : 'New User'}
             </h2>
@@ -211,42 +231,85 @@ export default function UserManagement() {
                 <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Full Name</label>
                 <input type="text" value={form.full_name} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))}
                   className="w-full px-3 py-2.5 rounded-lg text-sm"
-                  style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
+                  style={INPUT_STYLE} />
               </div>
               <div>
                 <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Email *</label>
                 <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
                   disabled={!!editingUser}
                   className="w-full px-3 py-2.5 rounded-lg text-sm disabled:opacity-60"
-                  style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
+                  style={INPUT_STYLE} />
               </div>
               {!editingUser && (
                 <div>
                   <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Password *</label>
                   <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                     className="w-full px-3 py-2.5 rounded-lg text-sm"
-                    style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
+                    style={INPUT_STYLE} />
                 </div>
               )}
               <div>
                 <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Role</label>
-                <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
+                <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value, client_id: '', brand_ids: [] }))}
                   className="w-full px-3 py-2.5 rounded-lg text-sm"
-                  style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
+                  style={SELECT_STYLE}>
                   {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
+                {form.role === 'client_admin' && (
+                  <p className="text-xs mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                    Client Admins manage all brands within their assigned client.
+                  </p>
+                )}
+                {form.role === 'client_user' && (
+                  <p className="text-xs mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                    Client Users can be assigned to specific brands within a client.
+                  </p>
+                )}
               </div>
-              {(form.role === 'client_admin' || form.role === 'client_user' || form.role === 'client' || form.role === 'staff') && (
+
+              {(form.role === 'client_admin' || form.role === 'client_user') && (
                 <div>
-                  <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Client</label>
-                  <select value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))}
+                  <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Client *</label>
+                  <select
+                    value={form.client_id}
+                    onChange={e => setForm(p => ({ ...p, client_id: e.target.value, brand_ids: [] }))}
                     className="w-full px-3 py-2.5 rounded-lg text-sm"
-                    style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
-                    <option value="">No client</option>
+                    style={SELECT_STYLE}
+                  >
+                    <option value="">Select a client...</option>
                     {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
               )}
+
+              {form.role === 'client_user' && form.client_id && brandsForSelectedClient.length > 0 && !editingUser && (
+                <div>
+                  <label className="text-xs mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                    Brand Access
+                    <span className="ml-1 font-normal" style={{ color: 'var(--text-tertiary)' }}>(optional — leave empty for all brands)</span>
+                  </label>
+                  <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                    {brandsForSelectedClient.map(brand => (
+                      <label key={brand.id} className="flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-white/5">
+                        <input
+                          type="checkbox"
+                          checked={form.brand_ids.includes(brand.id)}
+                          onChange={() => toggleBrandId(brand.id)}
+                          className="rounded flex-shrink-0"
+                        />
+                        <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{brand.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {form.role === 'client_user' && form.client_id && brandsForSelectedClient.length === 0 && !editingUser && (
+                <p className="text-xs px-1" style={{ color: 'var(--text-tertiary)' }}>
+                  No brands found for this client. Brands can be assigned after creation.
+                </p>
+              )}
+
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.is_active} onChange={e => setForm(p => ({ ...p, is_active: e.target.checked }))} className="rounded" />
                 <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Active</span>
@@ -275,7 +338,7 @@ export default function UserManagement() {
   );
 }
 
-function UserTable({ users, onEdit, onToggle, onPermissions, clientId }) {
+function UserTable({ users, onEdit, onToggle, onPermissions }) {
   if (users.length === 0) return <p className="text-xs px-1" style={{ color: 'var(--text-tertiary)' }}>No users.</p>;
 
   return (
