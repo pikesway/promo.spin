@@ -130,14 +130,22 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const totalProbability = prizes.reduce((sum, p) => sum + (p.probability || 0), 0);
+    if (totalProbability <= 0) {
+      return new Response(
+        JSON.stringify({ error: "Invalid prize configuration: probabilities must be greater than 0" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const randomBytes = crypto.getRandomValues(new Uint32Array(1));
-    const randomPercent = (randomBytes[0] / 0xFFFFFFFF) * 100;
+    const randomPercent = (randomBytes[0] / 0xFFFFFFFF) * totalProbability;
 
     let cumulativeProbability = 0;
     let selectedPrize: Prize | null = null;
 
     for (const prize of prizes) {
-      cumulativeProbability += prize.probability;
+      cumulativeProbability += prize.probability || 0;
       if (randomPercent <= cumulativeProbability) {
         selectedPrize = prize;
         break;

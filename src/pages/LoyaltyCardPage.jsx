@@ -152,28 +152,28 @@ export default function LoyaltyCardPage() {
     setShowValidation(false);
 
     try {
-      const threshold = loyaltyProgram?.threshold || campaign?.config?.loyalty?.threshold || 10;
-      const newProgress = (account.current_progress || 0) + 1;
-      const rewardUnlocked = newProgress >= threshold;
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/confirm-loyalty-action`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            memberCode: account.member_code,
+            campaignId: campaign.id,
+            actionType: 'visit',
+            deviceInfo: { userAgent: navigator.userAgent, timestamp: Date.now() },
+          }),
+        }
+      );
 
-      const { error: updateError } = await supabase
-        .from('loyalty_accounts')
-        .update({
-          current_progress: newProgress,
-          total_visits: (account.total_visits || 0) + 1,
-          reward_unlocked: rewardUnlocked,
-          reward_unlocked_at: rewardUnlocked ? new Date().toISOString() : null
-        })
-        .eq('id', account.id);
+      const result = await response.json();
 
-      if (updateError) throw updateError;
-
-      await supabase.from('loyalty_progress_log').insert({
-        loyalty_account_id: account.id,
-        campaign_id: campaign.id,
-        action_type: rewardUnlocked ? 'reward_unlocked' : 'visit_confirmed',
-        quantity: 1
-      });
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to confirm visit');
+      }
 
       setSuccessAnimation(true);
       setTimeout(() => {
@@ -182,7 +182,7 @@ export default function LoyaltyCardPage() {
       }, 1500);
     } catch (err) {
       console.error('Error confirming visit:', err);
-      alert('Failed to confirm visit');
+      setError('Failed to confirm visit. Please try again.');
     }
   };
 
@@ -228,7 +228,7 @@ export default function LoyaltyCardPage() {
       navigate(`/redeem/${result.shortCode}?token=${result.redemptionToken}`);
     } catch (err) {
       console.error('Error redeeming reward:', err);
-      alert('Failed to redeem reward');
+      setError(err.message || 'Failed to redeem reward. Please try again.');
     }
   };
 
@@ -260,7 +260,7 @@ export default function LoyaltyCardPage() {
       navigate(`/redeem/${result.shortCode}?token=${result.redemptionToken}`);
     } catch (err) {
       console.error('Error redeeming birthday reward:', err);
-      alert(err.message || 'Failed to redeem birthday reward');
+      setError(err.message || 'Failed to redeem birthday reward. Please try again.');
     } finally {
       setRedeemingBirthday(false);
     }
@@ -354,6 +354,12 @@ export default function LoyaltyCardPage() {
       style={{ background: backgroundColor }}
     >
       <div className="w-full max-w-sm">
+        {error && (
+          <div className="mb-4 p-3 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-between gap-2">
+            <p className="text-red-300 text-sm">{error}</p>
+            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-200 flex-shrink-0 text-lg leading-none">&times;</button>
+          </div>
+        )}
         {birthdayEligible && (
           <div
             className="mb-4 rounded-xl p-4 text-center"

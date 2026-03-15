@@ -6,6 +6,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
   const [activeSection, setActiveSection] = useState('colors');
   const [uploadingIcon, setUploadingIcon] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
   const [simulatedProgress, setSimulatedProgress] = useState(Math.floor(loyaltyData.threshold / 2));
   const fileInputRef = useRef(null);
 
@@ -20,13 +21,14 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
     if (!file) return;
 
     const validTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/svg+xml', 'image/x-icon', 'image/vnd.microsoft.icon'];
+    setUploadError(null);
     if (!validTypes.includes(file.type)) {
-      alert('Please upload a PNG, JPG, GIF, SVG, or ICO file');
+      setUploadError('Please upload a PNG, JPG, GIF, SVG, or ICO file');
       return;
     }
 
     if (file.size > 500 * 1024) {
-      alert('File size must be less than 500KB');
+      setUploadError('File size must be less than 500KB');
       return;
     }
 
@@ -40,8 +42,7 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error('Error uploading icon:', error);
-      alert('Failed to upload icon');
+      setUploadError('Failed to upload icon');
       setUploadingIcon(false);
     }
   };
@@ -504,6 +505,9 @@ const LoyaltyDesign = ({ loyaltyData, onChange, client }) => {
                   onChange={handleCustomIconUpload}
                   className="hidden"
                 />
+                {uploadError && (
+                  <p className="text-xs text-red-400 mt-1">{uploadError}</p>
+                )}
 
                 {loyaltyData.card.customIconUrl ? (
                   <div className="flex items-center gap-4">

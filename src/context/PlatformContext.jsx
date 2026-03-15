@@ -153,16 +153,19 @@ export const PlatformProvider = ({ children }) => {
     if (!supabase) return;
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user && (impersonation.clientId || impersonation.brandId)) {
-        await supabase.from('audit_logs').insert({
-          actor_user_id: session.user.id,
-          impersonated_client_id: impersonation.clientId,
-          impersonated_brand_id: impersonation.brandId,
-          action_type: actionType,
-          entity_type: entityType,
-          entity_id: entityId,
-          metadata
-        });
+      if (!session?.user) return;
+
+      await supabase.from('audit_logs').insert({
+        actor_user_id: session.user.id,
+        impersonated_client_id: impersonation.clientId || null,
+        impersonated_brand_id: impersonation.brandId || null,
+        action_type: actionType,
+        entity_type: entityType,
+        entity_id: entityId,
+        metadata
+      });
+
+      if (impersonation.clientId) {
         await supabase.from('client_notifications').insert({
           client_id: impersonation.clientId,
           title: `Admin action: ${actionType.replace(/_/g, ' ')}`,

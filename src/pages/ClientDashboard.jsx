@@ -38,6 +38,8 @@ export default function ClientDashboard() {
   const [editingCampaign, setEditingCampaign] = useState(null);
   const [selectedBrandId, setSelectedBrandId] = useState('all');
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
+  const [dashboardError, setDashboardError] = useState(null);
+  const [copiedText, setCopiedText] = useState(null);
 
   const client = clients.find(c => c.id === clientId);
   const allClientBrands = getBrandsByClient(clientId);
@@ -85,7 +87,7 @@ export default function ClientDashboard() {
   const userCanToggle = isFullAccess || canActivatePause(selectedBrandId);
 
   const exportLeadsCSV = () => {
-    if (clientLeads.length === 0) { alert('No leads to export'); return; }
+    if (clientLeads.length === 0) { setDashboardError('No leads to export'); return; }
     const headers = ['Date', 'Campaign', 'Brand', 'Name', 'Email', 'Phone'];
     const rows = clientLeads.map(lead => {
       const campaign = campaigns.find(c => c.id === lead.campaign_id);
@@ -109,19 +111,23 @@ export default function ClientDashboard() {
     URL.revokeObjectURL(url);
   };
 
-  const copyToClipboard = (text) => { navigator.clipboard.writeText(text); alert('Copied to clipboard!'); };
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(text);
+    setTimeout(() => setCopiedText(null), 2000);
+  };
 
   const handleDeleteCampaign = async (campaignId) => {
     if (!confirm('Delete this campaign?')) return;
-    try { await deleteCampaign(campaignId); } catch (error) { alert('Failed to delete campaign'); }
+    try { await deleteCampaign(campaignId); } catch (error) { setDashboardError('Failed to delete campaign'); }
   };
 
   const handleDuplicateCampaign = async (campaignId) => {
-    try { const newCampaign = await duplicateCampaign(campaignId); setEditingCampaign(newCampaign); } catch (error) { alert('Failed to duplicate campaign'); }
+    try { const newCampaign = await duplicateCampaign(campaignId); setEditingCampaign(newCampaign); } catch (error) { setDashboardError('Failed to duplicate campaign'); }
   };
 
   const handleToggleStatus = async (campaignId, currentStatus) => {
-    try { await toggleCampaignStatus(campaignId, currentStatus); } catch (error) { alert('Failed to update campaign status'); }
+    try { await toggleCampaignStatus(campaignId, currentStatus); } catch (error) { setDashboardError('Failed to update campaign status'); }
   };
 
   const handleSaveBranding = async (formData) => {
@@ -164,6 +170,17 @@ export default function ClientDashboard() {
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden" style={{ background: 'var(--bg-primary)' }}>
       <div className="container px-3 md:px-4 py-4 md:py-6">
+        {dashboardError && (
+          <div className="mb-4 p-3 rounded-lg flex items-center justify-between" style={{ background: 'var(--error-bg)', border: '1px solid var(--error)', color: 'var(--error)' }}>
+            <span className="text-sm">{dashboardError}</span>
+            <button onClick={() => setDashboardError(null)} className="ml-3 text-sm font-medium opacity-70 hover:opacity-100">Dismiss</button>
+          </div>
+        )}
+        {copiedText && (
+          <div className="mb-4 p-3 rounded-lg" style={{ background: 'var(--success-bg)', border: '1px solid var(--success)', color: 'var(--success)' }}>
+            <span className="text-sm">Copied to clipboard!</span>
+          </div>
+        )}
         {!isClient() && (
           <button className="btn btn-ghost text-sm mb-3 p-2" onClick={() => navigate('/agency')}>
             <FiArrowLeft size={18} /> <span className="hidden md:inline">Back to Agency</span>

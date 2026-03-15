@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 
 const GameSettings = ({ gameData, onChange, customUrl, idLabel = 'Game ID' }) => {
   const qrRef = useRef();
+  const [urlCopied, setUrlCopied] = useState(false);
 
   const handleSettingsChange = (key, value) => {
     onChange({
@@ -306,11 +307,12 @@ const GameSettings = ({ gameData, onChange, customUrl, idLabel = 'Game ID' }) =>
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(gameUrl);
-                  alert('URL copied to clipboard!');
+                  setUrlCopied(true);
+                  setTimeout(() => setUrlCopied(false), 2000);
                 }}
                 className="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
               >
-                Copy
+                {urlCopied ? 'Copied!' : 'Copy'}
               </button>
             </div>
           </div>

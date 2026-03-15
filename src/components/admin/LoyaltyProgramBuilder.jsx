@@ -17,6 +17,7 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack, canEdit = true }) => 
   const [loyaltyData, setLoyaltyData] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -132,10 +133,10 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack, canEdit = true }) => 
         .eq('campaign_id', campaign.id);
 
       setHasChanges(false);
-      alert('Loyalty program saved!');
+      setSaveMessage({ type: 'success', text: 'Loyalty program saved!' });
+      setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
-      console.error('Error saving loyalty program:', error);
-      alert('Failed to save loyalty program');
+      setSaveMessage({ type: 'error', text: 'Failed to save loyalty program' });
     }
     setIsSaving(false);
   };

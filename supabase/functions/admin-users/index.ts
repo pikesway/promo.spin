@@ -266,6 +266,20 @@ Deno.serve(async (req: Request) => {
         );
       }
 
+      if (callerProfile.role === 'client_admin') {
+        const { data: targetProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('client_id')
+          .eq('id', userId)
+          .maybeSingle();
+        if (!targetProfile || targetProfile.client_id !== callerProfile.client_id) {
+          return new Response(
+            JSON.stringify({ error: 'Forbidden: Cannot delete users outside your client' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
       const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
       if (deleteError) {

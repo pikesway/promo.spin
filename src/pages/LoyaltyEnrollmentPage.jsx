@@ -88,6 +88,11 @@ export default function LoyaltyEnrollmentPage() {
           return;
         }
 
+        if (campaignData.status !== 'active') {
+          setError('This loyalty program is not currently accepting new enrollments.');
+          return;
+        }
+
         setCampaign(campaignData);
         setClient(campaignData.clients);
 

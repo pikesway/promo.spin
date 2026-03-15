@@ -81,11 +81,11 @@ export default function UserBrandPermissionsModal({ user, clientId, onClose }) {
           can_delete_campaign: perm.can_delete_campaign ?? false,
         };
 
-        if (perm.id) {
-          await supabase.from('user_brand_permissions').update(payload).eq('id', perm.id);
-        } else if (perm.active) {
-          await supabase.from('user_brand_permissions').insert(payload);
-        }
+        const { error } = await supabase
+          .from('user_brand_permissions')
+          .upsert(payload, { onConflict: 'user_id,brand_id' });
+
+        if (error) throw error;
       }
       onClose();
     } catch (err) {

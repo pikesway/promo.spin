@@ -30,6 +30,7 @@ export default function StaffDashboard() {
     pendingRewards: 0,
     activeMembers: 0
   });
+  const [actionError, setActionError] = useState(null);
 
   const fetchData = useCallback(async () => {
     if (!profile?.client_id) {
@@ -180,85 +181,38 @@ export default function StaffDashboard() {
   const handleValidationSuccess = async () => {
     setShowValidation(false);
     if (!selectedMember) return;
+    setActionError(null);
 
     try {
-      const campaign = campaigns.find(c => c.id === selectedMember.campaign_id);
-      const loyaltyProgram = campaign?.loyalty_programs?.[0];
-      const threshold = loyaltyProgram?.threshold || campaign?.config?.loyalty?.threshold || 10;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
 
-      if (actionType === 'visit') {
-        const newProgress = (selectedMember.current_progress || 0) + 1;
-        const rewardUnlocked = newProgress >= threshold;
+      const response = await fetch(`${supabaseUrl}/functions/v1/confirm-loyalty-action`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          memberCode: selectedMember.member_code,
+          campaignId: selectedMember.campaign_id,
+          actionType,
+          staffUserId: user?.id,
+          deviceInfo: { userAgent: navigator.userAgent }
+        })
+      });
 
-        await supabase
-          .from('loyalty_accounts')
-          .update({
-            current_progress: newProgress,
-            total_visits: (selectedMember.total_visits || 0) + 1,
-            reward_unlocked: rewardUnlocked,
-            reward_unlocked_at: rewardUnlocked ? new Date().toISOString() : null
-          })
-          .eq('id', selectedMember.id);
-
-        await supabase.from('loyalty_progress_log').insert({
-          loyalty_account_id: selectedMember.id,
-          campaign_id: selectedMember.campaign_id,
-          action_type: rewardUnlocked ? 'reward_unlocked' : 'visit_confirmed',
-          quantity: 1,
-          validated_by: user?.id
-        });
-      } else if (actionType === 'redemption') {
-        const shortCode = generateShortCode();
-        const resetBehavior = loyaltyProgram?.reset_behavior || campaign?.config?.loyalty?.resetBehavior || 'reset';
-        const expiryDays = campaign?.config?.screens?.redemption?.expiryDays || 30;
-
-        const newProgress = resetBehavior === 'rollover'
-          ? (selectedMember.current_progress || 0) - threshold
-          : 0;
-
-        await supabase.from('loyalty_redemptions').insert({
-          loyalty_account_id: selectedMember.id,
-          campaign_id: selectedMember.campaign_id,
-          short_code: shortCode,
-          status: 'redeemed',
-          redeemed_at: new Date().toISOString(),
-          redeemed_by: user?.id,
-          expires_at: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString()
-        });
-
-        await supabase
-          .from('loyalty_accounts')
-          .update({
-            current_progress: Math.max(0, newProgress),
-            reward_unlocked: false,
-            reward_unlocked_at: null
-          })
-          .eq('id', selectedMember.id);
-
-        await supabase.from('loyalty_progress_log').insert({
-          loyalty_account_id: selectedMember.id,
-          campaign_id: selectedMember.campaign_id,
-          action_type: 'reward_redeemed',
-          quantity: 1,
-          validated_by: user?.id
-        });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to process action');
       }
 
       fetchData();
       setSelectedMember(null);
     } catch (err) {
-      console.error('Error processing action:', err);
-      alert('Failed to process action');
+      setActionError(err.message || 'Failed to process action');
     }
-  };
-
-  const generateShortCode = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
   };
 
   const handleSignOut = async () => {
@@ -319,6 +273,13 @@ export default function StaffDashboard() {
             </button>
           </div>
         </div>
+
+        {actionError && (
+          <div className="mb-4 p-3 rounded-lg flex items-center justify-between" style={{ background: 'var(--error-bg)', border: '1px solid var(--error)', color: 'var(--error)' }}>
+            <span className="text-sm">{actionError}</span>
+            <button onClick={() => setActionError(null)} className="ml-3 text-sm font-medium opacity-70 hover:opacity-100">Dismiss</button>
+          </div>
+        )}
 
         {canViewStats('all') && (
           <div className="grid grid-cols-3 gap-3 mb-6">

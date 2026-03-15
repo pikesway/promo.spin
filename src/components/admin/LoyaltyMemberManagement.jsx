@@ -12,6 +12,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [memberError, setMemberError] = useState(null);
   const exportMenuRef = useRef(null);
   const [birthdayEnabled, setBirthdayEnabled] = useState(false);
   const [stats, setStats] = useState({
@@ -55,13 +56,11 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
 
       const { data: redemptionData } = await supabase
         .from('loyalty_redemptions')
-        .select('status, redemption_id(status)')
+        .select('status')
         .in('campaign_id', campaignIds);
 
       const rewardsIssued = (progressData || []).length;
-      const rewardsRedeemed = (redemptionData || []).filter(r =>
-        r.status === 'redeemed' || r.redemption_id?.status === 'redeemed'
-      ).length;
+      const rewardsRedeemed = (redemptionData || []).filter(r => r.status === 'redeemed').length;
 
       const { data: loyaltyPrograms } = await supabase
         .from('loyalty_programs')
@@ -140,8 +139,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
 
       fetchMembers();
     } catch (err) {
-      console.error('Error resetting progress:', err);
-      alert('Failed to reset progress');
+      setMemberError('Failed to reset progress');
     }
   };
 
@@ -156,14 +154,13 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
 
       fetchMembers();
     } catch (err) {
-      console.error('Error deleting member:', err);
-      alert('Failed to remove member');
+      setMemberError('Failed to remove member');
     }
   };
 
   const exportSummaryCSV = () => {
     if (filteredMembers.length === 0) {
-      alert('No members to export');
+      setMemberError('No members to export');
       return;
     }
 
@@ -201,7 +198,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
 
   const exportDetailedCSV = async () => {
     if (filteredMembers.length === 0) {
-      alert('No members to export');
+      setMemberError('No members to export');
       return;
     }
 
@@ -314,8 +311,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Error exporting detailed data:', err);
-      alert('Failed to export detailed data');
+      setMemberError('Failed to export detailed data');
     } finally {
       setExporting(false);
     }
@@ -347,6 +343,12 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
 
   return (
     <div>
+      {memberError && (
+        <div className="mb-4 p-3 rounded-lg flex items-center justify-between" style={{ background: 'var(--error-bg)', border: '1px solid var(--error)', color: 'var(--error)' }}>
+          <span className="text-sm">{memberError}</span>
+          <button onClick={() => setMemberError(null)} className="ml-3 text-sm font-medium opacity-70 hover:opacity-100">Dismiss</button>
+        </div>
+      )}
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg md:text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Loyalty Members</h3>
         <div className="relative" ref={exportMenuRef}>

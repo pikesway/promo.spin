@@ -30,13 +30,12 @@ export const RedemptionProvider = ({ children }) => {
         const { data } = await supabase.from('redemptions').select('*');
         if (data) {
           const formatted = data.map(row => ({
-            ...row.data,
             id: row.id,
-            gameId: row.game_id || row.campaign_id,
+            campaignId: row.campaign_id,
             prizeName: row.prize_name,
             shortCode: row.short_code,
             status: row.status,
-            generatedAt: row.generated_at,
+            generatedAt: row.generated_at || row.created_at,
             expiresAt: row.expires_at
           }));
           setRedemptions(formatted);
@@ -65,7 +64,7 @@ export const RedemptionProvider = ({ children }) => {
     const newRedemption = {
       id: crypto.randomUUID(),
       shortCode,
-      gameId,
+      campaignId: gameId,
       prizeName: prize.text || prize.name || 'Prize',
       prizeId: prize.id,
       generatedAt: now.toISOString(),
@@ -180,39 +179,38 @@ export const RedemptionProvider = ({ children }) => {
     return newRedemption;
   };
 
-  const redeemCoupon = (id) => {
+  const redeemCoupon = async (id) => {
     const now = new Date();
+    let newStatus = 'redeemed';
     setRedemptions(prev => prev.map(r => {
       const isActiveStatus = r.status === 'active' || r.status === 'valid';
       if (r.id === id && isActiveStatus) {
         const isExpired = r.expiresAt && new Date(r.expiresAt) < now;
-        const newStatus = isExpired ? 'expired' : 'redeemed';
-
-        if (supabase) {
-          supabase.from('redemptions').update({
-            status: newStatus,
-            redeemed_at: now.toISOString()
-          }).eq('id', id).then();
-        }
-
+        newStatus = isExpired ? 'expired' : 'redeemed';
         return { ...r, status: newStatus, redeemedAt: now.toISOString() };
       }
       return r;
     }));
+    if (supabase) {
+      await supabase.from('redemptions').update({
+        status: newStatus,
+        redeemed_at: now.toISOString()
+      }).eq('id', id);
+    }
   };
 
   const getRedemption = (id) => {
     return redemptions.find(item => item.id === id);
   };
 
-  const getRedemptionsByGame = (gameId) => {
-    return redemptions.filter(r => r.gameId === gameId).sort((a, b) => new Date(b.generatedAt) - new Date(a.generatedAt));
+  const getRedemptionsByGame = (campaignId) => {
+    return redemptions.filter(r => r.campaignId === campaignId).sort((a, b) => new Date(b.generatedAt) - new Date(a.generatedAt));
   };
-  
-  const updateStatus = (id, status) => {
+
+  const updateStatus = async (id, status) => {
     setRedemptions(prev => prev.map(r => r.id === id ? { ...r, status } : r));
     if (supabase) {
-      supabase.from('redemptions').update({ status }).eq('id', id).then();
+      await supabase.from('redemptions').update({ status }).eq('id', id);
     }
   };
 

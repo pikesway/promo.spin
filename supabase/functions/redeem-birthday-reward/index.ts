@@ -81,7 +81,7 @@ Deno.serve(async (req: Request) => {
 
     const currentYear = now.getUTCFullYear();
     const monthStart = new Date(Date.UTC(currentYear, currentMonth - 1, 1)).toISOString();
-    const monthEnd = new Date(Date.UTC(currentYear, currentMonth, 0, 23, 59, 59)).toISOString();
+    const monthEnd = new Date(Date.UTC(currentYear, currentMonth, 1, 0, 0, 0) - 1).toISOString();
 
     const { data: existingBirthdayRedemption } = await supabase
       .from("loyalty_redemptions")

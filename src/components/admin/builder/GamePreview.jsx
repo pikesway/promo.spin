@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import GamePlayer from '../../game/GamePlayer';
 import CampaignPlayer from '../../../pages/CampaignPlayer';
 
 const GamePreview = ({ gameData, playUrl, embedUrl, isCampaign = false, campaignSlug }) => {
+  const [copied, setCopied] = useState(null);
+  const handleCopy = (text, label) => {
+    navigator.clipboard.writeText(text);
+    setCopied(label);
+    setTimeout(() => setCopied(null), 2000);
+  };
   const defaultUrl = `${window.location.origin}/#/game/${gameData.id}`;
   const url = playUrl || defaultUrl;
   const embedCode = `<iframe src="${embedUrl || url}" width="100%" height="600" frameborder="0"></iframe>`;
@@ -55,13 +61,10 @@ const GamePreview = ({ gameData, playUrl, embedUrl, isCampaign = false, campaign
                 className="flex-1 text-sm bg-charcoal-900 border border-white/10 rounded px-2 py-1 text-gray-300"
               />
               <button
-                onClick={() => {
-                  navigator.clipboard.writeText(url);
-                  alert('URL copied!');
-                }}
+                onClick={() => handleCopy(url, 'url')}
                 className="bg-teal-600 hover:bg-teal-500 text-white px-3 py-1 rounded text-sm"
               >
-                Copy
+                {copied === 'url' ? 'Copied!' : 'Copy'}
               </button>
             </div>
             <a
@@ -84,13 +87,10 @@ const GamePreview = ({ gameData, playUrl, embedUrl, isCampaign = false, campaign
             className="w-full text-xs bg-charcoal-900 border border-white/10 rounded px-2 py-1 font-mono text-gray-400"
           />
           <button
-            onClick={() => {
-              navigator.clipboard.writeText(embedCode);
-              alert('Embed code copied!');
-            }}
+            onClick={() => handleCopy(embedCode, 'embed')}
             className="mt-2 bg-teal-600 hover:bg-teal-500 text-white px-3 py-1 rounded text-sm"
           >
-            Copy Embed Code
+            {copied === 'embed' ? 'Copied!' : 'Copy Embed Code'}
           </button>
         </div>
       </div>

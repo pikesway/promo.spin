@@ -14,10 +14,12 @@ const GameBuilder = ({ game, onBack }) => {
   const { updateGame } = useGame();
   const [activeTab, setActiveTab] = useState('settings');
   const [gameData, setGameData] = useState(game);
+  const [saveToast, setSaveToast] = useState(null);
 
   const handleSave = () => {
     updateGame(game.id, gameData);
-    alert('Campaign saved!');
+    setSaveToast('Campaign saved!');
+    setTimeout(() => setSaveToast(null), 3000);
   };
 
   const handleGameDataChange = (updates) => {
@@ -35,6 +37,11 @@ const GameBuilder = ({ game, onBack }) => {
 
   return (
     <div className="h-full flex flex-col bg-charcoal-900 text-white">
+      {saveToast && (
+        <div className="fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-sm font-medium shadow-lg bg-green-600 text-white">
+          {saveToast}
+        </div>
+      )}
       {/* Builder Header */}
       <header className="h-16 border-b border-white/10 bg-charcoal-800 flex items-center justify-between px-6 flex-shrink-0">
         <div className="flex items-center space-x-4">

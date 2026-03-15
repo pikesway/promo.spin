@@ -12,6 +12,7 @@ const GameScreen = ({ game, onSpinComplete, hasSpun, isPreview, nextSpinTime }) 
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [timeLeft, setTimeLeft] = useState('');
   const [isScratching, setIsScratching] = useState(false);
+  const [gameError, setGameError] = useState(null);
   const wheelRef = useRef();
   const { playGame } = useGame();
 
@@ -49,12 +50,9 @@ const GameScreen = ({ game, onSpinComplete, hasSpun, isPreview, nextSpinTime }) 
   }, [nextSpinTime]);
 
   const handleSpin = async () => {
-    if (hasSpun && !isPreview) {
-      alert('You have already played this game!');
-      return;
-    }
+    if (hasSpun && !isPreview) return;
     if (isSpinning) return;
-
+    setGameError(null);
     setIsSpinning(true);
 
     if (isPreview) {
@@ -78,8 +76,7 @@ const GameScreen = ({ game, onSpinComplete, hasSpun, isPreview, nextSpinTime }) 
         throw new Error('Server returned unsuccessful result');
       }
     } catch (error) {
-      console.error('Error playing spin game:', error);
-      alert(`Unable to play: ${error.message}`);
+      setGameError(error.message || 'Unable to play. Please try again.');
       setIsSpinning(false);
     }
   };
@@ -123,8 +120,7 @@ const GameScreen = ({ game, onSpinComplete, hasSpun, isPreview, nextSpinTime }) 
         throw new Error('Server returned unsuccessful result');
       }
     } catch (error) {
-      console.error('Error playing scratch game:', error);
-      alert(`Unable to play: ${error.message}`);
+      setGameError(error.message || 'Unable to play. Please try again.');
       setIsScratching(false);
     }
   };
@@ -200,6 +196,12 @@ const GameScreen = ({ game, onSpinComplete, hasSpun, isPreview, nextSpinTime }) 
                 soundEnabled={soundEnabled}
               />
             </div>
+
+            {gameError && (
+              <div className="w-full max-w-xs mb-2 px-4 py-2 rounded-lg text-sm text-center bg-red-500/20 text-red-200 border border-red-500/30">
+                {gameError}
+              </div>
+            )}
 
             {/* Spin Button (Only for Spin games) */}
             <div className="w-full max-w-xs space-y-4">

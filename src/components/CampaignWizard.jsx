@@ -36,6 +36,7 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
   });
 
   const [selectedBrandId, setSelectedBrandId] = useState(brandId || (permittedBrands[0]?.id ?? null));
+  const [wizardError, setWizardError] = useState(null);
   const client = useMemo(() => clients.find(c => c.id === clientId), [clients, clientId]);
 
   const handleTypeSelect = (type) => {
@@ -94,8 +95,7 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
         onCampaignCreated(newCampaign);
       }
     } catch (error) {
-      console.error('Error creating campaign:', error);
-      alert('Failed to create campaign');
+      setWizardError('Failed to create campaign. Please try again.');
     }
   };
 
@@ -416,6 +416,7 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
 
         {step === 2 && formData.type === 'bizgamez' && (
           <div className="sticky bottom-0 p-4 md:p-6 flex-shrink-0" style={{ background: 'var(--modal-footer-bg)', borderTop: '1px solid var(--border-color)' }}>
+            {wizardError && <p className="text-xs text-red-400 mb-2">{wizardError}</p>}
             <div className="flex gap-3">
               <button className="btn btn-secondary flex items-center gap-2" onClick={() => setStep(1)}>
                 <FiChevronLeft className="w-4 h-4" /> <span className="hidden sm:inline">Back</span>
@@ -442,6 +443,7 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
 
         {step === 3 && formData.type === 'loyalty' && (
           <div className="sticky bottom-0 p-4 md:p-6 flex-shrink-0" style={{ background: 'var(--modal-footer-bg)', borderTop: '1px solid var(--border-color)' }}>
+            {wizardError && <p className="text-xs text-red-400 mb-2">{wizardError}</p>}
             <div className="flex gap-3">
               <button className="btn btn-secondary flex items-center gap-2" onClick={() => setStep(2)}>
                 <FiChevronLeft className="w-4 h-4" /> <span className="hidden sm:inline">Back</span>

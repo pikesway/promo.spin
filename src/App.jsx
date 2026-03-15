@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PlatformProvider } from './context/PlatformContext';
+import { GameProvider } from './context/GameContext';
+import { RedemptionProvider } from './context/RedemptionContext';
+import { LeadProvider } from './context/LeadContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
 import Login from './pages/Login';
@@ -24,6 +27,9 @@ function App() {
     <AuthProvider>
       <ThemeProvider>
         <PlatformProvider>
+          <GameProvider>
+          <RedemptionProvider>
+          <LeadProvider>
           <Router>
             <AppLayout>
               <Routes>
@@ -108,6 +114,9 @@ function App() {
               </Routes>
             </AppLayout>
           </Router>
+          </LeadProvider>
+          </RedemptionProvider>
+          </GameProvider>
         </PlatformProvider>
       </ThemeProvider>
     </AuthProvider>

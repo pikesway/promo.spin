@@ -36,7 +36,7 @@ interface CampaignReward {
 }
 
 function roundHalfUp(value: number): number {
-  return Math.floor(value + 0.5);
+  return Math.floor(value + 0.5); // equivalent to Math.round for positive values, explicit .5-rounds-up
 }
 
 function timeToMinutes(timeStr: string): number {
@@ -62,7 +62,11 @@ function evaluateBonusRules(rules: BonusRule[], nowUtc: Date): { multiplier: num
       if (dayMatch && rule.start_time && rule.end_time) {
         const start = timeToMinutes(rule.start_time);
         const end = timeToMinutes(rule.end_time);
-        matches = currentMinutes >= start && currentMinutes < end;
+        if (start <= end) {
+          matches = currentMinutes >= start && currentMinutes < end;
+        } else {
+          matches = currentMinutes >= start || currentMinutes < end;
+        }
       }
     } else if (rule.rule_type === "custom_simple") {
       matches = true;
@@ -138,11 +142,11 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (campaign.status === "paused" && actionType === "visit") {
+    if (campaign.status === "paused") {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "This rewards program is temporarily paused and not accepting new visits at this time.",
+          error: "This rewards program is temporarily paused.",
           paused: true
         }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -204,15 +208,6 @@ Deno.serve(async (req: Request) => {
       const unlockedRewards: Array<{ tierId: string; rewardName: string; threshold: number }> = [];
 
       for (const tier of crossedTiers) {
-        await supabase.from("loyalty_progress_log").insert({
-          loyalty_account_id: account.id,
-          campaign_id: campaignId,
-          action_type: "reward_unlocked",
-          quantity: 1,
-          stamp_value: 0,
-          device_info: deviceInfo || {},
-        });
-
         unlockedRewards.push({
           tierId: tier.id,
           rewardName: tier.reward_name,
@@ -220,15 +215,14 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      const legacyRewardUnlocked = crossedTiers.length > 0
-        ? true
-        : (allRewards && allRewards.length === 0 && newProgress >= threshold);
+      const rewardUnlocked = crossedTiers.length > 0 ||
+        (allRewards && allRewards.length === 0 && newProgress >= threshold);
 
       return new Response(
         JSON.stringify({
           success: true,
           newProgress,
-          rewardUnlocked: legacyRewardUnlocked || crossedTiers.length > 0,
+          rewardUnlocked,
           threshold,
           stampValue,
           bonusApplied: appliedRule !== null,

@@ -262,12 +262,13 @@ Deno.serve(async (req: Request) => {
     const totalRedeemed = allRedemptions.filter((r: { status: string }) => r.status === "redeemed").length;
     const redemptionRate = totalIssued > 0 ? Math.round((totalRedeemed / totalIssued) * 100) : 0;
 
-    const currentMonth = new Date().getMonth() + 1;
-    const currentYear = new Date().getFullYear();
+    const nowForBirthday = new Date();
+    const currentMonth = nowForBirthday.getUTCMonth() + 1;
+    const currentYear = nowForBirthday.getUTCFullYear();
     const birthdayRedeemedThisMonth = allRedemptions.filter((r: { redemption_source: string; created_at: string }) => {
       if (r.redemption_source !== "birthday") return false;
       const d = new Date(r.created_at);
-      return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
+      return d.getUTCMonth() + 1 === currentMonth && d.getUTCFullYear() === currentYear;
     }).length;
 
     const insightData = {

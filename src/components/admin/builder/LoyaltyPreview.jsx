@@ -5,6 +5,7 @@ import { LOYALTY_ICONS, getIconById } from '../../../constants/loyaltyIcons';
 
 const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
   const [previewMode, setPreviewMode] = useState('mobile');
+  const [urlCopied, setUrlCopied] = useState(false);
   const [simulatedProgress, setSimulatedProgress] = useState(Math.floor(loyaltyData.threshold / 2));
   const qrRef = useRef();
 
@@ -29,7 +30,8 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
 
   const copyUrl = () => {
     navigator.clipboard.writeText(loyaltyUrl);
-    alert('URL copied to clipboard!');
+    setUrlCopied(true);
+    setTimeout(() => setUrlCopied(false), 2000);
   };
 
   return (
@@ -227,8 +229,9 @@ const LoyaltyPreview = ({ loyaltyData, client, loyaltyUrl }) => {
               <button
                 onClick={copyUrl}
                 className="p-2 bg-rose-600 hover:bg-rose-500 theme-text-primary rounded-lg transition-colors"
+                title={urlCopied ? 'Copied!' : 'Copy URL'}
               >
-                <FiCopy className="w-5 h-5" />
+                {urlCopied ? <FiCheck className="w-5 h-5" /> : <FiCopy className="w-5 h-5" />}
               </button>
             </div>
           </div>

@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }) => {
       }
       setProfile(data);
 
-      if (data?.role === 'client_user' || data?.role === 'staff') {
+      if (data?.role === 'client_user' || data?.role === 'staff' || data?.role === 'client_admin') {
         await fetchBrandPermissions(userId);
       }
     } catch (error) {
@@ -240,15 +240,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isClientUser = () => {
-    return profile?.role === 'client_user' || profile?.role === 'staff';
-  };
-
-  const isClient = () => {
-    return isClientAdmin() || isClientUser();
+    return profile?.role === 'client_user';
   };
 
   const isStaff = () => {
-    return isClientUser();
+    return profile?.role === 'staff';
+  };
+
+  const isClient = () => {
+    return isClientAdmin() || isClientUser() || isStaff();
   };
 
   const canManageUsers = () => {

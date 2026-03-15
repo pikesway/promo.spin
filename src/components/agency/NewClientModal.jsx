@@ -74,10 +74,6 @@ export default function NewClientModal({ onClose, onCreated }) {
       if (clientError) throw clientError;
       setCreatedClient(clientData);
 
-      const { data: authData, error: authError } = await supabase.auth.admin
-        ? { data: null, error: new Error('Use edge function') }
-        : { data: null, error: null };
-
       const { error: fnError } = await supabase.functions.invoke('admin-users', {
         body: {
           action: 'create',
@@ -90,7 +86,7 @@ export default function NewClientModal({ onClose, onCreated }) {
       });
 
       if (fnError) {
-        console.warn('Admin user creation via edge function failed, user may need to be created manually:', fnError.message);
+        throw new Error(`Failed to create admin user: ${fnError.message}`);
       }
 
       setStep(3);

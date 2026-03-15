@@ -16,14 +16,16 @@ const emptyRule = { name: '', rule_type: 'day_of_week', day_of_week: 2, start_ti
 
 const RewardTierForm = ({ initial, onSave, onCancel, existingThresholds }) => {
   const [form, setForm] = useState(initial || emptyReward);
+  const [formError, setFormError] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setFormError(null);
     const threshold = parseInt(form.threshold);
-    if (!form.reward_name.trim()) return alert('Reward name is required');
-    if (!threshold || threshold < 1) return alert('Threshold must be a positive number');
+    if (!form.reward_name.trim()) { setFormError('Reward name is required'); return; }
+    if (!threshold || threshold < 1) { setFormError('Threshold must be a positive number'); return; }
     if (existingThresholds.includes(threshold) && threshold !== initial?.threshold) {
-      return alert(`A reward at ${threshold} stamps already exists`);
+      setFormError(`A reward at ${threshold} stamps already exists`); return;
     }
     onSave({ ...form, threshold });
   };
@@ -93,6 +95,7 @@ const RewardTierForm = ({ initial, onSave, onCancel, existingThresholds }) => {
         />
         <label htmlFor="reward-active" className="text-sm theme-text-secondary">Active</label>
       </div>
+      {formError && <p className="text-xs text-red-400">{formError}</p>}
       <div className="flex gap-2 justify-end">
         <button type="button" onClick={onCancel} className="px-4 py-2 text-sm theme-text-tertiary hover:theme-text-primary border theme-border rounded-lg">
           Cancel
@@ -107,6 +110,7 @@ const RewardTierForm = ({ initial, onSave, onCancel, existingThresholds }) => {
 
 const BonusRuleForm = ({ initial, onSave, onCancel }) => {
   const [form, setForm] = useState(initial || emptyRule);
+  const [ruleError, setRuleError] = useState(null);
 
   const getFriendlyLabel = () => {
     const mult = parseFloat(form.multiplier) || 1;
@@ -123,9 +127,10 @@ const BonusRuleForm = ({ initial, onSave, onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.name.trim()) return alert('Rule name is required');
+    setRuleError(null);
+    if (!form.name.trim()) { setRuleError('Rule name is required'); return; }
     const mult = parseFloat(form.multiplier);
-    if (!mult || mult <= 0) return alert('Multiplier must be greater than 0');
+    if (!mult || mult <= 0) { setRuleError('Multiplier must be greater than 0'); return; }
     onSave({ ...form, multiplier: mult });
   };
 
@@ -215,6 +220,7 @@ const BonusRuleForm = ({ initial, onSave, onCancel }) => {
         />
         <label htmlFor="rule-active" className="text-sm theme-text-secondary">Active</label>
       </div>
+      {ruleError && <p className="text-xs text-red-400">{ruleError}</p>}
       <div className="flex gap-2 justify-end">
         <button type="button" onClick={onCancel} className="px-4 py-2 text-sm theme-text-tertiary hover:theme-text-primary border theme-border rounded-lg">
           Cancel

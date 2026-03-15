@@ -122,14 +122,15 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError, count } = await supabase
       .from("redemptions")
       .update({
         status: "redeemed",
         redeemed_at: now.toISOString(),
         redeemed_by: redeemedBy || "cashier",
       })
-      .eq("id", redemption.id);
+      .eq("id", redemption.id)
+      .eq("status", "valid");
 
     if (updateError) {
       console.error("Error updating redemption:", updateError);
@@ -139,6 +140,13 @@ Deno.serve(async (req: Request) => {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
+      );
+    }
+
+    if (count === 0) {
+      return new Response(
+        JSON.stringify({ error: "Already redeemed", status: "redeemed", message: "This coupon has already been used." }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

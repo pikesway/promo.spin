@@ -192,6 +192,7 @@ const IconSequenceConfig = ({ config, onChange }) => {
 
 const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
   const qrRef = useRef();
+  const [urlCopied, setUrlCopied] = useState(false);
 
   const handleChange = (key, value) => {
     onChange({ [key]: value });
@@ -516,11 +517,12 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(loyaltyUrl);
-                  alert('URL copied to clipboard!');
+                  setUrlCopied(true);
+                  setTimeout(() => setUrlCopied(false), 2000);
                 }}
                 className="bg-rose-600 hover:bg-rose-500 theme-text-primary px-4 py-2 rounded-lg font-medium transition-colors"
               >
-                Copy
+                {urlCopied ? 'Copied!' : 'Copy'}
               </button>
             </div>
             <p className="text-xs theme-text-tertiary mt-1">

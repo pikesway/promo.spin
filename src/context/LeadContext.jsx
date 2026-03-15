@@ -23,7 +23,8 @@ export const LeadProvider = ({ children }) => {
           const formattedLeads = data.map(row => ({
             ...row.data,
             id: row.id,
-            gameId: row.game_id,
+            campaignId: row.campaign_id,
+            clientId: row.client_id,
             timestamp: row.created_at
           }));
           setLeads(formattedLeads);
@@ -41,8 +42,7 @@ export const LeadProvider = ({ children }) => {
       id: crypto.randomUUID(),
       ...leadData,
       timestamp: new Date().toISOString(),
-      deviceType: window.innerWidth > 768 ? 'desktop' : 'mobile',
-      ip: 'unknown'
+      deviceType: window.innerWidth > 768 ? 'desktop' : 'mobile'
     };
 
     setLeads(prev => [...prev, newLead]);
@@ -51,7 +51,8 @@ export const LeadProvider = ({ children }) => {
     if (supabase) {
       await supabase.from('leads').insert({
         id: newLead.id,
-        game_id: leadData.gameId,
+        campaign_id: leadData.campaignId,
+        client_id: leadData.clientId || null,
         data: newLead
       });
     }
@@ -59,14 +60,14 @@ export const LeadProvider = ({ children }) => {
     return newLead;
   };
 
-  const getLeadsByGame = (gameId) => {
-    return leads.filter(lead => lead.gameId === gameId);
+  const getLeadsByGame = (campaignId) => {
+    return leads.filter(lead => lead.campaignId === campaignId);
   };
 
-  const exportLeads = (gameId, startDate, endDate) => {
+  const exportLeads = (campaignId, startDate, endDate) => {
     let filteredLeads = leads;
-    if (gameId) {
-      filteredLeads = filteredLeads.filter(lead => lead.gameId === gameId);
+    if (campaignId) {
+      filteredLeads = filteredLeads.filter(lead => lead.campaignId === campaignId);
     }
     if (startDate) {
       filteredLeads = filteredLeads.filter(lead => new Date(lead.timestamp) >= new Date(startDate));

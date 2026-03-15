@@ -16,6 +16,7 @@ const CampaignBuilder = ({ campaign, client, onBack }) => {
   const [gameData, setGameData] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveToast, setSaveToast] = useState(null);
 
   useEffect(() => {
     const converted = campaignToGame(campaign, client);
@@ -30,10 +31,10 @@ const CampaignBuilder = ({ campaign, client, onBack }) => {
       const updates = gameDataToCampaignUpdates(gameData, campaign);
       await updateCampaign(campaign.id, updates);
       setHasChanges(false);
-      alert('Campaign saved!');
+      setSaveToast({ type: 'success', text: 'Campaign saved!' });
+      setTimeout(() => setSaveToast(null), 3000);
     } catch (error) {
-      console.error('Error saving campaign:', error);
-      alert('Failed to save campaign');
+      setSaveToast({ type: 'error', text: 'Failed to save campaign' });
     }
     setIsSaving(false);
   };
@@ -66,6 +67,11 @@ const CampaignBuilder = ({ campaign, client, onBack }) => {
 
   return (
     <div className="h-full flex flex-col bg-zinc-900 text-white">
+      {saveToast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-sm font-medium shadow-lg ${saveToast.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
+          {saveToast.text}
+        </div>
+      )}
       <header className="h-14 md:h-16 border-b border-white/10 bg-zinc-800 flex items-center justify-between px-3 md:px-6 flex-shrink-0">
         <div className="flex items-center gap-2 md:gap-4 min-w-0">
           <button
