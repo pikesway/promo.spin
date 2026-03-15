@@ -34,7 +34,7 @@ function UsageBar({ label, used, limit, icon: Icon, color, subtitle }) {
   );
 }
 
-export default function ClientLimitsPanel({ client, usage, editable = false, onSave }) {
+export default function ClientLimitsPanel({ client, usage, editable = false, onSave, hideHeader = false }) {
   const [editing, setEditing] = React.useState(false);
   const [form, setForm] = React.useState({
     active_brands_limit: client?.active_brands_limit ?? 5,
@@ -64,37 +64,69 @@ export default function ClientLimitsPanel({ client, usage, editable = false, onS
   if (!client || !usage) return null;
 
   return (
-    <div className="glass-card p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Usage &amp; Limits</h3>
-        {editable && !editing && (
-          <button
-            onClick={() => setEditing(true)}
-            className="text-xs px-3 py-1.5 rounded-lg transition-colors"
-            style={{ background: 'var(--glass-bg)', color: 'var(--text-secondary)' }}
-          >
-            Edit Limits
-          </button>
-        )}
-        {editing && (
-          <div className="flex gap-2">
+    <div className={hideHeader ? '' : 'glass-card p-5'}>
+      {!hideHeader && (
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Usage &amp; Limits</h3>
+          {editable && !editing && (
             <button
-              onClick={() => { setEditing(false); }}
+              onClick={() => setEditing(true)}
               className="text-xs px-3 py-1.5 rounded-lg transition-colors"
               style={{ background: 'var(--glass-bg)', color: 'var(--text-secondary)' }}
             >
-              Cancel
+              Edit Limits
             </button>
+          )}
+          {editing && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setEditing(false); }}
+                className="text-xs px-3 py-1.5 rounded-lg transition-colors"
+                style={{ background: 'var(--glass-bg)', color: 'var(--text-secondary)' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="text-xs px-3 py-1.5 rounded-lg transition-colors"
+                style={{ background: 'var(--accent)', color: '#fff' }}
+              >
+                Save
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      {hideHeader && editable && (
+        <div className="flex justify-end mb-4">
+          {!editing ? (
             <button
-              onClick={handleSave}
+              onClick={() => setEditing(true)}
               className="text-xs px-3 py-1.5 rounded-lg transition-colors"
-              style={{ background: 'var(--accent)', color: '#fff' }}
+              style={{ background: 'var(--glass-bg)', color: 'var(--text-secondary)' }}
             >
-              Save
+              Edit Limits
             </button>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setEditing(false); }}
+                className="text-xs px-3 py-1.5 rounded-lg transition-colors"
+                style={{ background: 'var(--glass-bg)', color: 'var(--text-secondary)' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="text-xs px-3 py-1.5 rounded-lg transition-colors"
+                style={{ background: 'var(--accent)', color: '#fff' }}
+              >
+                Save
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {editing ? (
         <div className="space-y-4">

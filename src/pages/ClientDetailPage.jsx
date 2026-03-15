@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiTag, FiUsers, FiActivity, FiPlus, FiEdit, FiEye, FiToggleLeft, FiToggleRight, FiTrash2 } from 'react-icons/fi';
+import { FiArrowLeft, FiTag, FiUsers, FiActivity, FiPlus, FiEdit, FiEye, FiToggleLeft, FiToggleRight, FiTrash2, FiBarChart2, FiX } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabase/client';
@@ -22,6 +22,7 @@ export default function ClientDetailPage() {
   const [editingBrand, setEditingBrand] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+  const [showLimitsModal, setShowLimitsModal] = useState(false);
 
   const client = clients.find(c => c.id === clientId);
   const clientBrands = brands.filter(b => b.client_id === clientId);
@@ -103,46 +104,53 @@ export default function ClientDetailPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        <div className="mb-6">
           <div className="glass-card p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold"
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-lg font-bold"
                 style={{ background: `${client.primary_color}20`, color: client.primary_color }}>
                 {client.name.charAt(0)}
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{client.name}</p>
                 <span className={`text-xs px-2 py-0.5 rounded ${client.status === 'active' ? 'text-green-400' : 'text-amber-400'}`}
                   style={{ background: client.status === 'active' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)' }}>
                   {client.status}
                 </span>
               </div>
+              <div className="hidden sm:flex items-center gap-6 text-sm flex-shrink-0">
+                <div className="text-center">
+                  <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{clientBrands.filter(b => b.active).length}</p>
+                  <p style={{ color: 'var(--text-tertiary)' }}>brands</p>
+                </div>
+                <div className="text-center">
+                  <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{clientCampaigns.filter(c => c.status === 'active').length}</p>
+                  <p style={{ color: 'var(--text-tertiary)' }}>campaigns</p>
+                </div>
+                <div className="text-center">
+                  <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{users.length}</p>
+                  <p style={{ color: 'var(--text-tertiary)' }}>users</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => setShowLimitsModal(true)}
+                  className="p-2 rounded-lg transition-colors hover:bg-white/10"
+                  style={{ color: 'var(--text-tertiary)' }}
+                  title="Usage & Limits"
+                >
+                  <FiBarChart2 size={16} />
+                </button>
+                <button
+                  onClick={() => navigate('/profile')}
+                  className="p-2 rounded-lg transition-colors hover:bg-white/10"
+                  style={{ color: 'var(--text-tertiary)' }}
+                  title="Settings"
+                >
+                  <FiEdit size={16} />
+                </button>
+              </div>
             </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span style={{ color: 'var(--text-tertiary)' }}>Brands</span>
-                <span style={{ color: 'var(--text-primary)' }}>{clientBrands.filter(b => b.active).length} active</span>
-              </div>
-              <div className="flex justify-between">
-                <span style={{ color: 'var(--text-tertiary)' }}>Campaigns</span>
-                <span style={{ color: 'var(--text-primary)' }}>{clientCampaigns.filter(c => c.status === 'active').length} active</span>
-              </div>
-              <div className="flex justify-between">
-                <span style={{ color: 'var(--text-tertiary)' }}>Users</span>
-                <span style={{ color: 'var(--text-primary)' }}>{users.length}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-3">
-            {usage && (
-              <ClientLimitsPanel
-                client={client}
-                usage={usage}
-                editable={isSuperAdmin()}
-                onSave={handleSaveLimits}
-              />
-            )}
           </div>
         </div>
 
@@ -325,6 +333,36 @@ export default function ClientDetailPage() {
           clientId={clientId}
           onClose={() => { setShowPermissionsModal(false); setSelectedUser(null); }}
         />
+      )}
+
+      {showLimitsModal && usage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowLimitsModal(false); }}
+        >
+          <div className="w-full max-w-lg" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="glass-card p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>Usage &amp; Limits</h2>
+                <button
+                  onClick={() => setShowLimitsModal(false)}
+                  className="p-1.5 rounded-lg transition-colors hover:bg-white/10"
+                  style={{ color: 'var(--text-tertiary)' }}
+                >
+                  <FiX size={16} />
+                </button>
+              </div>
+              <ClientLimitsPanel
+                client={client}
+                usage={usage}
+                editable={isSuperAdmin()}
+                onSave={async (limits) => { await handleSaveLimits(limits); setShowLimitsModal(false); }}
+                hideHeader
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
