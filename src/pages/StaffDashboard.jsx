@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiUsers, FiGift, FiCheck, FiCalendar, FiLogOut, FiRefreshCw, FiTag } from 'react-icons/fi';
+import { FiSearch, FiUsers, FiGift, FiCheck, FiCalendar, FiLogOut, FiRefreshCw, FiTag, FiGrid } from 'react-icons/fi';
 import { supabase } from '../supabase/client';
 import { useAuth } from '../context/AuthContext';
 import StaffValidationModal from '../components/loyalty/StaffValidationModal';
@@ -8,7 +8,7 @@ import ManagerOverrideModal from '../components/loyalty/ManagerOverrideModal';
 
 export default function StaffDashboard() {
   const navigate = useNavigate();
-  const { user, profile, signOut, isStaff, isClientUser } = useAuth();
+  const { user, profile, signOut, isStaff, isClientUser, canViewStats } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState(null);
@@ -301,34 +301,48 @@ export default function StaffDashboard() {
               <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>{profile?.full_name || profile?.email}</p>
             </div>
           </div>
-          <button onClick={handleSignOut} className="p-2 rounded-lg transition-colors" style={{ color: 'var(--text-secondary)' }}>
-            <FiLogOut size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            {isClientUser() && profile?.client_id && (
+              <button
+                onClick={() => navigate(`/client/${profile.client_id}`)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}
+              >
+                <FiGrid size={14} />
+                Campaign View
+              </button>
+            )}
+            <button onClick={handleSignOut} className="p-2 rounded-lg transition-colors" style={{ color: 'var(--text-secondary)' }}>
+              <FiLogOut size={20} />
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
-              <FiCheck size={14} />
-              <span className="text-xs">Today</span>
+        {canViewStats('all') && (
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="glass-card p-4">
+              <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
+                <FiCheck size={14} />
+                <span className="text-xs">Today</span>
+              </div>
+              <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.todayConfirmations}</p>
             </div>
-            <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.todayConfirmations}</p>
-          </div>
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
-              <FiGift size={14} />
-              <span className="text-xs">Rewards</span>
+            <div className="glass-card p-4">
+              <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
+                <FiGift size={14} />
+                <span className="text-xs">Rewards</span>
+              </div>
+              <p className="text-2xl font-bold" style={{ color: 'var(--warning)' }}>{stats.pendingRewards}</p>
             </div>
-            <p className="text-2xl font-bold" style={{ color: 'var(--warning)' }}>{stats.pendingRewards}</p>
-          </div>
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
-              <FiUsers size={14} />
-              <span className="text-xs">Members</span>
+            <div className="glass-card p-4">
+              <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
+                <FiUsers size={14} />
+                <span className="text-xs">Members</span>
+              </div>
+              <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.activeMembers}</p>
             </div>
-            <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.activeMembers}</p>
           </div>
-        </div>
+        )}
 
         {brands.length > 1 && (
           <div className="glass-card p-3 mb-4 flex items-center gap-2 overflow-x-auto hide-scrollbar">

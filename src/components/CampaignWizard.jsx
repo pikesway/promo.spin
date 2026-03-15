@@ -1,11 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { FiX, FiChevronLeft, FiChevronRight, FiHeart } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
+import { useAuth } from '../context/AuthContext';
 import { initializeCampaignConfig } from '../utils/campaignAdapter';
 import { LOYALTY_ICONS, getIconById } from '../constants/loyaltyIcons';
 
 export default function CampaignWizard({ clientId, brandId, brands = [], onClose, onCampaignCreated }) {
   const { createCampaign, clients } = usePlatform();
+  const { isClientAdmin, canAddCampaign } = useAuth();
+
+  const permittedBrands = useMemo(() => {
+    if (isClientAdmin()) return brands;
+    return brands.filter(b => canAddCampaign(b.id));
+  }, [brands, isClientAdmin, canAddCampaign]);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
@@ -24,7 +31,7 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
     loyaltyRewardDescription: ''
   });
 
-  const [selectedBrandId, setSelectedBrandId] = useState(brandId || (brands[0]?.id ?? null));
+  const [selectedBrandId, setSelectedBrandId] = useState(brandId || (permittedBrands[0]?.id ?? null));
   const client = useMemo(() => clients.find(c => c.id === clientId), [clients, clientId]);
 
   const handleTypeSelect = (type) => {
@@ -153,7 +160,7 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
           {step === 1 && (
             <div>
               <h3 className="text-base md:text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Select Campaign Type</h3>
-              {brands.length > 1 && (
+              {permittedBrands.length > 1 && (
                 <div className="mb-4">
                   <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Brand</label>
                   <select
@@ -161,7 +168,7 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
                     value={selectedBrandId || ''}
                     onChange={(e) => setSelectedBrandId(e.target.value || null)}
                   >
-                    {brands.map(b => (
+                    {permittedBrands.map(b => (
                       <option key={b.id} value={b.id}>{b.name}</option>
                     ))}
                   </select>

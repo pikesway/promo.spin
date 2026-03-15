@@ -5,6 +5,7 @@ import { usePlatform } from '../../context/PlatformContext';
 
 const PERMISSION_LABELS = {
   is_brand_manager: 'Brand Manager',
+  can_view_stats: 'View Stats',
   can_add_campaign: 'Add Campaigns',
   can_edit_campaign: 'Edit Campaigns',
   can_activate_pause_campaign: 'Activate / Pause',
@@ -38,6 +39,7 @@ export default function UserBrandPermissionsModal({ user, clientId, onClose }) {
   const getPermission = (brandId) => permissions[brandId] || {
     active: false,
     is_brand_manager: false,
+    can_view_stats: false,
     can_add_campaign: true,
     can_edit_campaign: true,
     can_activate_pause_campaign: true,
@@ -80,6 +82,7 @@ export default function UserBrandPermissionsModal({ user, clientId, onClose }) {
           brand_id: brand.id,
           active: perm.active,
           is_brand_manager: perm.is_brand_manager,
+          can_view_stats: perm.can_view_stats ?? false,
           can_add_campaign: perm.can_add_campaign,
           can_edit_campaign: perm.can_edit_campaign,
           can_activate_pause_campaign: perm.can_activate_pause_campaign,

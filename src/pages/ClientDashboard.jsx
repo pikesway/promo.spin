@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar, FiHeart, FiTag, FiChevronDown } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar, FiHeart, FiTag, FiChevronDown, FiUsers } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
 import { useAuth } from '../context/AuthContext';
 import CampaignWizard from '../components/CampaignWizard';
@@ -17,7 +17,11 @@ import FloatingActionButton from '../components/layout/FloatingActionButton';
 export default function ClientDashboard() {
   const { clientId } = useParams();
   const navigate = useNavigate();
-  const { signOut, isClient, isClientAdmin } = useAuth();
+  const {
+    signOut, isClient, isClientAdmin, isClientUser,
+    canAddCampaign, canEditCampaign, canDeleteCampaign, canActivatePause, canViewStats,
+    getPermittedBrandIds
+  } = useAuth();
   const {
     clients, brands, campaigns, leads,
     getCampaignsByBrand, getCampaignsByClient,
@@ -35,15 +39,24 @@ export default function ClientDashboard() {
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
 
   const client = clients.find(c => c.id === clientId);
-  const clientBrands = getBrandsByClient(clientId);
+  const allClientBrands = getBrandsByClient(clientId);
+
+  const clientBrands = useMemo(() => {
+    if (isClientAdmin()) return allClientBrands;
+    const permittedIds = getPermittedBrandIds();
+    return allClientBrands.filter(b => permittedIds.includes(b.id));
+  }, [allClientBrands, isClientAdmin, getPermittedBrandIds]);
+
   const selectedBrand = selectedBrandId !== 'all' ? clientBrands.find(b => b.id === selectedBrandId) : null;
 
   const clientCampaigns = selectedBrandId === 'all'
-    ? getCampaignsByClient(clientId)
+    ? (isClientAdmin()
+        ? getCampaignsByClient(clientId)
+        : campaigns.filter(c => clientBrands.some(b => b.id === c.brand_id)))
     : getCampaignsByBrand(selectedBrandId);
 
   const clientLeads = selectedBrandId === 'all'
-    ? leads.filter(l => l.client_id === clientId)
+    ? leads.filter(l => l.client_id === clientId && clientBrands.some(b => b.id === l.brand_id))
     : leads.filter(l => l.brand_id === selectedBrandId);
 
   const usage = getClientUsage(clientId);
@@ -54,6 +67,13 @@ export default function ClientDashboard() {
     active: clientCampaigns.filter(c => c.status === 'active'),
     completed: clientCampaigns.filter(c => c.status === 'completed')
   };
+
+  const showStats = isClientAdmin() || canViewStats(selectedBrandId);
+
+  const userCanAdd = isClientAdmin() || canAddCampaign(selectedBrandId);
+  const userCanEdit = isClientAdmin() || canEditCampaign(selectedBrandId);
+  const userCanDelete = isClientAdmin() || canDeleteCampaign(selectedBrandId);
+  const userCanToggle = isClientAdmin() || canActivatePause(selectedBrandId);
 
   const exportLeadsCSV = () => {
     if (clientLeads.length === 0) { alert('No leads to export'); return; }
@@ -157,13 +177,35 @@ export default function ClientDashboard() {
                 <span className="text-xs hidden md:inline" style={{ color: 'var(--text-tertiary)' }}>{client.email}</span>
               </div>
             </div>
-            <div className="hidden md:flex gap-2 flex-shrink-0">
+            <div className="hidden md:flex gap-2 flex-shrink-0 items-center">
+              {isClientUser() && (
+                <button
+                  onClick={() => navigate('/staff')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                  style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}
+                >
+                  <FiUsers size={14} />
+                  Staff Terminal
+                </button>
+              )}
               {isClientAdmin() && (
                 <button className="btn btn-ghost p-2" onClick={() => setShowBrandingModal(true)}><FiSettings size={18} /></button>
               )}
               <button className="btn btn-ghost p-2" onClick={handleSignOut}><FiLogOut size={18} /></button>
             </div>
           </div>
+          {isClientUser() && (
+            <div className="flex gap-2 mt-3 md:hidden">
+              <button
+                onClick={() => navigate('/staff')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}
+              >
+                <FiUsers size={14} />
+                Staff Terminal
+              </button>
+            </div>
+          )}
         </div>
 
         {clientBrands.length > 0 && (
@@ -249,31 +291,37 @@ export default function ClientDashboard() {
         {activeTab === 'campaigns' && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg md:text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>Overview</h2>
-              {isClientAdmin() && (
+              <h2 className="text-lg md:text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+                {showStats ? 'Overview' : 'Campaigns'}
+              </h2>
+              {userCanAdd && (
                 <button className="btn btn-primary hidden md:flex" onClick={() => setShowWizard(true)}><FiPlus /> Create Campaign</button>
               )}
             </div>
-            <div className="horizontal-scroll hide-scrollbar md:grid-cols-4 mb-4 md:mb-6 -mx-3 px-3 md:mx-0 md:px-0">
-              {Object.entries(campaignsByStatus).map(([status, statusCampaigns]) => (
-                <div key={status} className="glass-card w-32 md:w-auto flex-shrink-0 p-3 md:p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs capitalize" style={{ color: 'var(--text-secondary)' }}>{status}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${getStatusBadgeClass(status)}`}>{statusCampaigns.length}</span>
+
+            {showStats && (
+              <div className="horizontal-scroll hide-scrollbar md:grid-cols-4 mb-4 md:mb-6 -mx-3 px-3 md:mx-0 md:px-0">
+                {Object.entries(campaignsByStatus).map(([status, statusCampaigns]) => (
+                  <div key={status} className="glass-card w-32 md:w-auto flex-shrink-0 p-3 md:p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs capitalize" style={{ color: 'var(--text-secondary)' }}>{status}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${getStatusBadgeClass(status)}`}>{statusCampaigns.length}</span>
+                    </div>
+                    <p className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{statusCampaigns.length}</p>
                   </div>
-                  <p className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{statusCampaigns.length}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
+
             <div>
-              <h3 className="text-base md:text-xl font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>All Campaigns</h3>
+              {showStats && <h3 className="text-base md:text-xl font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>All Campaigns</h3>}
               <CampaignList
                 campaigns={clientCampaigns}
                 brands={clientBrands}
-                onEditCampaign={isClientAdmin() ? setEditingCampaign : null}
-                onDeleteCampaign={isClientAdmin() ? handleDeleteCampaign : null}
-                onDuplicateCampaign={isClientAdmin() ? handleDuplicateCampaign : null}
-                onToggleStatus={isClientAdmin() ? handleToggleStatus : null}
+                onEditCampaign={userCanEdit ? setEditingCampaign : null}
+                onDeleteCampaign={userCanDelete ? handleDeleteCampaign : null}
+                onDuplicateCampaign={userCanEdit ? handleDuplicateCampaign : null}
+                onToggleStatus={userCanToggle ? handleToggleStatus : null}
                 onShowQR={setShowQRModal}
                 getCampaignAnalytics={getCampaignAnalytics}
               />
@@ -356,7 +404,7 @@ export default function ClientDashboard() {
         )}
       </div>
 
-      {isClientAdmin() && (
+      {userCanAdd && (
         <FloatingActionButton onClick={() => setShowWizard(true)} label="Create Campaign" />
       )}
 

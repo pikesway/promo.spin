@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [brandPermissions, setBrandPermissions] = useState({});
 
   useEffect(() => {
     const initAuth = async () => {
@@ -58,6 +59,7 @@ export const AuthProvider = ({ children }) => {
           await fetchProfile(sessionUser.id);
         } else {
           setProfile(null);
+          setBrandPermissions({});
         }
       })();
     });
@@ -81,10 +83,73 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       setProfile(data);
+
+      if (data?.role === 'client_user' || data?.role === 'staff') {
+        await fetchBrandPermissions(userId);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);
     }
+  };
+
+  const fetchBrandPermissions = async (userId) => {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase
+        .from('user_brand_permissions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('active', true);
+
+      const map = {};
+      (data || []).forEach(p => { map[p.brand_id] = p; });
+      setBrandPermissions(map);
+    } catch (err) {
+      console.error('Error fetching brand permissions:', err);
+      setBrandPermissions({});
+    }
+  };
+
+  const refreshBrandPermissions = async () => {
+    if (user?.id) await fetchBrandPermissions(user.id);
+  };
+
+  const getPermittedBrandIds = () => Object.keys(brandPermissions);
+
+  const canAddCampaign = (brandId) => {
+    if (!brandId || brandId === 'all') {
+      return Object.values(brandPermissions).some(p => p.can_add_campaign);
+    }
+    return brandPermissions[brandId]?.can_add_campaign === true;
+  };
+
+  const canEditCampaign = (brandId) => {
+    if (!brandId || brandId === 'all') {
+      return Object.values(brandPermissions).some(p => p.can_edit_campaign);
+    }
+    return brandPermissions[brandId]?.can_edit_campaign === true;
+  };
+
+  const canDeleteCampaign = (brandId) => {
+    if (!brandId || brandId === 'all') {
+      return Object.values(brandPermissions).some(p => p.can_delete_campaign);
+    }
+    return brandPermissions[brandId]?.can_delete_campaign === true;
+  };
+
+  const canActivatePause = (brandId) => {
+    if (!brandId || brandId === 'all') {
+      return Object.values(brandPermissions).some(p => p.can_activate_pause_campaign);
+    }
+    return brandPermissions[brandId]?.can_activate_pause_campaign === true;
+  };
+
+  const canViewStats = (brandId) => {
+    if (!brandId || brandId === 'all') {
+      return Object.values(brandPermissions).some(p => p.can_view_stats);
+    }
+    return brandPermissions[brandId]?.can_view_stats === true;
   };
 
   const signUp = async (email, password, fullName, role = 'client_user') => {
@@ -128,6 +193,7 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     if (!supabase) {
       setProfile(null);
+      setBrandPermissions({});
       return { error: null };
     }
 
@@ -135,6 +201,7 @@ export const AuthProvider = ({ children }) => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       setProfile(null);
+      setBrandPermissions({});
       return { error: null };
     } catch (error) {
       return { error };
@@ -204,6 +271,7 @@ export const AuthProvider = ({ children }) => {
     user,
     profile,
     loading,
+    brandPermissions,
     signUp,
     signIn,
     signOut,
@@ -218,6 +286,13 @@ export const AuthProvider = ({ children }) => {
     canManageStaff,
     canManageBrands,
     getClientId,
+    getPermittedBrandIds,
+    canAddCampaign,
+    canEditCampaign,
+    canDeleteCampaign,
+    canActivatePause,
+    canViewStats,
+    refreshBrandPermissions,
     refreshProfile: () => user ? fetchProfile(user.id) : null
   };
 

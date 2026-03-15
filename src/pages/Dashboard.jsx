@@ -13,8 +13,6 @@ export default function Dashboard() {
 
     if (isAdmin()) {
       navigate('/agency', { replace: true });
-    } else if (isStaff() && profile.client_id) {
-      navigate('/staff', { replace: true });
     } else if (isClient() && profile.client_id) {
       navigate(`/client/${profile.client_id}`, { replace: true });
     }
