@@ -9,7 +9,8 @@ const CampaignList = ({
   onDuplicateCampaign,
   onToggleStatus,
   onShowQR,
-  getCampaignAnalytics
+  getCampaignAnalytics,
+  showStats = true
 }) => {
   const getStatusColor = (status) => {
     switch (status) {
@@ -80,7 +81,7 @@ const CampaignList = ({
                   }}>
                     {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
                   </span>
-                  <span className="text-xs font-semibold" style={{ color: 'var(--info)' }}>{leads} leads</span>
+                  {showStats && <span className="text-xs font-semibold" style={{ color: 'var(--info)' }}>{leads} leads</span>}
                   {brandName && (
                     <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'var(--glass-bg)', color: 'var(--text-tertiary)' }}>
                       <FiTag size={9} />
@@ -93,16 +94,18 @@ const CampaignList = ({
               <FiChevronRight className="flex-shrink-0 md:hidden" size={20} style={{ color: 'var(--icon-muted)' }} />
 
               <div className="hidden md:block">
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  <div className="rounded-lg p-2 text-center" style={{ background: 'var(--bg-tertiary)' }}>
-                    <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Leads</div>
-                    <div className="text-sm font-bold" style={{ color: 'var(--info)' }}>{leads}</div>
+                {showStats && (
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="rounded-lg p-2 text-center" style={{ background: 'var(--bg-tertiary)' }}>
+                      <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Leads</div>
+                      <div className="text-sm font-bold" style={{ color: 'var(--info)' }}>{leads}</div>
+                    </div>
+                    <div className="rounded-lg p-2 text-center" style={{ background: 'var(--bg-tertiary)' }}>
+                      <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Type</div>
+                      <div className="text-sm font-bold capitalize" style={{ color: 'var(--text-primary)' }}>{campaign.type}</div>
+                    </div>
                   </div>
-                  <div className="rounded-lg p-2 text-center" style={{ background: 'var(--bg-tertiary)' }}>
-                    <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Type</div>
-                    <div className="text-sm font-bold capitalize" style={{ color: 'var(--text-primary)' }}>{campaign.type}</div>
-                  </div>
-                </div>
+                )}
 
                 {(onToggleStatus || onDuplicateCampaign || onShowQR || onDeleteCampaign) && (
                   <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid var(--border-color)' }}>

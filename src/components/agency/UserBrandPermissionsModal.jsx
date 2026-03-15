@@ -67,30 +67,22 @@ export default function UserBrandPermissionsModal({ user, clientId, onClose }) {
     setSaving(true);
     try {
       for (const brand of clientBrands) {
-        const perm = permissions[brand.id];
-        if (!perm) continue;
-
-        const existing = await supabase
-          .from('user_brand_permissions')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('brand_id', brand.id)
-          .maybeSingle();
+        const perm = getPermission(brand.id);
 
         const payload = {
           user_id: user.id,
           brand_id: brand.id,
           active: perm.active,
-          is_brand_manager: perm.is_brand_manager,
+          is_brand_manager: perm.is_brand_manager ?? false,
           can_view_stats: perm.can_view_stats ?? false,
-          can_add_campaign: perm.can_add_campaign,
-          can_edit_campaign: perm.can_edit_campaign,
-          can_activate_pause_campaign: perm.can_activate_pause_campaign,
-          can_delete_campaign: perm.can_delete_campaign,
+          can_add_campaign: perm.can_add_campaign ?? true,
+          can_edit_campaign: perm.can_edit_campaign ?? true,
+          can_activate_pause_campaign: perm.can_activate_pause_campaign ?? true,
+          can_delete_campaign: perm.can_delete_campaign ?? false,
         };
 
-        if (existing.data?.id) {
-          await supabase.from('user_brand_permissions').update(payload).eq('id', existing.data.id);
+        if (perm.id) {
+          await supabase.from('user_brand_permissions').update(payload).eq('id', perm.id);
         } else if (perm.active) {
           await supabase.from('user_brand_permissions').insert(payload);
         }

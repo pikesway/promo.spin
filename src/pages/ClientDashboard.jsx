@@ -18,7 +18,7 @@ export default function ClientDashboard() {
   const { clientId } = useParams();
   const navigate = useNavigate();
   const {
-    signOut, isClient, isClientAdmin, isClientUser,
+    signOut, isClient, isAdmin, isClientAdmin, isClientUser,
     canAddCampaign, canEditCampaign, canDeleteCampaign, canActivatePause, canViewStats,
     getPermittedBrandIds
   } = useAuth();
@@ -41,16 +41,18 @@ export default function ClientDashboard() {
   const client = clients.find(c => c.id === clientId);
   const allClientBrands = getBrandsByClient(clientId);
 
+  const isFullAccess = isAdmin() || isClientAdmin();
+
   const clientBrands = useMemo(() => {
-    if (isClientAdmin()) return allClientBrands;
+    if (isFullAccess) return allClientBrands;
     const permittedIds = getPermittedBrandIds();
     return allClientBrands.filter(b => permittedIds.includes(b.id));
-  }, [allClientBrands, isClientAdmin, getPermittedBrandIds]);
+  }, [allClientBrands, isFullAccess, getPermittedBrandIds]);
 
   const selectedBrand = selectedBrandId !== 'all' ? clientBrands.find(b => b.id === selectedBrandId) : null;
 
   const clientCampaigns = selectedBrandId === 'all'
-    ? (isClientAdmin()
+    ? (isFullAccess
         ? getCampaignsByClient(clientId)
         : campaigns.filter(c => clientBrands.some(b => b.id === c.brand_id)))
     : getCampaignsByBrand(selectedBrandId);
@@ -68,12 +70,12 @@ export default function ClientDashboard() {
     completed: clientCampaigns.filter(c => c.status === 'completed')
   };
 
-  const showStats = isClientAdmin() || canViewStats(selectedBrandId);
+  const showStats = isFullAccess || canViewStats(selectedBrandId);
 
-  const userCanAdd = isClientAdmin() || canAddCampaign(selectedBrandId);
-  const userCanEdit = isClientAdmin() || canEditCampaign(selectedBrandId);
-  const userCanDelete = isClientAdmin() || canDeleteCampaign(selectedBrandId);
-  const userCanToggle = isClientAdmin() || canActivatePause(selectedBrandId);
+  const userCanAdd = isFullAccess || canAddCampaign(selectedBrandId);
+  const userCanEdit = isFullAccess || canEditCampaign(selectedBrandId);
+  const userCanDelete = isFullAccess || canDeleteCampaign(selectedBrandId);
+  const userCanToggle = isFullAccess || canActivatePause(selectedBrandId);
 
   const exportLeadsCSV = () => {
     if (clientLeads.length === 0) { alert('No leads to export'); return; }
@@ -188,7 +190,7 @@ export default function ClientDashboard() {
                   Staff Terminal
                 </button>
               )}
-              {isClientAdmin() && (
+              {isFullAccess && (
                 <button className="btn btn-ghost p-2" onClick={() => setShowBrandingModal(true)}><FiSettings size={18} /></button>
               )}
               <button className="btn btn-ghost p-2" onClick={handleSignOut}><FiLogOut size={18} /></button>
@@ -260,7 +262,7 @@ export default function ClientDashboard() {
           </div>
         )}
 
-        {isClientAdmin() && usage && (
+        {isFullAccess && usage && (
           <div className="mb-4">
             <ClientLimitsPanel client={client} usage={usage} editable={false} />
           </div>
@@ -324,6 +326,7 @@ export default function ClientDashboard() {
                 onToggleStatus={userCanToggle ? handleToggleStatus : null}
                 onShowQR={setShowQRModal}
                 getCampaignAnalytics={getCampaignAnalytics}
+                showStats={showStats}
               />
             </div>
           </>
