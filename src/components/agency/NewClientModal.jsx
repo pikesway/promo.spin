@@ -25,6 +25,8 @@ export default function NewClientModal({ onClose, onCreated }) {
     active_brands_limit: 5,
     active_users_limit: 10,
     active_campaigns_limit: 20,
+    loyalty_members_limit: 1000,
+    leads_limit: 5000,
   });
 
   const [adminForm, setAdminForm] = useState({
@@ -206,25 +208,48 @@ export default function NewClientModal({ onClose, onCreated }) {
         {step === 1 && (
           <div className="space-y-4">
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              Set the maximum number of active resources for this client.
+              Set the maximum number of active resources for this client. These limits cannot be exceeded by the client.
             </p>
-            {[
-              { key: 'active_brands_limit', label: 'Active Brands Limit' },
-              { key: 'active_users_limit', label: 'Active Users Limit' },
-              { key: 'active_campaigns_limit', label: 'Active Campaigns Limit' },
-            ].map(({ key, label }) => (
-              <div key={key}>
-                <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{label}</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={limitsForm[key]}
-                  onChange={e => setLimitsForm(p => ({ ...p, [key]: parseInt(e.target.value) || 1 }))}
-                  className="w-full px-3 py-2.5 rounded-lg text-sm"
-                  style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
-                />
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { key: 'active_brands_limit', label: 'Active Brands' },
+                { key: 'active_users_limit', label: 'Active Users' },
+                { key: 'active_campaigns_limit', label: 'Active Campaigns' },
+              ].map(({ key, label }) => (
+                <div key={key}>
+                  <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={limitsForm[key]}
+                    onChange={e => setLimitsForm(p => ({ ...p, [key]: parseInt(e.target.value) || 1 }))}
+                    className="w-full px-3 py-2.5 rounded-lg text-sm"
+                    style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="pt-2" style={{ borderTop: '1px solid var(--border-color)' }}>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>Loyalty &amp; Leads limits are shared across all brands. Each brand gets an allocation that cannot exceed these totals.</p>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { key: 'loyalty_members_limit', label: 'Total Loyalty Members' },
+                  { key: 'leads_limit', label: 'Total Leads' },
+                ].map(({ key, label }) => (
+                  <div key={key}>
+                    <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={limitsForm[key]}
+                      onChange={e => setLimitsForm(p => ({ ...p, [key]: parseInt(e.target.value) || 1 }))}
+                      className="w-full px-3 py-2.5 rounded-lg text-sm"
+                      style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         )}
 

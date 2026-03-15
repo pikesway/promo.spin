@@ -377,13 +377,42 @@ export const PlatformProvider = ({ children }) => {
     const client = clients.find(c => c.id === clientId);
     if (!client) return null;
     const clientBrands = brands.filter(b => b.client_id === clientId && b.active);
+    const allClientBrands = brands.filter(b => b.client_id === clientId);
     const clientCampaigns = campaigns.filter(c => c.client_id === clientId && c.status === 'active');
+    const clientLeads = leads.filter(l => l.client_id === clientId);
+
+    const allocatedLoyaltyMembers = allClientBrands.reduce((sum, b) => sum + (b.loyalty_members_limit || 0), 0);
+    const allocatedLeads = allClientBrands.reduce((sum, b) => sum + (b.leads_limit || 0), 0);
+
     return {
       activeBrands: clientBrands.length,
       activeBrandsLimit: client.active_brands_limit,
       activeCampaigns: clientCampaigns.length,
       activeCampaignsLimit: client.active_campaigns_limit,
       activeUsersLimit: client.active_users_limit,
+      loyaltyMembersLimit: client.loyalty_members_limit,
+      leadsLimit: client.leads_limit,
+      allocatedLoyaltyMembers,
+      remainingLoyaltyAllocation: (client.loyalty_members_limit || 0) - allocatedLoyaltyMembers,
+      allocatedLeads,
+      remainingLeadsAllocation: (client.leads_limit || 0) - allocatedLeads,
+      totalLeads: clientLeads.length,
+    };
+  };
+
+  const getBrandAllocationSummary = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    if (!client) return null;
+    const clientBrands = brands.filter(b => b.client_id === clientId);
+    const allocatedLoyalty = clientBrands.reduce((sum, b) => sum + (b.loyalty_members_limit || 0), 0);
+    const allocatedLeads = clientBrands.reduce((sum, b) => sum + (b.leads_limit || 0), 0);
+    return {
+      loyaltyMembersLimit: client.loyalty_members_limit || 0,
+      allocatedLoyalty,
+      remainingLoyalty: (client.loyalty_members_limit || 0) - allocatedLoyalty,
+      leadsLimit: client.leads_limit || 0,
+      allocatedLeads,
+      remainingLeads: (client.leads_limit || 0) - allocatedLeads,
     };
   };
 
@@ -427,6 +456,7 @@ export const PlatformProvider = ({ children }) => {
     getCampaignBySlug,
     getCampaignAnalytics,
     getClientUsage,
+    getBrandAllocationSummary,
     getBrandMemberCount,
   };
 

@@ -116,9 +116,10 @@ Deno.serve(async (req: Request) => {
               { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
-          if (role !== 'client_user') {
+          const allowedRolesForClientAdmin = ['client_user', 'client_admin', 'staff'];
+          if (!allowedRolesForClientAdmin.includes(role)) {
             return new Response(
-              JSON.stringify({ error: 'Forbidden: Client admins can only create client_user accounts' }),
+              JSON.stringify({ error: 'Forbidden: Client admins can only create client_user or client_admin accounts' }),
               { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }

@@ -11,7 +11,7 @@ import UserBrandPermissionsModal from '../components/agency/UserBrandPermissions
 export default function ClientDetailPage() {
   const { clientId } = useParams();
   const navigate = useNavigate();
-  const { clients, brands, campaigns, updateClient, createBrand, updateBrand, deleteBrand, getClientUsage, startImpersonation } = usePlatform();
+  const { clients, brands, campaigns, updateClient, createBrand, updateBrand, deleteBrand, getClientUsage, getBrandAllocationSummary, startImpersonation } = usePlatform();
   const { isSuperAdmin } = useAuth();
 
   const [users, setUsers] = useState([]);
@@ -314,6 +314,7 @@ export default function ClientDetailPage() {
         <BrandFormModal
           brand={editingBrand}
           clientId={clientId}
+          allocationSummary={getBrandAllocationSummary(clientId)}
           onClose={() => { setShowBrandModal(false); setEditingBrand(null); }}
         />
       )}

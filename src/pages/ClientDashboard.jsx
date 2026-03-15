@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar, FiHeart, FiTag, FiChevronDown, FiUsers, FiBarChart2 } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabase/client';
 import CampaignWizard from '../components/CampaignWizard';
 import BizGamezCampaignBuilder from '../components/admin/BizGamezCampaignBuilder';
 import LoyaltyProgramBuilder from '../components/admin/LoyaltyProgramBuilder';
@@ -10,6 +11,8 @@ import CampaignList from '../components/admin/CampaignList';
 import LoyaltyMemberManagement from '../components/admin/LoyaltyMemberManagement';
 import CampaignInsights from '../components/admin/CampaignInsights';
 import ClientLimitsPanel from '../components/agency/ClientLimitsPanel';
+import BrandManagementTab from '../components/client/BrandManagementTab';
+import UserManagementTab from '../components/client/UserManagementTab';
 import QRCode from 'qrcode.react';
 import StatusBadge from '../components/StatusBadge';
 import ClientBrandingForm from '../components/ClientBrandingForm';
@@ -28,7 +31,8 @@ export default function ClientDashboard() {
     getCampaignsByBrand, getCampaignsByClient,
     deleteCampaign, duplicateCampaign, toggleCampaignStatus,
     updateClient, getCampaignAnalytics, getClientUsage,
-    getBrandsByClient
+    getBrandsByClient, getBrandAllocationSummary,
+    updateBrand, deleteBrand,
   } = usePlatform();
 
   const [activeTab, setActiveTab] = useState('campaigns');
@@ -40,6 +44,7 @@ export default function ClientDashboard() {
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
   const [dashboardError, setDashboardError] = useState(null);
   const [copiedText, setCopiedText] = useState(null);
+  const [clientUsers, setClientUsers] = useState([]);
 
   const client = clients.find(c => c.id === clientId);
   const allClientBrands = getBrandsByClient(clientId);
@@ -80,6 +85,28 @@ export default function ClientDashboard() {
       setActiveTab('campaigns');
     }
   }, [showStats, activeTab]);
+
+  const fetchClientUsers = useCallback(async () => {
+    if (!supabase || !clientId || !isClientAdmin()) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('created_at', { ascending: false });
+    setClientUsers(data || []);
+  }, [clientId]);
+
+  useEffect(() => {
+    if (isClientAdmin()) fetchClientUsers();
+  }, [clientId, fetchClientUsers]);
+
+  const handleToggleBrand = async (brand) => {
+    await updateBrand(brand.id, { active: !brand.active });
+  };
+
+  const handleDeleteBrand = async (brandId) => {
+    return await deleteBrand(brandId);
+  };
 
   const userCanAdd = isFullAccess || canAddCampaign(selectedBrandId);
   const userCanEdit = isFullAccess || canEditCampaign(selectedBrandId);
@@ -293,7 +320,11 @@ export default function ClientDashboard() {
         )}
 
         <div className="flex gap-2 mb-4 pb-2 -mx-3 px-3 overflow-x-auto hide-scrollbar" style={{ borderBottom: '1px solid var(--border-color)' }}>
-          {['campaigns', ...(showStats ? ['leads', 'loyalty', 'insights'] : [])].map(tab => (
+          {[
+            'campaigns',
+            ...(showStats ? ['leads', 'loyalty', 'insights'] : []),
+            ...(isClientAdmin() ? ['brands', 'users'] : []),
+          ].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -305,6 +336,8 @@ export default function ClientDashboard() {
             >
               {tab === 'loyalty' && <FiHeart size={14} />}
               {tab === 'insights' && <FiBarChart2 size={14} />}
+              {tab === 'brands' && <FiTag size={14} />}
+              {tab === 'users' && <FiUsers size={14} />}
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
               {tab === 'leads' && (
                 <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: activeTab === tab ? 'rgba(255,255,255,0.2)' : 'var(--glass-bg)' }}>
@@ -436,6 +469,27 @@ export default function ClientDashboard() {
             scopeType={selectedBrandId !== 'all' ? 'brand' : 'client'}
             scopeId={selectedBrandId !== 'all' ? selectedBrandId : clientId}
             label={selectedBrand ? `${selectedBrand.name} Insights` : `${client?.name} Insights`}
+          />
+        )}
+
+        {activeTab === 'brands' && isClientAdmin() && (
+          <BrandManagementTab
+            clientId={clientId}
+            brands={allClientBrands}
+            allocationSummary={getBrandAllocationSummary(clientId)}
+            usage={usage}
+            onToggleBrand={handleToggleBrand}
+            onDeleteBrand={handleDeleteBrand}
+          />
+        )}
+
+        {activeTab === 'users' && isClientAdmin() && (
+          <UserManagementTab
+            clientId={clientId}
+            users={clientUsers}
+            brands={allClientBrands}
+            usage={usage}
+            onRefreshUsers={fetchClientUsers}
           />
         )}
       </div>
