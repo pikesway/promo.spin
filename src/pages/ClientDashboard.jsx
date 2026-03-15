@@ -146,7 +146,7 @@ export default function ClientDashboard() {
       return <BizGamezCampaignBuilder campaign={editingCampaign} client={client} onBack={() => setEditingCampaign(null)} />;
     }
     if (editingCampaign.type === 'loyalty') {
-      return <LoyaltyProgramBuilder campaign={editingCampaign} client={client} onBack={() => setEditingCampaign(null)} />;
+      return <LoyaltyProgramBuilder campaign={editingCampaign} client={client} onBack={() => setEditingCampaign(null)} canEdit={userCanEdit} />;
     }
     setEditingCampaign(null);
     return null;

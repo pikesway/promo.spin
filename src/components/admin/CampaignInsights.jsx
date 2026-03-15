@@ -23,9 +23,9 @@ export default function CampaignInsights({ scopeType, scopeId, label }) {
           body: JSON.stringify({ scopeType, scopeId, forceRefresh: force }),
         }
       );
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to load insights');
-      setInsights(data);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to load insights');
+      setInsights({ ...result.data, computedAt: result.computedAt, nextRefreshAt: result.nextRefreshAt });
       setLastRefreshed(new Date());
     } catch (err) {
       console.error('Error fetching insights:', err);

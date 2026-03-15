@@ -18,6 +18,7 @@ interface ActionPayload {
 
 interface BonusRule {
   id: string;
+  name: string;
   rule_type: string;
   day_of_week: number | null;
   start_time: string | null;
@@ -154,7 +155,7 @@ Deno.serve(async (req: Request) => {
     if (actionType === "visit") {
       const { data: bonusRules } = await supabase
         .from("campaign_bonus_rules")
-        .select("id, rule_type, day_of_week, start_time, end_time, multiplier")
+        .select("id, name, rule_type, day_of_week, start_time, end_time, multiplier")
         .eq("campaign_id", campaignId)
         .eq("active", true);
 
@@ -231,7 +232,7 @@ Deno.serve(async (req: Request) => {
           threshold,
           stampValue,
           bonusApplied: appliedRule !== null,
-          bonusRuleName: appliedRule?.id ? null : null,
+          bonusRuleName: appliedRule?.name || null,
           unlockedRewards,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
