@@ -72,16 +72,19 @@ export default function StaffValidationModal({
     if (showLockout) {
       return (
         <div className="flex flex-col items-center py-6">
-          <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
-            <FiLock size={40} className="text-red-400" />
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: '#fee2e2' }}>
+            <FiLock size={40} style={{ color: '#dc2626' }} />
           </div>
-          <h3 className="text-xl font-semibold text-white mb-2">Account Locked</h3>
-          <p className="text-gray-400 text-center mb-6 max-w-xs">
+          <h3 className="text-xl font-semibold mb-2" style={{ color: '#111827' }}>Account Locked</h3>
+          <p className="text-center mb-6 max-w-xs" style={{ color: '#6b7280' }}>
             Too many failed validation attempts. Manager assistance is required to unlock.
           </p>
           <button
             onClick={handleUnlockRequest}
-            className="px-6 py-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium flex items-center gap-2 transition-colors"
+            className="px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            style={{ background: '#d97706', color: '#ffffff' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#b45309'}
+            onMouseLeave={e => e.currentTarget.style.background = '#d97706'}
           >
             <FiAlertTriangle size={18} />
             Request Manager Unlock
@@ -121,16 +124,19 @@ export default function StaffValidationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.75)' }}>
       <div
         className="w-full max-w-md rounded-2xl overflow-hidden"
-        style={{ background: 'var(--bg-secondary, #18181B)', border: '1px solid rgba(255,255,255,0.1)' }}
+        style={{ background: '#ffffff', border: '1px solid #e5e7eb', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
       >
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="text-lg font-semibold text-white">{getActionTitle()}</h2>
+        <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid #e5e7eb' }}>
+          <h2 className="text-lg font-semibold" style={{ color: '#111827' }}>{getActionTitle()}</h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+            className="p-2 rounded-full transition-colors"
+            style={{ color: '#6b7280' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; e.currentTarget.style.color = '#111827'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6b7280'; }}
           >
             <FiX size={20} />
           </button>

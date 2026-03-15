@@ -48,7 +48,7 @@ export default function PinValidation({ config, onSuccess, onFailure, attemptsRe
   return (
     <div className="flex flex-col items-center">
       <div className="mb-6 text-center">
-        <p className="text-gray-400 text-sm mb-2">
+        <p className="text-sm mb-2" style={{ color: '#374151' }}>
           Enter {maxLength}-digit PIN
         </p>
         <div
@@ -57,20 +57,21 @@ export default function PinValidation({ config, onSuccess, onFailure, attemptsRe
           {Array.from({ length: maxLength }).map((_, i) => (
             <div
               key={i}
-              className={`
-                w-12 h-14 rounded-lg border-2 flex items-center justify-center text-2xl font-bold
-                ${pin[i] ? 'border-teal-500 bg-teal-500/10 text-white' : 'border-white/20 bg-white/5 text-gray-500'}
-                transition-all duration-150
-              `}
+              className="w-12 h-14 rounded-lg border-2 flex items-center justify-center text-2xl font-bold transition-all duration-150"
+              style={{
+                borderColor: pin[i] ? '#0d9488' : '#d1d5db',
+                background: pin[i] ? '#f0fdfa' : '#f9fafb',
+                color: pin[i] ? '#0d9488' : '#9ca3af',
+              }}
             >
               {pin[i] ? '*' : ''}
             </div>
           ))}
         </div>
         {error && (
-          <p className="text-red-400 text-sm mt-2">{error}</p>
+          <p className="text-sm mt-2" style={{ color: '#dc2626' }}>{error}</p>
         )}
-        <p className="text-gray-500 text-xs mt-2">
+        <p className="text-xs mt-2" style={{ color: '#6b7280' }}>
           {attemptsRemaining} attempts remaining
         </p>
       </div>
@@ -81,11 +82,12 @@ export default function PinValidation({ config, onSuccess, onFailure, attemptsRe
             <button
               key={index}
               onClick={() => handleKeyPress(key)}
-              className={`
-                ${isAlphanumeric ? 'w-10 h-10 text-base' : 'w-16 h-14 text-xl'}
-                rounded-lg bg-white/10 hover:bg-white/20 active:bg-white/30
-                text-white font-semibold transition-colors
-              `}
+              className={`${isAlphanumeric ? 'w-10 h-10 text-base' : 'w-16 h-14 text-xl'} rounded-lg font-semibold transition-colors`}
+              style={{ background: '#f3f4f6', color: '#111827', border: '1px solid #e5e7eb' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#e5e7eb'}
+              onMouseLeave={e => e.currentTarget.style.background = '#f3f4f6'}
+              onMouseDown={e => e.currentTarget.style.background = '#d1d5db'}
+              onMouseUp={e => e.currentTarget.style.background = '#e5e7eb'}
             >
               {key}
             </button>
@@ -99,14 +101,20 @@ export default function PinValidation({ config, onSuccess, onFailure, attemptsRe
         <button
           onClick={handleDelete}
           disabled={!pin}
-          className="w-16 h-14 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed text-white flex items-center justify-center transition-colors"
+          className="w-16 h-14 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb' }}
+          onMouseEnter={e => { if (pin) e.currentTarget.style.background = '#e5e7eb'; }}
+          onMouseLeave={e => e.currentTarget.style.background = '#f3f4f6'}
         >
           <FiDelete size={24} />
         </button>
         <button
           onClick={handleSubmit}
           disabled={pin.length !== maxLength}
-          className="w-24 h-14 rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold flex items-center justify-center gap-2 transition-colors"
+          className="w-24 h-14 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{ background: '#0d9488', color: '#ffffff' }}
+          onMouseEnter={e => { if (pin.length === maxLength) e.currentTarget.style.background = '#0f766e'; }}
+          onMouseLeave={e => e.currentTarget.style.background = '#0d9488'}
         >
           <FiCheck size={20} />
           Submit
