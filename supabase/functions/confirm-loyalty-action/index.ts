@@ -13,6 +13,67 @@ interface ActionPayload {
   actionType: "visit" | "redemption";
   validationInput?: string;
   deviceInfo?: Record<string, unknown>;
+  rewardTierId?: string;
+}
+
+interface BonusRule {
+  id: string;
+  rule_type: string;
+  day_of_week: number | null;
+  start_time: string | null;
+  end_time: string | null;
+  multiplier: number;
+}
+
+interface CampaignReward {
+  id: string;
+  reward_name: string;
+  threshold: number;
+  reward_description: string;
+  reward_type: string;
+  sort_order: number;
+}
+
+function roundHalfUp(value: number): number {
+  return Math.floor(value + 0.5);
+}
+
+function timeToMinutes(timeStr: string): number {
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function evaluateBonusRules(rules: BonusRule[], nowUtc: Date): { multiplier: number; appliedRule: BonusRule | null } {
+  const dayOfWeek = nowUtc.getUTCDay();
+  const currentMinutes = nowUtc.getUTCHours() * 60 + nowUtc.getUTCMinutes();
+
+  let bestMultiplier = 1;
+  let appliedRule: BonusRule | null = null;
+
+  for (const rule of rules) {
+    let matches = false;
+
+    if (rule.rule_type === "day_of_week") {
+      matches = rule.day_of_week !== null && rule.day_of_week === dayOfWeek;
+    } else if (rule.rule_type === "time_window") {
+      const hasDay = rule.day_of_week !== null;
+      const dayMatch = !hasDay || rule.day_of_week === dayOfWeek;
+      if (dayMatch && rule.start_time && rule.end_time) {
+        const start = timeToMinutes(rule.start_time);
+        const end = timeToMinutes(rule.end_time);
+        matches = currentMinutes >= start && currentMinutes < end;
+      }
+    } else if (rule.rule_type === "custom_simple") {
+      matches = true;
+    }
+
+    if (matches && rule.multiplier > bestMultiplier) {
+      bestMultiplier = rule.multiplier;
+      appliedRule = rule;
+    }
+  }
+
+  return { multiplier: bestMultiplier, appliedRule };
 }
 
 Deno.serve(async (req: Request) => {
@@ -26,11 +87,11 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const payload: ActionPayload = await req.json();
-    const { memberCode, campaignId, actionType, deviceInfo } = payload;
+    const { memberCode, campaignId, actionType, deviceInfo, rewardTierId } = payload;
 
     if (!memberCode || !campaignId || !actionType) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
+        JSON.stringify({ success: false, error: "Missing required fields" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -44,7 +105,7 @@ Deno.serve(async (req: Request) => {
 
     if (accountError || !account) {
       return new Response(
-        JSON.stringify({ error: "Member not found" }),
+        JSON.stringify({ success: false, error: "Member not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -58,7 +119,7 @@ Deno.serve(async (req: Request) => {
 
     if (lockout) {
       return new Response(
-        JSON.stringify({ error: "Account is locked", locked: true }),
+        JSON.stringify({ success: false, error: "Account is locked", locked: true }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -71,7 +132,7 @@ Deno.serve(async (req: Request) => {
 
     if (!campaign) {
       return new Response(
-        JSON.stringify({ error: "Campaign not found" }),
+        JSON.stringify({ success: false, error: "Campaign not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -79,6 +140,7 @@ Deno.serve(async (req: Request) => {
     if (campaign.status === "paused" && actionType === "visit") {
       return new Response(
         JSON.stringify({
+          success: false,
           error: "This rewards program is temporarily paused and not accepting new visits at this time.",
           paused: true
         }),
@@ -90,16 +152,39 @@ Deno.serve(async (req: Request) => {
     const threshold = loyaltyProgram.threshold || 10;
 
     if (actionType === "visit") {
-      const newProgress = (account.current_progress || 0) + 1;
-      const rewardUnlocked = newProgress >= threshold;
+      const { data: bonusRules } = await supabase
+        .from("campaign_bonus_rules")
+        .select("id, rule_type, day_of_week, start_time, end_time, multiplier")
+        .eq("campaign_id", campaignId)
+        .eq("active", true);
+
+      const nowUtc = new Date();
+      const { multiplier, appliedRule } = evaluateBonusRules(bonusRules || [], nowUtc);
+      const stampValue = roundHalfUp(1 * multiplier);
+
+      const oldProgress = account.current_progress || 0;
+      const newProgress = oldProgress + stampValue;
+
+      const { data: allRewards } = await supabase
+        .from("campaign_rewards")
+        .select("id, reward_name, threshold, reward_description, reward_type, sort_order")
+        .eq("campaign_id", campaignId)
+        .eq("active", true)
+        .order("threshold", { ascending: true });
+
+      const crossedTiers: CampaignReward[] = (allRewards || []).filter(
+        (r: CampaignReward) => oldProgress < r.threshold && newProgress >= r.threshold
+      );
+
+      const anyRewardUnlocked = crossedTiers.length > 0 || newProgress >= threshold;
 
       const { error: updateError } = await supabase
         .from("loyalty_accounts")
         .update({
           current_progress: newProgress,
           total_visits: (account.total_visits || 0) + 1,
-          reward_unlocked: rewardUnlocked,
-          reward_unlocked_at: rewardUnlocked ? new Date().toISOString() : null,
+          reward_unlocked: anyRewardUnlocked,
+          reward_unlocked_at: anyRewardUnlocked ? nowUtc.toISOString() : account.reward_unlocked_at,
         })
         .eq("id", account.id);
 
@@ -108,17 +193,46 @@ Deno.serve(async (req: Request) => {
       await supabase.from("loyalty_progress_log").insert({
         loyalty_account_id: account.id,
         campaign_id: campaignId,
-        action_type: rewardUnlocked ? "reward_unlocked" : "visit_confirmed",
+        action_type: anyRewardUnlocked ? "reward_unlocked" : "visit_confirmed",
         quantity: 1,
+        stamp_value: stampValue,
+        bonus_rule_id: appliedRule?.id || null,
         device_info: deviceInfo || {},
       });
+
+      const unlockedRewards: Array<{ tierId: string; rewardName: string; threshold: number }> = [];
+
+      for (const tier of crossedTiers) {
+        await supabase.from("loyalty_progress_log").insert({
+          loyalty_account_id: account.id,
+          campaign_id: campaignId,
+          action_type: "reward_unlocked",
+          quantity: 1,
+          stamp_value: 0,
+          device_info: deviceInfo || {},
+        });
+
+        unlockedRewards.push({
+          tierId: tier.id,
+          rewardName: tier.reward_name,
+          threshold: tier.threshold,
+        });
+      }
+
+      const legacyRewardUnlocked = crossedTiers.length > 0
+        ? true
+        : (allRewards && allRewards.length === 0 && newProgress >= threshold);
 
       return new Response(
         JSON.stringify({
           success: true,
           newProgress,
-          rewardUnlocked,
+          rewardUnlocked: legacyRewardUnlocked || crossedTiers.length > 0,
           threshold,
+          stampValue,
+          bonusApplied: appliedRule !== null,
+          bonusRuleName: appliedRule?.id ? null : null,
+          unlockedRewards,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -127,13 +241,11 @@ Deno.serve(async (req: Request) => {
     if (actionType === "redemption") {
       if (!account.reward_unlocked) {
         return new Response(
-          JSON.stringify({ error: "No reward available to redeem" }),
+          JSON.stringify({ success: false, error: "No reward available to redeem" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const shortCode = generateShortCode();
-      const redemptionToken = crypto.randomUUID();
       const resetBehavior = loyaltyProgram.reset_behavior || loyaltyProgram.resetBehavior || "reset";
       const expiryDays = campaign.config?.screens?.redemption?.expiryDays || 30;
       const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString();
@@ -142,7 +254,36 @@ Deno.serve(async (req: Request) => {
         ? Math.max(0, (account.current_progress || 0) - threshold)
         : 0;
 
-      const rewardName = loyaltyProgram.reward_name || loyaltyProgram.rewardName || "Free Reward";
+      let tierId: string | null = rewardTierId || null;
+      let rewardName = loyaltyProgram.reward_name || loyaltyProgram.rewardName || "Free Reward";
+
+      if (tierId) {
+        const { data: tier } = await supabase
+          .from("campaign_rewards")
+          .select("id, reward_name")
+          .eq("id", tierId)
+          .eq("campaign_id", campaignId)
+          .maybeSingle();
+        if (tier) {
+          rewardName = tier.reward_name;
+        }
+      } else {
+        const { data: firstTier } = await supabase
+          .from("campaign_rewards")
+          .select("id, reward_name")
+          .eq("campaign_id", campaignId)
+          .eq("active", true)
+          .order("threshold", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (firstTier) {
+          tierId = firstTier.id;
+          rewardName = firstTier.reward_name;
+        }
+      }
+
+      const shortCode = generateShortCode();
+      const redemptionToken = crypto.randomUUID();
 
       const { data: redemption, error: mainRedemptionError } = await supabase
         .from("redemptions")
@@ -178,6 +319,8 @@ Deno.serve(async (req: Request) => {
         status: "valid",
         expires_at: expiresAt,
         redemption_id: redemption.id,
+        redemption_source: "standard",
+        reward_tier_id: tierId,
       });
 
       if (loyaltyRedemptionError) {
@@ -199,6 +342,7 @@ Deno.serve(async (req: Request) => {
         campaign_id: campaignId,
         action_type: "reward_redeemed",
         quantity: 1,
+        stamp_value: 0,
         device_info: deviceInfo || {},
       });
 
@@ -225,13 +369,13 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ error: "Invalid action type" }),
+      JSON.stringify({ success: false, error: "Invalid action type" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Error processing loyalty action:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ success: false, error: "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

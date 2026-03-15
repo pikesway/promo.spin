@@ -333,6 +333,49 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
               <option value="rollover">Rollover excess stamps to next card</option>
             </select>
           </div>
+
+          <div className="pt-2 border-t theme-border">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <label className="block text-sm font-medium theme-text-primary">Birthday Reward</label>
+                <p className="text-xs theme-text-tertiary mt-0.5">Give members a special reward during their birthday month</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleChange('birthdayRewardEnabled', !loyaltyData.birthdayRewardEnabled)}
+                className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 ${loyaltyData.birthdayRewardEnabled ? 'bg-green-500' : 'bg-gray-600'}`}
+              >
+                <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow ${loyaltyData.birthdayRewardEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+            {loyaltyData.birthdayRewardEnabled && (
+              <div className="space-y-4 p-4 rounded-lg theme-bg-tertiary border theme-border">
+                <div>
+                  <label className="block text-sm font-medium theme-text-secondary mb-2">Birthday Reward Name</label>
+                  <input
+                    type="text"
+                    value={loyaltyData.birthdayRewardName || ''}
+                    onChange={(e) => handleChange('birthdayRewardName', e.target.value)}
+                    placeholder="Birthday Coffee on Us"
+                    className="w-full theme-bg-secondary border theme-border rounded-lg px-3 py-2 theme-text-primary placeholder-gray-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium theme-text-secondary mb-2">Birthday Reward Description</label>
+                  <textarea
+                    value={loyaltyData.birthdayRewardDescription || ''}
+                    onChange={(e) => handleChange('birthdayRewardDescription', e.target.value)}
+                    placeholder="Enjoy a free drink of your choice on your birthday month!"
+                    rows={2}
+                    className="w-full theme-bg-secondary border theme-border rounded-lg px-3 py-2 theme-text-primary placeholder-gray-500 resize-none"
+                  />
+                </div>
+                <p className="text-xs theme-text-tertiary">
+                  Members who have their birthday on file will be eligible to redeem this reward during their birthday month.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

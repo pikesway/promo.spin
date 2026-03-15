@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiCheck, FiGift, FiClock, FiRefreshCw, FiMail, FiUser, FiCalendar, FiHash } from 'react-icons/fi';
+import { FiX, FiCheck, FiGift, FiClock, FiRefreshCw, FiMail, FiUser, FiCalendar, FiHash, FiZap } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../supabase/client';
 
@@ -40,6 +40,8 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
   const [loading, setLoading] = useState(true);
   const [activityLog, setActivityLog] = useState([]);
   const [redemptions, setRedemptions] = useState([]);
+  const [rewardTiers, setRewardTiers] = useState([]);
+  const [loyaltyProgram, setLoyaltyProgram] = useState(null);
   const [activeTab, setActiveTab] = useState('activity');
 
   useEffect(() => {
@@ -51,24 +53,35 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
   const fetchMemberData = async () => {
     setLoading(true);
     try {
-      const { data: logData, error: logError } = await supabase
-        .from('loyalty_progress_log')
-        .select('*')
-        .eq('loyalty_account_id', member.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const [logRes, redemptionRes, tiersRes, programRes] = await Promise.all([
+        supabase
+          .from('loyalty_progress_log')
+          .select('*, campaign_bonus_rules(name)')
+          .eq('loyalty_account_id', member.id)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('loyalty_redemptions')
+          .select('*, redemptions(prize_name, status, redeemed_at), campaign_rewards(reward_name)')
+          .eq('loyalty_account_id', member.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('campaign_rewards')
+          .select('id, reward_name, threshold, active')
+          .eq('campaign_id', member.campaign_id)
+          .eq('active', true)
+          .order('threshold'),
+        supabase
+          .from('loyalty_programs')
+          .select('threshold, reward_name, birthday_reward_enabled, birthday_reward_name')
+          .eq('campaign_id', member.campaign_id)
+          .maybeSingle(),
+      ]);
 
-      if (logError) throw logError;
-      setActivityLog(logData || []);
-
-      const { data: redemptionData, error: redemptionError } = await supabase
-        .from('loyalty_redemptions')
-        .select('*, redemptions(prize_name, status, redeemed_at)')
-        .eq('loyalty_account_id', member.id)
-        .order('created_at', { ascending: false });
-
-      if (redemptionError) throw redemptionError;
-      setRedemptions(redemptionData || []);
+      setActivityLog(logRes.data || []);
+      setRedemptions(redemptionRes.data || []);
+      setRewardTiers(tiersRes.data || []);
+      setLoyaltyProgram(programRes.data);
     } catch (err) {
       console.error('Error fetching member data:', err);
     } finally {
@@ -97,8 +110,14 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
 
   if (!isOpen) return null;
 
-  const threshold = campaign?.config?.loyalty?.threshold || 10;
-  const defaultRewardName = campaign?.config?.loyalty?.reward_name || campaign?.config?.loyalty?.rewardName || 'Free Reward';
+  const threshold = loyaltyProgram?.threshold || campaign?.config?.loyalty?.threshold || 10;
+  const defaultRewardName = loyaltyProgram?.reward_name || campaign?.config?.loyalty?.rewardName || 'Free Reward';
+
+  const currentMonth = new Date().getMonth() + 1;
+  const isBirthdayMonth = member.birthday
+    ? new Date(member.birthday).getUTCMonth() + 1 === currentMonth
+    : false;
+  const showBirthdayBadge = isBirthdayMonth && loyaltyProgram?.birthday_reward_enabled;
 
   return (
     <AnimatePresence>
@@ -165,7 +184,7 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
               </div>
             </div>
 
-            <div className="flex items-center gap-4 mt-4 text-xs" style={{ color: 'var(--text-tertiary)' }}>
+            <div className="flex flex-wrap items-center gap-3 mt-4 text-xs" style={{ color: 'var(--text-tertiary)' }}>
               <div className="flex items-center gap-1">
                 <FiHash size={12} />
                 <span className="font-mono">{member.member_code}</span>
@@ -179,7 +198,37 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
                   Reward Ready
                 </span>
               )}
+              {showBirthdayBadge && (
+                <span className="px-2 py-0.5 rounded font-medium" style={{ background: 'rgba(236,72,153,0.2)', color: '#EC4899' }}>
+                  Birthday Reward Eligible
+                </span>
+              )}
             </div>
+
+            {rewardTiers.length > 0 && (
+              <div className="mt-4 space-y-1.5">
+                <p className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>Reward Progress</p>
+                {rewardTiers.map((tier) => {
+                  const progress = member.current_progress || 0;
+                  const earned = progress >= tier.threshold;
+                  return (
+                    <div key={tier.id} className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ background: 'var(--bg-secondary)' }}>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${earned ? 'bg-green-500/20' : 'bg-gray-500/20'}`}>
+                        {earned
+                          ? <FiCheck size={11} className="text-green-400" />
+                          : <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{tier.threshold}</span>}
+                      </div>
+                      <span className="text-xs flex-1" style={{ color: earned ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>
+                        {tier.reward_name}
+                      </span>
+                      <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                        {earned ? 'Earned' : `${tier.threshold - Math.min(progress, tier.threshold)} left`}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="flex" style={{ borderBottom: '1px solid var(--border-color)' }}>
@@ -229,12 +278,20 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
                           <Icon className={config.color} size={18} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{config.label}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{config.label}</p>
+                            {log.stamp_value > 1 && (
+                              <span className="flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: 'rgba(245,158,11,0.15)', color: '#F59E0B' }}>
+                                <FiZap size={10} />
+                                +{log.stamp_value} stamps
+                              </span>
+                            )}
+                            {log.campaign_bonus_rules?.name && (
+                              <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>· {log.campaign_bonus_rules.name}</span>
+                            )}
+                          </div>
                           <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{formatDate(log.created_at)}</p>
                         </div>
-                        {log.quantity > 1 && (
-                          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>x{log.quantity}</span>
-                        )}
                       </div>
                     );
                   })}
@@ -259,7 +316,16 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{prizeName}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
+                              {redemption.campaign_rewards?.reward_name || prizeName}
+                            </p>
+                            {redemption.redemption_source === 'birthday' && (
+                              <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: 'rgba(236,72,153,0.15)', color: '#EC4899' }}>
+                                Birthday
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs font-mono" style={{ color: 'var(--text-tertiary)' }}>{redemption.short_code}</p>
                         </div>
                         <span className={`px-2 py-1 rounded text-xs font-medium ${displayStatus.bg} ${displayStatus.color}`}>

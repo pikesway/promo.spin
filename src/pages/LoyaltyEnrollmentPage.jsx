@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiHeart, FiMail, FiUser, FiPhone, FiCheck, FiSmartphone } from 'react-icons/fi';
+import { FiHeart, FiMail, FiUser, FiPhone, FiCheck, FiSmartphone, FiCalendar } from 'react-icons/fi';
 import { supabase } from '../supabase/client';
 
 const DEVICE_TOKEN_EXPIRY_DAYS = 60;
@@ -35,6 +35,8 @@ export default function LoyaltyEnrollmentPage() {
     name: '',
     email: '',
     phone: '',
+    birthdayMonth: '',
+    birthdayDay: '',
     consent: false,
     rememberDevice: true
   });
@@ -173,6 +175,13 @@ export default function LoyaltyEnrollmentPage() {
 
       const memberCode = generateMemberCode();
 
+      let birthdayValue = null;
+      if (formData.birthdayMonth && formData.birthdayDay) {
+        const month = String(formData.birthdayMonth).padStart(2, '0');
+        const day = String(formData.birthdayDay).padStart(2, '0');
+        birthdayValue = `2000-${month}-${day}`;
+      }
+
       const { data: newAccount, error: insertError } = await supabase
         .from('loyalty_accounts')
         .insert({
@@ -181,6 +190,7 @@ export default function LoyaltyEnrollmentPage() {
           email: formData.email.toLowerCase(),
           name: formData.name.trim(),
           phone: formData.phone.trim() || null,
+          birthday: birthdayValue,
           member_code: memberCode,
           current_progress: 0,
           total_visits: 0,
@@ -410,6 +420,40 @@ export default function LoyaltyEnrollmentPage() {
               />
             </div>
           </div>
+
+          {loyaltyConfig?.birthday_reward_enabled && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <FiCalendar size={14} className={mutedTextColor} />
+                <label className={`block text-sm ${mutedTextColor}`}>Birthday (optional)</label>
+              </div>
+              <p className={`text-xs ${mutedTextColor} mb-2`} style={{ opacity: 0.7 }}>
+                Get a special reward during your birthday month!
+              </p>
+              <div className="flex gap-3">
+                <select
+                  value={formData.birthdayMonth}
+                  onChange={(e) => setFormData({ ...formData, birthdayMonth: e.target.value })}
+                  className={`flex-1 px-3 py-3 rounded-xl ${inputBg} border ${inputBorder} ${inputFocusBorder} ${inputText} focus:outline-none transition-colors`}
+                >
+                  <option value="">Month</option>
+                  {['January','February','March','April','May','June','July','August','September','October','November','December'].map((m, i) => (
+                    <option key={m} value={String(i + 1)}>{m}</option>
+                  ))}
+                </select>
+                <select
+                  value={formData.birthdayDay}
+                  onChange={(e) => setFormData({ ...formData, birthdayDay: e.target.value })}
+                  className={`w-24 px-3 py-3 rounded-xl ${inputBg} border ${inputBorder} ${inputFocusBorder} ${inputText} focus:outline-none transition-colors`}
+                >
+                  <option value="">Day</option>
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                    <option key={d} value={String(d)}>{d}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
 
           <label className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${formErrors.consent ? 'bg-red-500/10' : hoverBg}`}>
             <div className="relative flex-shrink-0 mt-0.5">

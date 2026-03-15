@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { usePlatform } from '../../context/PlatformContext';
+import { supabase } from '../../supabase/client';
 import LoyaltySettings from './builder/LoyaltySettings';
 import LoyaltyDesign from './builder/LoyaltyDesign';
 import LoyaltyScreens from './builder/LoyaltyScreens';
 import LoyaltyPreview from './builder/LoyaltyPreview';
+import RewardCatalog from './builder/RewardCatalog';
 import SafeIcon from '../../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
-const { FiArrowLeft, FiSettings, FiLayout, FiMonitor, FiEye, FiSave, FiCheck } = FiIcons;
+const { FiArrowLeft, FiSettings, FiLayout, FiMonitor, FiSave, FiCheck, FiGift } = FiIcons;
 
-const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
+const LoyaltyProgramBuilder = ({ campaign, client, onBack, canEdit = true }) => {
   const { updateCampaign } = usePlatform();
   const [activeTab, setActiveTab] = useState('settings');
   const [loyaltyData, setLoyaltyData] = useState(null);
@@ -17,68 +19,80 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const config = campaign.config || {};
-    const loyalty = config.loyalty || {};
+    const loadData = async () => {
+      const config = campaign.config || {};
+      const loyalty = config.loyalty || {};
 
-    setLoyaltyData({
-      id: campaign.id,
-      name: campaign.name,
-      slug: campaign.slug,
-      programType: loyalty.programType || 'visit',
-      threshold: loyalty.threshold || 10,
-      rewardName: loyalty.rewardName || 'Free Reward',
-      rewardDescription: loyalty.rewardDescription || '',
-      validationMethod: loyalty.validationMethod || 'pin',
-      validationConfig: loyalty.validationConfig || { pin: '1234' },
-      lockoutThreshold: loyalty.lockoutThreshold || 3,
-      resetBehavior: loyalty.resetBehavior || 'reset',
-      settings: {
-        timezone: config.settings?.timezone || 'UTC',
-        startDate: config.settings?.startDate || '',
-        endDate: config.settings?.endDate || '',
-      },
-      card: {
-        primaryColor: loyalty.card?.primaryColor || client?.primary_color || '#F59E0B',
-        backgroundColor: loyalty.card?.backgroundColor || client?.background_color || '#18181B',
-        stampIcon: loyalty.card?.stampIcon || 'star',
-        customIconUrl: loyalty.card?.customIconUrl || '',
-        stampFilledColor: loyalty.card?.stampFilledColor || '#FFFFFF',
-        stampEmptyColor: loyalty.card?.stampEmptyColor || 'rgba(255,255,255,0.2)',
-        headingColor: loyalty.card?.headingColor || '#FFFFFF',
-        bodyColor: loyalty.card?.bodyColor || '#FFFFFF',
-        buttonTextColor: loyalty.card?.buttonTextColor || '#FFFFFF',
-        showLogo: loyalty.card?.showLogo !== false,
-        showQR: loyalty.card?.showQR !== false,
-      },
-      screens: {
-        enrollment: {
-          enabled: config.screens?.enrollment?.enabled !== false,
-          headline: config.screens?.enrollment?.headline || 'Join Our Rewards Program',
-          subheadline: config.screens?.enrollment?.subheadline || 'Earn stamps with every visit and get rewarded!',
-          buttonText: config.screens?.enrollment?.buttonText || 'Sign Up Now',
-          collectPhone: config.screens?.enrollment?.collectPhone !== false,
-          collectEmail: config.screens?.enrollment?.collectEmail !== false,
-          backgroundImage: config.screens?.enrollment?.backgroundImage || '',
-          backgroundColor: config.screens?.enrollment?.backgroundColor || client?.background_color || '#18181B',
-          headingColor: config.screens?.enrollment?.headingColor || '#FFFFFF',
-          bodyColor: config.screens?.enrollment?.bodyColor || '#FFFFFF',
-          buttonColor: config.screens?.enrollment?.buttonColor || loyalty.card?.primaryColor || client?.primary_color || '#F59E0B',
-          buttonTextColor: config.screens?.enrollment?.buttonTextColor || '#FFFFFF',
+      const { data: lp } = await supabase
+        .from('loyalty_programs')
+        .select('birthday_reward_enabled, birthday_reward_name, birthday_reward_description')
+        .eq('campaign_id', campaign.id)
+        .maybeSingle();
+
+      setLoyaltyData({
+        id: campaign.id,
+        name: campaign.name,
+        slug: campaign.slug,
+        programType: loyalty.programType || 'visit',
+        threshold: loyalty.threshold || 10,
+        rewardName: loyalty.rewardName || 'Free Reward',
+        rewardDescription: loyalty.rewardDescription || '',
+        validationMethod: loyalty.validationMethod || 'pin',
+        validationConfig: loyalty.validationConfig || { pin: '1234' },
+        lockoutThreshold: loyalty.lockoutThreshold || 3,
+        resetBehavior: loyalty.resetBehavior || 'reset',
+        birthdayRewardEnabled: lp?.birthday_reward_enabled || false,
+        birthdayRewardName: lp?.birthday_reward_name || '',
+        birthdayRewardDescription: lp?.birthday_reward_description || '',
+        settings: {
+          timezone: config.settings?.timezone || 'UTC',
+          startDate: config.settings?.startDate || '',
+          endDate: config.settings?.endDate || '',
         },
-        reward: {
-          headline: config.screens?.reward?.headline || 'Congratulations!',
-          subheadline: config.screens?.reward?.subheadline || 'You\'ve earned your reward!',
-          buttonText: config.screens?.reward?.buttonText || 'Claim Reward',
-          expiryDays: config.screens?.reward?.expiryDays || 30,
-          backgroundImage: config.screens?.reward?.backgroundImage || '',
-          backgroundColor: config.screens?.reward?.backgroundColor || client?.background_color || '#18181B',
-          headingColor: config.screens?.reward?.headingColor || '#FFFFFF',
-          bodyColor: config.screens?.reward?.bodyColor || '#FFFFFF',
-          buttonColor: config.screens?.reward?.buttonColor || loyalty.card?.primaryColor || client?.primary_color || '#F59E0B',
-          buttonTextColor: config.screens?.reward?.buttonTextColor || '#FFFFFF',
+        card: {
+          primaryColor: loyalty.card?.primaryColor || client?.primary_color || '#F59E0B',
+          backgroundColor: loyalty.card?.backgroundColor || client?.background_color || '#18181B',
+          stampIcon: loyalty.card?.stampIcon || 'star',
+          customIconUrl: loyalty.card?.customIconUrl || '',
+          stampFilledColor: loyalty.card?.stampFilledColor || '#FFFFFF',
+          stampEmptyColor: loyalty.card?.stampEmptyColor || 'rgba(255,255,255,0.2)',
+          headingColor: loyalty.card?.headingColor || '#FFFFFF',
+          bodyColor: loyalty.card?.bodyColor || '#FFFFFF',
+          buttonTextColor: loyalty.card?.buttonTextColor || '#FFFFFF',
+          showLogo: loyalty.card?.showLogo !== false,
+          showQR: loyalty.card?.showQR !== false,
+        },
+        screens: {
+          enrollment: {
+            enabled: config.screens?.enrollment?.enabled !== false,
+            headline: config.screens?.enrollment?.headline || 'Join Our Rewards Program',
+            subheadline: config.screens?.enrollment?.subheadline || 'Earn stamps with every visit and get rewarded!',
+            buttonText: config.screens?.enrollment?.buttonText || 'Sign Up Now',
+            collectPhone: config.screens?.enrollment?.collectPhone !== false,
+            collectEmail: config.screens?.enrollment?.collectEmail !== false,
+            backgroundImage: config.screens?.enrollment?.backgroundImage || '',
+            backgroundColor: config.screens?.enrollment?.backgroundColor || client?.background_color || '#18181B',
+            headingColor: config.screens?.enrollment?.headingColor || '#FFFFFF',
+            bodyColor: config.screens?.enrollment?.bodyColor || '#FFFFFF',
+            buttonColor: config.screens?.enrollment?.buttonColor || loyalty.card?.primaryColor || client?.primary_color || '#F59E0B',
+            buttonTextColor: config.screens?.enrollment?.buttonTextColor || '#FFFFFF',
+          },
+          reward: {
+            headline: config.screens?.reward?.headline || 'Congratulations!',
+            subheadline: config.screens?.reward?.subheadline || 'You\'ve earned your reward!',
+            buttonText: config.screens?.reward?.buttonText || 'Claim Reward',
+            expiryDays: config.screens?.reward?.expiryDays || 30,
+            backgroundImage: config.screens?.reward?.backgroundImage || '',
+            backgroundColor: config.screens?.reward?.backgroundColor || client?.background_color || '#18181B',
+            headingColor: config.screens?.reward?.headingColor || '#FFFFFF',
+            bodyColor: config.screens?.reward?.bodyColor || '#FFFFFF',
+            buttonColor: config.screens?.reward?.buttonColor || loyalty.card?.primaryColor || client?.primary_color || '#F59E0B',
+            buttonTextColor: config.screens?.reward?.buttonTextColor || '#FFFFFF',
+          }
         }
-      }
-    });
+      });
+    };
+    loadData();
   }, [campaign, client]);
 
   const handleSave = async () => {
@@ -107,6 +121,16 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
       };
 
       await updateCampaign(campaign.id, updates);
+
+      await supabase
+        .from('loyalty_programs')
+        .update({
+          birthday_reward_enabled: loyaltyData.birthdayRewardEnabled || false,
+          birthday_reward_name: loyaltyData.birthdayRewardName || null,
+          birthday_reward_description: loyaltyData.birthdayRewardDescription || null,
+        })
+        .eq('campaign_id', campaign.id);
+
       setHasChanges(false);
       alert('Loyalty program saved!');
     } catch (error) {
@@ -125,6 +149,7 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
 
   const tabs = [
     { id: 'settings', label: 'Settings', icon: FiSettings },
+    { id: 'rewards', label: 'Rewards', icon: FiGift },
     { id: 'design', label: 'Card Design', icon: FiLayout },
     { id: 'screens', label: 'Screens', icon: FiMonitor }
   ];
@@ -211,6 +236,12 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack }) => {
                 loyaltyData={loyaltyData}
                 onChange={handleDataChange}
                 loyaltyUrl={loyaltyUrl}
+              />
+            )}
+            {activeTab === 'rewards' && (
+              <RewardCatalog
+                campaignId={campaign.id}
+                canEdit={canEdit}
               />
             )}
             {activeTab === 'design' && (

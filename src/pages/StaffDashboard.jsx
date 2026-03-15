@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiUsers, FiGift, FiCheck, FiCalendar, FiLogOut, FiRefreshCw, FiTag, FiGrid } from 'react-icons/fi';
+import { FiSearch, FiUsers, FiGift, FiCheck, FiCalendar, FiLogOut, FiRefreshCw, FiTag, FiGrid, FiBarChart2 } from 'react-icons/fi';
 import { supabase } from '../supabase/client';
 import { useAuth } from '../context/AuthContext';
 import StaffValidationModal from '../components/loyalty/StaffValidationModal';
 import ManagerOverrideModal from '../components/loyalty/ManagerOverrideModal';
+import CampaignInsights from '../components/admin/CampaignInsights';
 
 export default function StaffDashboard() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export default function StaffDashboard() {
   const [showValidation, setShowValidation] = useState(false);
   const [showManagerOverride, setShowManagerOverride] = useState(false);
   const [actionType, setActionType] = useState('visit');
+  const [activeView, setActiveView] = useState('members');
   const [stats, setStats] = useState({
     todayConfirmations: 0,
     pendingRewards: 0,
@@ -344,7 +346,44 @@ export default function StaffDashboard() {
           </div>
         )}
 
-        {brands.length > 1 && (
+        {canViewStats('all') && (
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setActiveView('members')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${activeView === 'members' ? 'text-white' : ''}`}
+              style={{
+                background: activeView === 'members' ? 'var(--brand-primary)' : 'var(--glass-bg)',
+                border: '1px solid var(--border-color)',
+                color: activeView === 'members' ? '#fff' : 'var(--text-secondary)'
+              }}
+            >
+              <FiUsers size={13} />
+              Members
+            </button>
+            <button
+              onClick={() => setActiveView('insights')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+              style={{
+                background: activeView === 'insights' ? 'var(--brand-primary)' : 'var(--glass-bg)',
+                border: '1px solid var(--border-color)',
+                color: activeView === 'insights' ? '#fff' : 'var(--text-secondary)'
+              }}
+            >
+              <FiBarChart2 size={13} />
+              Insights
+            </button>
+          </div>
+        )}
+
+        {activeView === 'insights' && canViewStats('all') ? (
+          <CampaignInsights
+            scopeType="client"
+            scopeId={profile?.client_id}
+            label="Program Insights"
+          />
+        ) : null}
+
+        {(activeView === 'members' || !canViewStats('all')) && brands.length > 1 && (
           <div className="glass-card p-3 mb-4 flex items-center gap-2 overflow-x-auto hide-scrollbar">
             <FiTag size={13} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
             <button
@@ -367,7 +406,7 @@ export default function StaffDashboard() {
           </div>
         )}
 
-        <div className="glass-card p-4 mb-6">
+        {(activeView === 'members' || !canViewStats('all')) && <div className="glass-card p-4 mb-6">
           <div className="flex gap-3 mb-4">
             <div className="flex-1 relative">
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -462,9 +501,9 @@ export default function StaffDashboard() {
               })
             )}
           </div>
-        </div>
+        </div>}
 
-        {recentActivity.length > 0 && (
+        {(activeView === 'members' || !canViewStats('all')) && recentActivity.length > 0 && (
           <div className="glass-card p-4">
             <h2 className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
               <FiCalendar size={14} />

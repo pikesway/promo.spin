@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { FiSearch, FiDownload, FiRefreshCw, FiCheck, FiGift, FiUsers, FiTrash2, FiExternalLink, FiEye, FiChevronDown, FiFileText, FiList } from 'react-icons/fi';
+import { FiSearch, FiDownload, FiRefreshCw, FiCheck, FiGift, FiUsers, FiTrash2, FiExternalLink, FiEye, FiChevronDown, FiFileText, FiList, FiCalendar } from 'react-icons/fi';
 import { supabase } from '../../supabase/client';
 import MemberActivityModal from './MemberActivityModal';
 
@@ -13,11 +13,13 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [exporting, setExporting] = useState(false);
   const exportMenuRef = useRef(null);
+  const [birthdayEnabled, setBirthdayEnabled] = useState(false);
   const [stats, setStats] = useState({
     totalMembers: 0,
     totalVisits: 0,
     rewardsIssued: 0,
-    rewardsRedeemed: 0
+    rewardsRedeemed: 0,
+    birthdayThisMonth: 0
   });
 
   const loyaltyCampaigns = (campaigns || []).filter(c => c.type === 'loyalty');
@@ -61,11 +63,27 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
         r.status === 'redeemed' || r.redemption_id?.status === 'redeemed'
       ).length;
 
+      const { data: loyaltyPrograms } = await supabase
+        .from('loyalty_programs')
+        .select('birthday_reward_enabled')
+        .in('campaign_id', campaignIds);
+
+      const anyBirthdayEnabled = (loyaltyPrograms || []).some(lp => lp.birthday_reward_enabled);
+      setBirthdayEnabled(anyBirthdayEnabled);
+
+      const currentMonth = new Date().getUTCMonth() + 1;
+      const birthdayThisMonth = (memberData || []).filter(m => {
+        if (!m.birthday) return false;
+        const bd = new Date(m.birthday);
+        return (bd.getUTCMonth() + 1) === currentMonth;
+      }).length;
+
       setStats({
         totalMembers,
         totalVisits,
         rewardsIssued,
-        rewardsRedeemed
+        rewardsRedeemed,
+        birthdayThisMonth
       });
     } catch (err) {
       console.error('Error fetching loyalty members:', err);
@@ -378,7 +396,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div className={`grid grid-cols-2 ${birthdayEnabled ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-3 mb-4`}>
         <div className="glass-card p-3">
           <div className="flex items-center gap-2 text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
             <FiUsers size={12} />
@@ -407,6 +425,16 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
           </div>
           <p className="text-xl font-bold" style={{ color: 'var(--success)' }}>{stats.rewardsRedeemed}</p>
         </div>
+        {birthdayEnabled && (
+          <div className="glass-card p-3">
+            <div className="flex items-center gap-2 text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+              <FiCalendar size={12} />
+              Birthdays
+            </div>
+            <p className="text-xl font-bold" style={{ color: '#EC4899' }}>{stats.birthdayThisMonth}</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>this month</p>
+          </div>
+        )}
       </div>
 
       <div className="glass-card p-4">
@@ -476,6 +504,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
                     <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Program</th>
                     <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Progress</th>
                     <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Status</th>
+                    {birthdayEnabled && <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Birthday</th>}
                     <th className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Enrolled</th>
                     <th className="text-right p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>Actions</th>
                   </tr>
@@ -512,6 +541,25 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
                             <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>In Progress</span>
                           )}
                         </td>
+                        {birthdayEnabled && (
+                          <td className="p-3">
+                            {member.birthday ? (() => {
+                              const bd = new Date(member.birthday);
+                              const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                              const isThisMonth = (bd.getUTCMonth() + 1) === (new Date().getUTCMonth() + 1);
+                              return (
+                                <span
+                                  className="text-xs"
+                                  style={{ color: isThisMonth ? '#EC4899' : 'var(--text-secondary)', fontWeight: isThisMonth ? '600' : 'normal' }}
+                                >
+                                  {months[bd.getUTCMonth()]} {bd.getUTCDate()}{isThisMonth ? ' 🎂' : ''}
+                                </span>
+                              );
+                            })() : (
+                              <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>—</span>
+                            )}
+                          </td>
+                        )}
                         <td className="p-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
                           {new Date(member.enrolled_at).toLocaleDateString()}
                         </td>

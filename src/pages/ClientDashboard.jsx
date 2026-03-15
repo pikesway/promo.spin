@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar, FiHeart, FiTag, FiChevronDown, FiUsers } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar, FiHeart, FiTag, FiChevronDown, FiUsers, FiBarChart2 } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
 import { useAuth } from '../context/AuthContext';
 import CampaignWizard from '../components/CampaignWizard';
@@ -8,6 +8,7 @@ import BizGamezCampaignBuilder from '../components/admin/BizGamezCampaignBuilder
 import LoyaltyProgramBuilder from '../components/admin/LoyaltyProgramBuilder';
 import CampaignList from '../components/admin/CampaignList';
 import LoyaltyMemberManagement from '../components/admin/LoyaltyMemberManagement';
+import CampaignInsights from '../components/admin/CampaignInsights';
 import ClientLimitsPanel from '../components/agency/ClientLimitsPanel';
 import QRCode from 'qrcode.react';
 import StatusBadge from '../components/StatusBadge';
@@ -73,7 +74,7 @@ export default function ClientDashboard() {
   const showStats = isFullAccess || canViewStats(selectedBrandId);
 
   useEffect(() => {
-    if (!showStats && (activeTab === 'leads' || activeTab === 'loyalty')) {
+    if (!showStats && (activeTab === 'leads' || activeTab === 'loyalty' || activeTab === 'insights')) {
       setActiveTab('campaigns');
     }
   }, [showStats, activeTab]);
@@ -275,7 +276,7 @@ export default function ClientDashboard() {
         )}
 
         <div className="flex gap-2 mb-4 pb-2 -mx-3 px-3 overflow-x-auto hide-scrollbar" style={{ borderBottom: '1px solid var(--border-color)' }}>
-          {['campaigns', ...(showStats ? ['leads', 'loyalty'] : [])].map(tab => (
+          {['campaigns', ...(showStats ? ['leads', 'loyalty', 'insights'] : [])].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -286,6 +287,7 @@ export default function ClientDashboard() {
               }}
             >
               {tab === 'loyalty' && <FiHeart size={14} />}
+              {tab === 'insights' && <FiBarChart2 size={14} />}
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
               {tab === 'leads' && (
                 <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: activeTab === tab ? 'rgba(255,255,255,0.2)' : 'var(--glass-bg)' }}>
@@ -410,6 +412,14 @@ export default function ClientDashboard() {
 
         {activeTab === 'loyalty' && showStats && (
           <LoyaltyMemberManagement clientId={clientId} campaigns={clientCampaigns} />
+        )}
+
+        {activeTab === 'insights' && showStats && (
+          <CampaignInsights
+            scopeType={selectedBrandId !== 'all' ? 'brand' : 'client'}
+            scopeId={selectedBrandId !== 'all' ? selectedBrandId : clientId}
+            label={selectedBrand ? `${selectedBrand.name} Insights` : `${client?.name} Insights`}
+          />
         )}
       </div>
 
