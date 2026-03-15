@@ -4,6 +4,7 @@ import { usePlatform } from '../context/PlatformContext';
 import { useAuth } from '../context/AuthContext';
 import { initializeCampaignConfig } from '../utils/campaignAdapter';
 import { LOYALTY_ICONS, getIconById } from '../constants/loyaltyIcons';
+import { supabase } from '../supabase/client';
 
 export default function CampaignWizard({ clientId, brandId, brands = [], onClose, onCampaignCreated }) {
   const { createCampaign, clients } = usePlatform();
@@ -28,7 +29,10 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
     loyaltyIconSequence: ['heart', 'star'],
     loyaltyTargetPosition: 'top-right',
     loyaltyRewardName: 'Free Reward',
-    loyaltyRewardDescription: ''
+    loyaltyRewardDescription: '',
+    loyaltyBirthdayEnabled: false,
+    loyaltyBirthdayName: '',
+    loyaltyBirthdayDescription: ''
   });
 
   const [selectedBrandId, setSelectedBrandId] = useState(brandId || (permittedBrands[0]?.id ?? null));
@@ -70,6 +74,20 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
         end_date: null,
         config: fullConfig
       });
+
+      if (formData.type === 'loyalty' && formData.loyaltyBirthdayEnabled && newCampaign?.id) {
+        await supabase
+          .from('loyalty_programs')
+          .upsert(
+            {
+              campaign_id: newCampaign.id,
+              birthday_reward_enabled: true,
+              birthday_reward_name: formData.loyaltyBirthdayName || '',
+              birthday_reward_description: formData.loyaltyBirthdayDescription || ''
+            },
+            { onConflict: 'campaign_id' }
+          );
+      }
 
       onClose();
       if (onCampaignCreated && newCampaign) {
@@ -244,6 +262,46 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
                 <div>
                   <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Reward Description</label>
                   <textarea className="input" rows={2} value={formData.loyaltyRewardDescription} onChange={(e) => setFormData({ ...formData, loyaltyRewardDescription: e.target.value })} placeholder="Get any drink free on your next visit!" style={{ resize: 'none' }} />
+                </div>
+                <div className="pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div>
+                      <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Birthday Reward</p>
+                      <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Give members a special reward during their birthday month</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, loyaltyBirthdayEnabled: !formData.loyaltyBirthdayEnabled })}
+                      className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 overflow-hidden ${formData.loyaltyBirthdayEnabled ? 'bg-green-500' : 'bg-gray-600'}`}
+                    >
+                      <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow ${formData.loyaltyBirthdayEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                  {formData.loyaltyBirthdayEnabled && (
+                    <div className="mt-3 space-y-3 p-3 rounded-lg" style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}>
+                      <div>
+                        <label className="block mb-1.5 text-sm" style={{ color: 'var(--text-secondary)' }}>Birthday Reward Name</label>
+                        <input
+                          className="input"
+                          type="text"
+                          value={formData.loyaltyBirthdayName}
+                          onChange={(e) => setFormData({ ...formData, loyaltyBirthdayName: e.target.value })}
+                          placeholder="Birthday Coffee on Us"
+                        />
+                      </div>
+                      <div>
+                        <label className="block mb-1.5 text-sm" style={{ color: 'var(--text-secondary)' }}>Birthday Reward Description</label>
+                        <textarea
+                          className="input"
+                          rows={2}
+                          value={formData.loyaltyBirthdayDescription}
+                          onChange={(e) => setFormData({ ...formData, loyaltyBirthdayDescription: e.target.value })}
+                          placeholder="Enjoy a free drink of your choice on your birthday month!"
+                          style={{ resize: 'none' }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4 rounded-r-lg" style={{ background: 'rgba(244, 63, 94, 0.1)', borderLeft: '4px solid #F43F5E' }}>
                   <p className="text-sm" style={{ color: 'var(--text-secondary)' }}><strong style={{ color: 'var(--text-primary)' }}>How it works:</strong> Customers collect {formData.loyaltyThreshold} stamps by {formData.loyaltyProgramType === 'visit' ? 'visiting your business' : 'completing purchases'}. Staff validates each stamp using a secure verification method.</p>
