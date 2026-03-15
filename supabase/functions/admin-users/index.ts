@@ -24,9 +24,11 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
     console.log('[admin-users] Starting request processing');
 
+    // Service role client — used only for admin operations (create/delete users, insert profiles)
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
@@ -46,7 +48,19 @@ Deno.serve(async (req: Request) => {
     const token = authHeader.replace('Bearer ', '');
     console.log('[admin-users] Token received, validating...');
 
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    // IMPORTANT: Use anon key client to verify the user JWT.
+    // The service role client cannot validate user-issued tokens — it will reject them with 401.
+    const supabaseUserClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      global: {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    });
+
+    const { data: { user }, error: authError } = await supabaseUserClient.auth.getUser(token);
 
     if (authError || !user) {
       console.log('[admin-users] Auth error:', authError?.message, authError);
