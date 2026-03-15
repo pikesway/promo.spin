@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FiRefreshCw, FiUsers, FiTrendingUp, FiGift, FiAward, FiCalendar, FiClock } from 'react-icons/fi';
+import { supabase } from '../../supabase/client';
 
 export default function CampaignInsights({ scopeType, scopeId, label }) {
   const [insights, setInsights] = useState(null);
@@ -12,13 +13,15 @@ export default function CampaignInsights({ scopeType, scopeId, label }) {
     setLoading(true);
     setError(null);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/compute-campaign-insights`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({ scopeType, scopeId, forceRefresh: force }),
         }
