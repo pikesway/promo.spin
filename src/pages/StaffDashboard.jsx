@@ -132,10 +132,10 @@ export default function StaffDashboard() {
   }, [fetchData]);
 
   useEffect(() => {
-    if (!isStaff() && profile && !loading) {
+    if (!isStaff() && !isClientUser() && profile && !loading) {
       navigate('/');
     }
-  }, [profile, isStaff, navigate, loading]);
+  }, [profile, isStaff, isClientUser, navigate, loading]);
 
   const visibleCampaigns = selectedBrandId === 'all'
     ? campaigns

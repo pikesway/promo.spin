@@ -17,7 +17,7 @@ function InviteUserModal({ clientId, brands, usage, onClose, onCreated }) {
     full_name: '',
     email: '',
     password: '',
-    role: 'client_user',
+    role: 'staff',
     brandIds: [],
   });
   const [showPwd, setShowPwd] = useState(false);
@@ -58,7 +58,7 @@ function InviteUserModal({ clientId, brands, usage, onClose, onCreated }) {
           fullName: form.full_name.trim(),
           role: form.role,
           clientId,
-          brandIds: form.role === 'client_user' ? form.brandIds : [],
+          brandIds: form.role === 'staff' ? form.brandIds : [],
         },
       });
       if (res.error) throw new Error(res.error.message || 'Failed to create user.');
@@ -145,7 +145,7 @@ function InviteUserModal({ clientId, brands, usage, onClose, onCreated }) {
             </label>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { value: 'client_user', label: 'Staff', desc: 'Brand-level access' },
+                { value: 'staff', label: 'Staff', desc: 'Brand-level access' },
                 { value: 'client_admin', label: 'Client Admin', desc: 'Full client access' },
               ].map(opt => (
                 <button
@@ -166,7 +166,7 @@ function InviteUserModal({ clientId, brands, usage, onClose, onCreated }) {
             </div>
           </div>
 
-          {form.role === 'client_user' && brands.length > 0 && (
+          {form.role === 'staff' && brands.length > 0 && (
             <div>
               <label className="text-xs mb-2 block" style={{ color: 'var(--text-secondary)' }}>Assign to Brands</label>
               <div className="space-y-1.5">
