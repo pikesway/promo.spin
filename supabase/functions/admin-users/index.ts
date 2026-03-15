@@ -1,3 +1,10 @@
+// ============================================================
+// CRITICAL: This function MUST be deployed with verify_jwt: false
+// It performs its own auth validation internally using supabaseAdmin.auth.getUser(token).
+// Setting verify_jwt: true causes Supabase's gateway to reject requests with 401
+// BEFORE the function runs, breaking all user creation/deletion flows.
+// DO NOT change verify_jwt to true. DO NOT remove this comment.
+// ============================================================
 import { createClient } from 'npm:@supabase/supabase-js@2.39.0';
 
 const corsHeaders = {
