@@ -122,6 +122,9 @@
   --badge-draft-bg: var(--bg-tertiary);
   --badge-draft-text: var(--text-secondary);
 
+  /* Accent */
+  --accent: var(--brand-primary);
+
   /* Spacing System (8px base) */
   --space-1: 0.5rem;
   --space-2: 1rem;
@@ -287,6 +290,9 @@
   /* Badge Backgrounds */
   --badge-draft-bg: var(--bg-tertiary);
   --badge-draft-text: var(--text-secondary);
+
+  /* Accent */
+  --accent: var(--brand-primary);
 }
 
 /* Base Styles */
