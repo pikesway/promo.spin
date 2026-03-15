@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar, FiHeart, FiTag, FiChevronDown, FiUsers } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
@@ -71,6 +71,12 @@ export default function ClientDashboard() {
   };
 
   const showStats = isFullAccess || canViewStats(selectedBrandId);
+
+  useEffect(() => {
+    if (!showStats && (activeTab === 'leads' || activeTab === 'loyalty')) {
+      setActiveTab('campaigns');
+    }
+  }, [showStats, activeTab]);
 
   const userCanAdd = isFullAccess || canAddCampaign(selectedBrandId);
   const userCanEdit = isFullAccess || canEditCampaign(selectedBrandId);
@@ -269,7 +275,7 @@ export default function ClientDashboard() {
         )}
 
         <div className="flex gap-2 mb-4 pb-2 -mx-3 px-3 overflow-x-auto hide-scrollbar" style={{ borderBottom: '1px solid var(--border-color)' }}>
-          {['campaigns', 'leads', 'loyalty'].map(tab => (
+          {['campaigns', ...(showStats ? ['leads', 'loyalty'] : [])].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -332,7 +338,7 @@ export default function ClientDashboard() {
           </>
         )}
 
-        {activeTab === 'leads' && (
+        {activeTab === 'leads' && showStats && (
           <div>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg md:text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Lead Collection</h3>
@@ -402,7 +408,7 @@ export default function ClientDashboard() {
           </div>
         )}
 
-        {activeTab === 'loyalty' && (
+        {activeTab === 'loyalty' && showStats && (
           <LoyaltyMemberManagement clientId={clientId} campaigns={clientCampaigns} />
         )}
       </div>
