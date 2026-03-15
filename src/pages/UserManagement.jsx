@@ -89,8 +89,20 @@ export default function UserManagement() {
         if (form.role === 'client_user' && form.brand_ids.length > 0) {
           body.brandIds = form.brand_ids;
         }
-        const { error: fnError } = await supabase.functions.invoke('admin-users', { body });
-        if (fnError) throw fnError;
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token;
+        if (!accessToken) throw new Error('No active session. Please sign in again.');
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const res = await fetch(`${supabaseUrl}/functions/v1/admin-users`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(body),
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'Failed to create user');
       }
       await fetchUsers();
       setShowModal(false);
