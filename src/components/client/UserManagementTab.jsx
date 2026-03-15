@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { FiPlus, FiX, FiAlertTriangle, FiCheck, FiToggleLeft, FiToggleRight, FiShield, FiTrash2, FiEye, FiEyeOff } from 'react-icons/fi';
 import { supabase } from '../../supabase/client';
 import UserBrandPermissionsModal from '../agency/UserBrandPermissionsModal';
+import InfoButton from '../help/InfoButton';
+import FieldHint from '../help/FieldHint';
 
 const ROLE_LABELS = {
   client_admin: 'Client Admin',
@@ -137,7 +139,10 @@ function InviteUserModal({ clientId, brands, usage, onClose, onCreated }) {
             </div>
           </div>
           <div>
-            <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Role</label>
+            <label className="text-xs mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+              Role
+              <InfoButton title="User Roles" content={<><p className="mb-1"><strong>Client Admin:</strong> Full access to manage all brands, campaigns, users, and settings for this account.</p><p><strong>Staff:</strong> Limited access — can only see and act on the specific brands they are assigned to. They add stamps and redeem rewards but cannot change settings.</p></>} size={12} />
+            </label>
             <div className="grid grid-cols-2 gap-2">
               {[
                 { value: 'client_user', label: 'Staff', desc: 'Brand-level access' },

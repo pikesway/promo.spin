@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiUsers, FiGift, FiCheck, FiCalendar, FiLogOut, FiRefreshCw, FiTag, FiGrid, FiBarChart2 } from 'react-icons/fi';
+import InfoButton from '../components/help/InfoButton';
 import { supabase } from '../supabase/client';
 import { useAuth } from '../context/AuthContext';
 import StaffValidationModal from '../components/loyalty/StaffValidationModal';
@@ -287,6 +288,7 @@ export default function StaffDashboard() {
               <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
                 <FiCheck size={14} />
                 <span className="text-xs">Today</span>
+                <InfoButton title="Today's Stamps" content="The total number of stamps added today across all loyalty programs at this location." size={11} />
               </div>
               <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.todayConfirmations}</p>
             </div>
@@ -294,6 +296,7 @@ export default function StaffDashboard() {
               <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
                 <FiGift size={14} />
                 <span className="text-xs">Rewards</span>
+                <InfoButton title="Rewards Ready" content="Members who have earned enough stamps and are waiting to redeem their reward. Tap the Redeem button next to their name to process it." size={11} />
               </div>
               <p className="text-2xl font-bold" style={{ color: 'var(--warning)' }}>{stats.pendingRewards}</p>
             </div>

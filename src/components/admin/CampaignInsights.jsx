@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FiRefreshCw, FiUsers, FiTrendingUp, FiGift, FiAward, FiCalendar, FiClock } from 'react-icons/fi';
 import { supabase } from '../../supabase/client';
+import InfoButton from '../help/InfoButton';
 
 export default function CampaignInsights({ scopeType, scopeId, label }) {
   const [insights, setInsights] = useState(null);
@@ -97,6 +98,7 @@ export default function CampaignInsights({ scopeType, scopeId, label }) {
               <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
                 <FiUsers size={14} />
                 <span className="text-xs">Total Members</span>
+                <InfoButton title="Total Members" content="The total number of customers enrolled in loyalty programs within the current scope (this brand or all brands)." size={11} />
               </div>
               <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{insights.totalMembers ?? '—'}</p>
             </div>
@@ -104,6 +106,7 @@ export default function CampaignInsights({ scopeType, scopeId, label }) {
               <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
                 <FiTrendingUp size={14} />
                 <span className="text-xs">Avg Visits</span>
+                <InfoButton title="Average Visits" content="The average number of times each enrolled member has visited (earned a stamp) across all their loyalty programs. A higher number indicates greater customer engagement." size={11} />
               </div>
               <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{insights.avgVisits != null ? Number(insights.avgVisits).toFixed(1) : '—'}</p>
             </div>
@@ -111,6 +114,7 @@ export default function CampaignInsights({ scopeType, scopeId, label }) {
               <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
                 <FiGift size={14} />
                 <span className="text-xs">Redemption Rate</span>
+                <InfoButton title="Redemption Rate" content="The percentage of members who have earned and redeemed at least one reward. A higher rate means your reward is compelling enough to bring customers back." size={11} />
               </div>
               <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{insights.redemptionRate != null ? `${Number(insights.redemptionRate).toFixed(1)}%` : '—'}</p>
             </div>
@@ -118,6 +122,7 @@ export default function CampaignInsights({ scopeType, scopeId, label }) {
               <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
                 <FiCalendar size={14} />
                 <span className="text-xs">Birthday This Month</span>
+                <InfoButton title="Birthday Rewards This Month" content="The number of birthday rewards that have been redeemed so far this month. This requires birthday rewards to be enabled on a loyalty program and members to have provided their birthday." size={11} />
               </div>
               <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{insights.birthdayRedeemedThisMonth ?? '—'}</p>
             </div>
@@ -128,6 +133,7 @@ export default function CampaignInsights({ scopeType, scopeId, label }) {
               <h4 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                 <FiAward size={14} style={{ color: 'var(--brand-primary)' }} />
                 Top Loyal Members
+                <InfoButton title="Top Loyal Members" content="The customers with the highest total visit count across all programs. These are your most engaged regulars — consider giving them special recognition." size={12} />
               </h4>
               {insights.topMembers?.length > 0 ? (
                 <div className="space-y-2">
@@ -163,6 +169,7 @@ export default function CampaignInsights({ scopeType, scopeId, label }) {
               <h4 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                 <FiGift size={14} style={{ color: '#10B981' }} />
                 Members Nearing Reward
+                <InfoButton title="Members Nearing Reward" content="Customers who are close to earning their next reward. The number shown (e.g. '2 away') is how many more stamps they need. This is a great list for targeted promotions to push them over the finish line." size={12} />
               </h4>
               {insights.nearingReward?.length > 0 ? (
                 <div className="space-y-2">

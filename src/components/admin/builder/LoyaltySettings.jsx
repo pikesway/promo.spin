@@ -3,6 +3,8 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { FiInfo, FiPlus, FiX, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import { LOYALTY_ICONS, getIconById } from '../../../constants/loyaltyIcons';
 import SafeIcon from '../../../common/SafeIcon';
+import InfoButton from '../../help/InfoButton';
+import FieldHint from '../../help/FieldHint';
 
 const IconSingleConfig = ({ config, onChange }) => {
   const targetIcon = config.targetIcon || 'heart';
@@ -268,8 +270,9 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium theme-text-secondary mb-2">
+              <label className="block text-sm font-medium theme-text-secondary mb-2 flex items-center gap-1">
                 Program Type
+                <InfoButton title="Program Type" content="Visit-Based: customers earn one stamp per visit, regardless of what they buy. Action-Based: customers earn one stamp per qualifying purchase or action — useful if you want to reward spend amount." />
               </label>
               <select
                 value={loyaltyData.programType}
@@ -292,6 +295,7 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
                 onChange={(e) => handleChange('threshold', parseInt(e.target.value) || 10)}
                 className="w-full theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
               />
+              <FieldHint>How many stamps a customer needs to collect before earning the reward.</FieldHint>
             </div>
           </div>
 
@@ -322,8 +326,9 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium theme-text-secondary mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2 flex items-center gap-1">
               After Reward Claimed
+              <InfoButton title="After Reward Claimed" content="Reset: the customer's stamp count goes back to zero after they redeem a reward — they start fresh every time. Rollover: any stamps earned beyond the threshold carry over, so customers keep their progress toward the next reward." />
             </label>
             <select
               value={loyaltyData.resetBehavior}
@@ -338,7 +343,10 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
           <div className="pt-2 border-t theme-border">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <label className="block text-sm font-medium theme-text-primary">Birthday Reward</label>
+                <label className="block text-sm font-medium theme-text-primary flex items-center gap-1">
+                  Birthday Reward
+                  <InfoButton title="Birthday Reward" content="When enabled, customers who have provided their birthday during enrollment will be eligible to redeem a special reward during their birthday month. The reward is separate from their regular stamp progress and can only be claimed once per year." />
+                </label>
                 <p className="text-xs theme-text-tertiary mt-0.5">Give members a special reward during their birthday month</p>
               </div>
               <button
@@ -384,8 +392,13 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
         <h2 className="text-lg font-semibold theme-text-primary mb-6">Staff Validation</h2>
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium theme-text-secondary mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2 flex items-center gap-1">
               Validation Method
+              <InfoButton title="Validation Method" content={<>
+                <p className="mb-1"><strong>PIN Code:</strong> Staff enter a short numeric code before each stamp is added. Simple and fast.</p>
+                <p className="mb-1"><strong>Icon Selection:</strong> Staff tap a specific icon from a grid. More visual, harder for customers to guess.</p>
+                <p><strong>Icon Sequence:</strong> Staff tap icons in a specific order. Most secure — the sequence is kept private from customers.</p>
+              </>} />
             </label>
             <select
               value={loyaltyData.validationMethod}
@@ -435,8 +448,9 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
           )}
 
           <div>
-            <label className="block text-sm font-medium theme-text-secondary mb-2">
+            <label className="block text-sm font-medium theme-text-secondary mb-2 flex items-center gap-1">
               Failed Attempt Lockout
+              <InfoButton title="Failed Attempt Lockout" content="If staff (or a customer attempting to impersonate staff) enters the wrong validation too many times, the customer's card is temporarily locked. A manager can unlock it from the member management screen." />
             </label>
             <div className="flex items-center gap-3">
               <input

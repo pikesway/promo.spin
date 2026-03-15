@@ -1,7 +1,8 @@
 import React from 'react';
 import { FiTag, FiUsers, FiActivity, FiHeart, FiMail } from 'react-icons/fi';
+import InfoButton from '../help/InfoButton';
 
-function UsageBar({ label, used, limit, icon: Icon, color, subtitle }) {
+function UsageBar({ label, used, limit, icon: Icon, color, subtitle, helpTitle, helpContent }) {
   const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
   const isNearLimit = pct >= 80;
   const isAtLimit = pct >= 100;
@@ -11,9 +12,10 @@ function UsageBar({ label, used, limit, icon: Icon, color, subtitle }) {
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
           <Icon size={13} style={{ color: 'var(--text-tertiary)' }} />
-          <div>
+          <div className="flex items-center gap-1">
             <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{label}</span>
             {subtitle && <span className="text-xs ml-1.5" style={{ color: 'var(--text-tertiary)' }}>{subtitle}</span>}
+            {helpTitle && helpContent && <InfoButton title={helpTitle} content={helpContent} size={12} />}
           </div>
         </div>
         <span className={`text-sm font-medium ${isAtLimit ? 'text-red-400' : isNearLimit ? 'text-amber-400' : ''}`}
@@ -186,6 +188,8 @@ export default function ClientLimitsPanel({ client, usage, editable = false, onS
             limit={usage.activeBrandsLimit}
             icon={FiTag}
             color="var(--accent)"
+            helpTitle="Active Brands"
+            helpContent="The number of active (non-archived) brands currently in use. Inactive brands do not count toward this limit."
           />
           <UsageBar
             label="Active Campaigns"
@@ -193,6 +197,8 @@ export default function ClientLimitsPanel({ client, usage, editable = false, onS
             limit={usage.activeCampaignsLimit}
             icon={FiActivity}
             color="#10B981"
+            helpTitle="Active Campaigns"
+            helpContent="The total number of live campaigns across all brands. Draft and completed campaigns are excluded from this count."
           />
           <div className="pt-3" style={{ borderTop: '1px solid var(--border-color)' }}>
             <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>Allocated across brands</p>
@@ -203,6 +209,8 @@ export default function ClientLimitsPanel({ client, usage, editable = false, onS
               icon={FiHeart}
               color="#F59E0B"
               subtitle="allocated"
+              helpTitle="Loyalty Members"
+              helpContent="The total loyalty member capacity allocated across all brands. Each brand has its own sub-limit that cannot exceed this total."
             />
             <div className="mt-3">
               <UsageBar
@@ -212,6 +220,8 @@ export default function ClientLimitsPanel({ client, usage, editable = false, onS
                 icon={FiMail}
                 color="#3B82F6"
                 subtitle="allocated"
+                helpTitle="Leads"
+                helpContent="Leads are customers who played a game campaign and provided their contact information. This shows the allocated lead capacity across all brands."
               />
             </div>
           </div>

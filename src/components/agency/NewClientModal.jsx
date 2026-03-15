@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { FiX, FiArrowRight, FiArrowLeft, FiCheck } from 'react-icons/fi';
 import { usePlatform } from '../../context/PlatformContext';
 import { supabase } from '../../supabase/client';
+import WizardBanner from '../help/WizardBanner';
+import FieldHint from '../help/FieldHint';
+import InfoButton from '../help/InfoButton';
 
 const STEPS = ['Client Info', 'Usage Limits', 'Admin User', 'First Brand'];
 
@@ -160,6 +163,7 @@ export default function NewClientModal({ onClose, onCreated }) {
 
         {step === 0 && (
           <div className="space-y-4">
+            <WizardBanner>Enter the basic details for this client. This is the business or account you are setting up — for example, a winery, restaurant, or retail shop.</WizardBanner>
             <div>
               <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Client Name *</label>
               <input
@@ -170,6 +174,7 @@ export default function NewClientModal({ onClose, onCreated }) {
                 className="w-full px-3 py-2.5 rounded-lg text-sm"
                 style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
               />
+              <FieldHint>The display name for this client account, visible in your agency dashboard.</FieldHint>
             </div>
             <div>
               <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Contact Email</label>
@@ -181,6 +186,7 @@ export default function NewClientModal({ onClose, onCreated }) {
                 className="w-full px-3 py-2.5 rounded-lg text-sm"
                 style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
               />
+              <FieldHint>For your records — not used for login. The admin user email is set in the next step.</FieldHint>
             </div>
             <div className="grid grid-cols-3 gap-3">
               {[
@@ -202,52 +208,68 @@ export default function NewClientModal({ onClose, onCreated }) {
                 </div>
               ))}
             </div>
+            <FieldHint>Brand colors customize how this client's campaigns and cards appear to customers.</FieldHint>
           </div>
         )}
 
         {step === 1 && (
           <div className="space-y-4">
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              Set the maximum number of active resources for this client. These limits cannot be exceeded by the client.
-            </p>
+            <WizardBanner>Set the maximum resources this client can use. The client cannot exceed these limits — only a super admin can increase them later.</WizardBanner>
             <div className="grid grid-cols-2 gap-3">
-              {[
-                { key: 'active_brands_limit', label: 'Active Brands' },
-                { key: 'active_users_limit', label: 'Active Users' },
-                { key: 'active_campaigns_limit', label: 'Active Campaigns' },
-              ].map(({ key, label }) => (
-                <div key={key}>
-                  <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{label}</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={limitsForm[key]}
-                    onChange={e => setLimitsForm(p => ({ ...p, [key]: parseInt(e.target.value) || 1 }))}
-                    className="w-full px-3 py-2.5 rounded-lg text-sm"
-                    style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
-                  />
-                </div>
-              ))}
+              <div>
+                <label className="text-xs mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+                  Active Brands
+                  <InfoButton title="Active Brands" content="Controls how many active brands this client can maintain at one time. Inactive (archived) brands do not count toward this limit." />
+                </label>
+                <input type="number" min="1" value={limitsForm.active_brands_limit}
+                  onChange={e => setLimitsForm(p => ({ ...p, active_brands_limit: parseInt(e.target.value) || 1 }))}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm"
+                  style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
+              </div>
+              <div>
+                <label className="text-xs mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+                  Active Users
+                  <InfoButton title="Active Users" content="The maximum number of staff and admin accounts this client can have. Includes client admins and any brand-level users." />
+                </label>
+                <input type="number" min="1" value={limitsForm.active_users_limit}
+                  onChange={e => setLimitsForm(p => ({ ...p, active_users_limit: parseInt(e.target.value) || 1 }))}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm"
+                  style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
+              </div>
+              <div>
+                <label className="text-xs mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+                  Active Campaigns
+                  <InfoButton title="Active Campaigns" content="The total number of live (active) campaigns across all of this client's brands. Draft and completed campaigns do not count." />
+                </label>
+                <input type="number" min="1" value={limitsForm.active_campaigns_limit}
+                  onChange={e => setLimitsForm(p => ({ ...p, active_campaigns_limit: parseInt(e.target.value) || 1 }))}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm"
+                  style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
+              </div>
             </div>
             <div className="pt-2" style={{ borderTop: '1px solid var(--border-color)' }}>
-              <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>Loyalty &amp; Leads limits are shared across all brands. Each brand gets an allocation that cannot exceed these totals.</p>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>Pool limits — shared across all brands. Each brand gets an allocation from these totals.</p>
               <div className="grid grid-cols-2 gap-3">
-                {[
-                  { key: 'loyalty_members_limit', label: 'Total Loyalty Members' },
-                  { key: 'leads_limit', label: 'Total Leads' },
-                ].map(({ key, label }) => (
-                  <div key={key}>
-                    <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{label}</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={limitsForm[key]}
-                      onChange={e => setLimitsForm(p => ({ ...p, [key]: parseInt(e.target.value) || 1 }))}
-                      className="w-full px-3 py-2.5 rounded-lg text-sm"
-                      style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
-                    />
-                  </div>
-                ))}
+                <div>
+                  <label className="text-xs mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+                    Total Loyalty Members
+                    <InfoButton title="Total Loyalty Members" content="The combined maximum number of enrolled loyalty members across all of this client's brands. Each brand draws from this shared pool." />
+                  </label>
+                  <input type="number" min="1" value={limitsForm.loyalty_members_limit}
+                    onChange={e => setLimitsForm(p => ({ ...p, loyalty_members_limit: parseInt(e.target.value) || 1 }))}
+                    className="w-full px-3 py-2.5 rounded-lg text-sm"
+                    style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
+                </div>
+                <div>
+                  <label className="text-xs mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+                    Total Leads
+                    <InfoButton title="Total Leads" content="The maximum number of leads (game players who submitted their contact info) this client can collect across all brands and campaigns." />
+                  </label>
+                  <input type="number" min="1" value={limitsForm.leads_limit}
+                    onChange={e => setLimitsForm(p => ({ ...p, leads_limit: parseInt(e.target.value) || 1 }))}
+                    className="w-full px-3 py-2.5 rounded-lg text-sm"
+                    style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} />
+                </div>
               </div>
             </div>
           </div>
@@ -255,9 +277,7 @@ export default function NewClientModal({ onClose, onCreated }) {
 
         {step === 2 && (
           <div className="space-y-4">
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              Create the initial admin account for this client.
-            </p>
+            <WizardBanner>Create the login account for this client's main administrator. They will use these credentials to log in and manage their campaigns, brands, and users.</WizardBanner>
             <div>
               <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Full Name</label>
               <input
@@ -279,6 +299,7 @@ export default function NewClientModal({ onClose, onCreated }) {
                 className="w-full px-3 py-2.5 rounded-lg text-sm"
                 style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
               />
+              <FieldHint>This will be the login email for the client admin. Share it with them once the account is created.</FieldHint>
             </div>
             <div>
               <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Password *</label>
@@ -290,15 +311,14 @@ export default function NewClientModal({ onClose, onCreated }) {
                 className="w-full px-3 py-2.5 rounded-lg text-sm"
                 style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
               />
+              <FieldHint>The client can update their password from their profile settings after logging in.</FieldHint>
             </div>
           </div>
         )}
 
         {step === 3 && (
           <div className="space-y-4">
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              Optionally create the first brand for this client.
-            </p>
+            <WizardBanner>A brand represents a location or sub-account — for example, "Downtown Location" or "Main Street Store". Each brand gets its own campaigns and loyalty program. You can add more brands later.</WizardBanner>
             {!skipBrand && (
               <>
                 <div>
@@ -321,7 +341,10 @@ export default function NewClientModal({ onClose, onCreated }) {
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Unlock PIN</label>
+                    <label className="text-xs mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+                      Unlock PIN
+                      <InfoButton title="Unlock PIN" content="Staff enter this PIN to add stamps for a customer. Keep it short and memorable — it's used at the point of sale every day." />
+                    </label>
                     <input
                       type="text"
                       value={brandForm.unlock_pin}
@@ -334,7 +357,10 @@ export default function NewClientModal({ onClose, onCreated }) {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Max Loyalty Members</label>
+                  <label className="text-xs mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+                    Max Loyalty Members
+                    <InfoButton title="Max Loyalty Members" content="The maximum number of customers that can enroll in this brand's loyalty program. This draws from the client's total loyalty member pool." />
+                  </label>
                   <input
                     type="number"
                     min="1"
@@ -355,6 +381,9 @@ export default function NewClientModal({ onClose, onCreated }) {
               />
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Skip brand creation for now</span>
             </label>
+            {skipBrand && (
+              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>You can create brands later from the client's dashboard.</p>
+            )}
           </div>
         )}
 

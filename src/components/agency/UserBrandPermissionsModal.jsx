@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FiX, FiShield } from 'react-icons/fi';
 import { supabase } from '../../supabase/client';
 import { usePlatform } from '../../context/PlatformContext';
+import InfoButton from '../help/InfoButton';
+import WizardBanner from '../help/WizardBanner';
 
 const PERMISSION_LABELS = {
   is_brand_manager: 'Brand Manager',
@@ -10,6 +12,15 @@ const PERMISSION_LABELS = {
   can_edit_campaign: 'Edit Campaigns',
   can_activate_pause_campaign: 'Activate / Pause',
   can_delete_campaign: 'Delete Campaigns',
+};
+
+const PERMISSION_HELP = {
+  is_brand_manager: 'Can update brand settings (colors, name, PIN) for brands they manage. Does not grant access to other clients or brands.',
+  can_view_stats: 'Can view campaign analytics, lead reports, and member activity for this brand.',
+  can_add_campaign: 'Can create new campaigns and loyalty programs under this brand.',
+  can_edit_campaign: 'Can edit existing campaign settings, rewards, and design. Cannot activate or delete.',
+  can_activate_pause_campaign: 'Can switch campaigns between active and paused states. Paused campaigns stop accepting new stamps.',
+  can_delete_campaign: 'Can permanently delete campaigns. This action cannot be undone — use with care.',
 };
 
 export default function UserBrandPermissionsModal({ user, clientId, onClose }) {
@@ -107,6 +118,7 @@ export default function UserBrandPermissionsModal({ user, clientId, onClose }) {
         </div>
 
         <div className="overflow-y-auto flex-1 p-5">
+          <WizardBanner>Toggle access to grant this user permission to work with a brand. Once access is on, choose which actions they are allowed to take. Turning off access removes all permissions for that brand.</WizardBanner>
           {loading ? (
             <p style={{ color: 'var(--text-tertiary)' }}>Loading...</p>
           ) : clientBrands.length === 0 ? (
@@ -150,6 +162,7 @@ export default function UserBrandPermissionsModal({ user, clientId, onClose }) {
                               {perm[key] && <div className="w-2 h-2 rounded-sm bg-white" />}
                             </div>
                             <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{label}</span>
+                            <InfoButton title={label} content={PERMISSION_HELP[key]} size={12} />
                           </label>
                         ))}
                       </div>

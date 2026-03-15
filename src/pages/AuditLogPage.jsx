@@ -52,7 +52,7 @@ export default function AuditLogPage() {
           </button>
           <div>
             <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Audit Log</h1>
-            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Admin impersonation and action history</p>
+            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>A record of all significant actions taken by super admins, including when a client account was viewed, what was changed, and who made the change. Use this to track activity and troubleshoot issues.</p>
           </div>
         </div>
 

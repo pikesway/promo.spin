@@ -508,11 +508,16 @@ export default function LoyaltyEnrollmentPage() {
                 {formData.rememberDevice && <FiCheck size={12} className="text-white" />}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <FiSmartphone className={mutedTextColor} size={14} />
-              <span className={`text-sm ${mutedTextColor}`}>
-                Remember this device for faster access
-              </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <FiSmartphone className={mutedTextColor} size={14} />
+                <span className={`text-sm ${mutedTextColor}`}>
+                  Remember this device for faster access
+                </span>
+              </div>
+              <p className={`text-xs mt-0.5 ${mutedTextColor}`} style={{ opacity: 0.65 }}>
+                Next time you visit this link on this device, you'll go straight to your loyalty card — no need to sign up again.
+              </p>
             </div>
           </label>
 

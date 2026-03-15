@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiDownload, FiCopy, FiSettings, FiLogOut, FiUser, FiMail, FiPhone, FiCalendar, FiHeart, FiTag, FiChevronDown, FiUsers, FiBarChart2, FiX } from 'react-icons/fi';
+import InfoButton from '../components/help/InfoButton';
 import { usePlatform } from '../context/PlatformContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabase/client';
@@ -349,8 +350,9 @@ export default function ClientDashboard() {
         {activeTab === 'campaigns' && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg md:text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+              <h2 className="text-lg md:text-2xl font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                 {showStats ? 'Overview' : 'Campaigns'}
+                <InfoButton title="Campaign Statuses" content={<><p className="mb-1"><strong>Draft:</strong> Not live yet — visible only to admins. Edit freely before publishing.</p><p className="mb-1"><strong>Scheduled:</strong> Set to go live on a future date automatically.</p><p className="mb-1"><strong>Active:</strong> Live and accepting customers. Staff can add stamps and customers can play.</p><p className="mb-1"><strong>Completed:</strong> Ended and no longer accepting new activity. Historical data is preserved.</p><p className="mt-2 text-xs">Pausing a campaign keeps it in the system but stops new stamps from being added until you resume it.</p></>} />
               </h2>
               {userCanAdd && (
                 <button className="btn btn-primary hidden md:flex" onClick={() => setShowWizard(true)}><FiPlus /> Create Campaign</button>
@@ -391,7 +393,10 @@ export default function ClientDashboard() {
         {activeTab === 'leads' && showStats && (
           <div>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg md:text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Lead Collection</h3>
+              <h3 className="text-lg md:text-xl font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                Lead Collection
+                <InfoButton title="What is a Lead?" content="A lead is a customer who played one of your game campaigns and provided their contact information (name, email, or phone). Leads are different from loyalty members — they haven't enrolled in a loyalty program, but they've expressed interest. Use the Export CSV button to download their details for follow-up." />
+              </h3>
               <button className="btn btn-success btn-sm md:btn" onClick={exportLeadsCSV} disabled={clientLeads.length === 0}>
                 <FiDownload /> <span className="hidden md:inline">Export CSV</span>
               </button>

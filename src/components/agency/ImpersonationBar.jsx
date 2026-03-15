@@ -28,6 +28,7 @@ export default function ImpersonationBar() {
         <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(0,0,0,0.25)' }}>
           Admin View
         </span>
+        <span className="hidden md:inline text-xs opacity-75">— You are still logged in as yourself. Actions are audited.</span>
       </div>
       <button
         onClick={stopImpersonation}

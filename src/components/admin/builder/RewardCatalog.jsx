@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../supabase/client';
 import { FiPlus, FiEdit2, FiTrash2, FiArrowUp, FiArrowDown, FiGift, FiCheck, FiX } from 'react-icons/fi';
+import InfoButton from '../../help/InfoButton';
+import WizardBanner from '../../help/WizardBanner';
+import FieldHint from '../../help/FieldHint';
 
 const REWARD_TYPES = [
   { value: 'free_item', label: 'Free Item' },
@@ -44,7 +47,10 @@ const RewardTierForm = ({ initial, onSave, onCancel, existingThresholds }) => {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium theme-text-secondary mb-1">Stamps Required *</label>
+          <label className="block text-xs font-medium theme-text-secondary mb-1 flex items-center gap-1">
+            Stamps Required *
+            <InfoButton title="Stamps Required" content="The number of stamps a member needs to collect to unlock this reward. Each tier must have a unique stamp count — for example, 5 stamps for a small reward, 10 for a bigger one." size={12} />
+          </label>
           <input
             type="number"
             min="1"
@@ -55,7 +61,10 @@ const RewardTierForm = ({ initial, onSave, onCancel, existingThresholds }) => {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium theme-text-secondary mb-1">Reward Type</label>
+          <label className="block text-xs font-medium theme-text-secondary mb-1 flex items-center gap-1">
+            Reward Type
+            <InfoButton title="Reward Type" content={<><p className="mb-1"><strong>Free Item:</strong> Give away a product, like a free drink or appetizer.</p><p className="mb-1"><strong>Discount:</strong> Apply a percentage or dollar amount off their next purchase.</p><p className="mb-1"><strong>VIP Experience:</strong> Special access, early entry, or premium service.</p><p><strong>Custom:</strong> Any other reward you define in the description.</p></>} size={12} />
+          </label>
           <select
             value={form.reward_type}
             onChange={e => setForm(f => ({ ...f, reward_type: e.target.value }))}
@@ -148,7 +157,10 @@ const BonusRuleForm = ({ initial, onSave, onCancel }) => {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium theme-text-secondary mb-1">Multiplier</label>
+          <label className="block text-xs font-medium theme-text-secondary mb-1 flex items-center gap-1">
+            Multiplier
+            <InfoButton title="Multiplier" content="How many times to multiply stamps during this window. 2 = double stamps, 3 = triple stamps. For example, a multiplier of 2 on Tuesdays means every visit on Tuesday counts as 2 stamps." size={12} />
+          </label>
           <input
             type="number"
             min="1.1"
@@ -367,7 +379,7 @@ const RewardCatalog = ({ campaignId, canEdit }) => {
   return (
     <div className="space-y-8">
       <div className="theme-bg-secondary rounded-lg border theme-border p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-3">
           <div>
             <h2 className="text-lg font-semibold theme-text-primary">Reward Tiers</h2>
             <p className="text-sm theme-text-tertiary mt-1">Create multiple reward milestones for your members</p>
@@ -383,6 +395,7 @@ const RewardCatalog = ({ campaignId, canEdit }) => {
             </button>
           )}
         </div>
+        <WizardBanner>You can create multiple reward tiers at different stamp thresholds. For example: a free dessert at 5 stamps and a free meal at 10 stamps. Members earn toward each tier automatically.</WizardBanner>
 
         <div className="space-y-3">
           {rewards.length === 0 && !addingReward && (
@@ -476,9 +489,12 @@ const RewardCatalog = ({ campaignId, canEdit }) => {
       </div>
 
       <div className="theme-bg-secondary rounded-lg border theme-border p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-lg font-semibold theme-text-primary">Bonus Stamp Rules</h2>
+            <h2 className="text-lg font-semibold theme-text-primary flex items-center gap-1">
+              Bonus Stamp Rules
+              <InfoButton title="Bonus Stamp Rules" content={<><p className="mb-2">Bonus rules let you multiply stamps during special days or times — for example, "Double Stamps on Tuesdays" or "3x Stamps during Happy Hour (4–6pm)".</p><p>The multiplier applies to each stamp added during the active window. A 2x multiplier means 1 visit = 2 stamps.</p></>} />
+            </h2>
             <p className="text-sm theme-text-tertiary mt-1">Award extra stamps during special days or hours</p>
           </div>
           {canEdit && !addingRule && !editingRule && (
