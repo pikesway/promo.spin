@@ -32,7 +32,8 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
     loyaltyRewardDescription: '',
     loyaltyBirthdayEnabled: false,
     loyaltyBirthdayName: '',
-    loyaltyBirthdayDescription: ''
+    loyaltyBirthdayDescription: '',
+    loyaltyCoolDownHours: 0
   });
 
   const [selectedBrandId, setSelectedBrandId] = useState(brandId || (permittedBrands[0]?.id ?? null));
@@ -60,7 +61,8 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
           rewardName: formData.loyaltyRewardName,
           rewardDescription: formData.loyaltyRewardDescription,
           resetBehavior: 'reset',
-          lockoutThreshold: 3
+          lockoutThreshold: 3,
+          coolDownHours: formData.loyaltyCoolDownHours || 0
         };
       }
 
@@ -254,6 +256,20 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
                     <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>{formData.loyaltyProgramType === 'visit' ? 'Visits' : 'Actions'} Required</label>
                     <input className="input" type="number" min="1" max="100" value={formData.loyaltyThreshold} onChange={(e) => setFormData({ ...formData, loyaltyThreshold: parseInt(e.target.value) || 10 })} />
                   </div>
+                </div>
+                <div>
+                  <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Visit Cool Down (hours)</label>
+                  <input
+                    className="input"
+                    type="number"
+                    min="0"
+                    max="24"
+                    value={formData.loyaltyCoolDownHours}
+                    onChange={(e) => setFormData({ ...formData, loyaltyCoolDownHours: Math.min(24, Math.max(0, parseInt(e.target.value) || 0)) })}
+                  />
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                    {formData.loyaltyCoolDownHours === 0 ? 'No limit — stamps can be confirmed anytime.' : `Customers must wait ${formData.loyaltyCoolDownHours}h between stamps. Staff PIN overrides this.`}
+                  </p>
                 </div>
                 <div>
                   <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Reward Name *</label>

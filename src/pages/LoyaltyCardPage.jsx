@@ -30,6 +30,8 @@ export default function LoyaltyCardPage() {
   const [actionType, setActionType] = useState('visit');
   const [successAnimation, setSuccessAnimation] = useState(false);
   const [redeemingBirthday, setRedeemingBirthday] = useState(false);
+  const [coolDownMessage, setCoolDownMessage] = useState(null);
+  const [bypassCoolDown, setBypassCoolDown] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -139,11 +141,12 @@ export default function LoyaltyCardPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleConfirmAction = (type) => {
+  const handleConfirmAction = (type, bypass = false) => {
     if (isLocked) {
       setShowManagerOverride(true);
       return;
     }
+    setBypassCoolDown(bypass);
     setActionType(type);
     setShowValidation(true);
   };
@@ -165,16 +168,25 @@ export default function LoyaltyCardPage() {
             campaignId: campaign.id,
             actionType: 'visit',
             deviceInfo: { userAgent: navigator.userAgent, timestamp: Date.now() },
+            bypassCoolDown: bypassCoolDown,
           }),
         }
       );
 
       const result = await response.json();
 
+      if (response.status === 429 && result.coolDown) {
+        setCoolDownMessage(result.error);
+        setBypassCoolDown(false);
+        return;
+      }
+
       if (!response.ok) {
         throw new Error(result.error || 'Failed to confirm visit');
       }
 
+      setBypassCoolDown(false);
+      setCoolDownMessage(null);
       setSuccessAnimation(true);
       setTimeout(() => {
         setSuccessAnimation(false);
@@ -358,6 +370,23 @@ export default function LoyaltyCardPage() {
           <div className="mb-4 p-3 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-between gap-2">
             <p className="text-red-300 text-sm">{error}</p>
             <button onClick={() => setError(null)} className="text-red-400 hover:text-red-200 flex-shrink-0 text-lg leading-none">&times;</button>
+          </div>
+        )}
+        {coolDownMessage && (
+          <div className="mb-4 rounded-xl border" style={{ backgroundColor: 'rgba(251, 191, 36, 0.1)', borderColor: 'rgba(251, 191, 36, 0.3)' }}>
+            <div className="p-3 flex items-start justify-between gap-2">
+              <p className="text-yellow-300 text-sm">{coolDownMessage}</p>
+              <button onClick={() => setCoolDownMessage(null)} className="text-yellow-400 hover:text-yellow-200 flex-shrink-0 text-lg leading-none mt-0.5">&times;</button>
+            </div>
+            <div className="px-3 pb-3">
+              <button
+                onClick={() => handleConfirmAction('visit', true)}
+                className="w-full py-2 rounded-lg text-sm font-medium transition-all active:scale-[0.98]"
+                style={{ backgroundColor: 'rgba(251, 191, 36, 0.2)', color: '#FDE68A', border: '1px solid rgba(251, 191, 36, 0.4)' }}
+              >
+                Staff Override — Confirm Anyway
+              </button>
+            </div>
           </div>
         )}
         {birthdayEligible && (

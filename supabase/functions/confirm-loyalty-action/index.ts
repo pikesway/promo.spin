@@ -14,6 +14,7 @@ interface ActionPayload {
   validationInput?: string;
   deviceInfo?: Record<string, unknown>;
   rewardTierId?: string;
+  bypassCoolDown?: boolean;
 }
 
 interface BonusRule {
@@ -92,7 +93,7 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const payload: ActionPayload = await req.json();
-    const { memberCode, campaignId, actionType, deviceInfo, rewardTierId } = payload;
+    const { memberCode, campaignId, actionType, deviceInfo, rewardTierId, bypassCoolDown } = payload;
 
     if (!memberCode || !campaignId || !actionType) {
       return new Response(
@@ -157,6 +158,44 @@ Deno.serve(async (req: Request) => {
     const threshold = loyaltyProgram.threshold || 10;
 
     if (actionType === "visit") {
+      const coolDownHours = campaign.config?.loyalty?.coolDownHours ?? 0;
+
+      if (coolDownHours > 0 && !bypassCoolDown) {
+        const { data: lastVisit } = await supabase
+          .from("loyalty_progress_log")
+          .select("created_at")
+          .eq("loyalty_account_id", account.id)
+          .in("action_type", ["visit_confirmed", "reward_unlocked"])
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (lastVisit) {
+          const lastVisitTime = new Date(lastVisit.created_at).getTime();
+          const nextAvailableTime = lastVisitTime + coolDownHours * 60 * 60 * 1000;
+          const nowMs = Date.now();
+
+          if (nowMs < nextAvailableTime) {
+            const nextAvailableAt = new Date(nextAvailableTime).toISOString();
+            const nextDate = new Date(nextAvailableTime);
+            const now = new Date();
+            const isSameDay = nextDate.toDateString() === now.toDateString();
+            const timeStr = nextDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+            const friendlyTime = isSameDay ? `at ${timeStr} today` : `after ${timeStr} on ${nextDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}`;
+
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: `Not quite yet! Your next stamp will be available ${friendlyTime}.`,
+                coolDown: true,
+                nextAvailableAt,
+              }),
+              { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        }
+      }
+
       const { data: bonusRules } = await supabase
         .from("campaign_bonus_rules")
         .select("id, name, rule_type, day_of_week, start_time, end_time, multiplier")

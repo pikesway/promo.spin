@@ -467,6 +467,29 @@ const LoyaltySettings = ({ loyaltyData, onChange, loyaltyUrl }) => {
               Card will be locked after this many failed validation attempts.
             </p>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium theme-text-secondary mb-2 flex items-center gap-1">
+              Visit Cool Down
+              <InfoButton title="Visit Cool Down" content="Sets a minimum waiting period between stamp confirmations for each customer. When enabled, a customer cannot receive a new stamp until the required hours have passed since their last one. Set to 0 for no restriction. Staff can always override the cool down by completing a normal PIN/icon validation." />
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                min="0"
+                max="24"
+                value={loyaltyData.coolDownHours ?? 0}
+                onChange={(e) => handleChange('coolDownHours', Math.min(24, Math.max(0, parseInt(e.target.value) || 0)))}
+                className="w-24 theme-bg-tertiary border theme-border rounded-lg px-3 py-2 theme-text-primary"
+              />
+              <span className="text-sm theme-text-tertiary">hours between stamps</span>
+            </div>
+            <p className="text-xs theme-text-tertiary mt-1">
+              {(loyaltyData.coolDownHours ?? 0) === 0
+                ? 'No limit — customers can receive stamps at any time.'
+                : `Customers must wait ${loyaltyData.coolDownHours} hour${loyaltyData.coolDownHours === 1 ? '' : 's'} between stamps. Staff PIN overrides this.`}
+            </p>
+          </div>
         </div>
       </div>
 

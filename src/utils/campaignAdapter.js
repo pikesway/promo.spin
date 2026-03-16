@@ -27,7 +27,8 @@ export const initializeCampaignConfig = (type, client) => {
         rewardName: 'Free Reward',
         rewardDescription: '',
         resetBehavior: 'reset',
-        lockoutThreshold: 3
+        lockoutThreshold: 3,
+        coolDownHours: 0
       },
       visual: {
         background: {
