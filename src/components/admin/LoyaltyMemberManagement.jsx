@@ -38,7 +38,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
 
       const { data: memberData, error } = await supabase
         .from('loyalty_accounts')
-        .select('*, campaigns(name)')
+        .select('*, campaigns(name), leads(name, email, phone, birthday)')
         .in('campaign_id', campaignIds)
         .order('enrolled_at', { ascending: false });
 
@@ -72,8 +72,8 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
 
       const currentMonth = new Date().getUTCMonth() + 1;
       const birthdayThisMonth = (memberData || []).filter(m => {
-        if (!m.birthday) return false;
-        const bd = new Date(m.birthday);
+        if (!m.leads?.birthday) return false;
+        const bd = new Date(m.leads.birthday);
         return (bd.getUTCMonth() + 1) === currentMonth;
       }).length;
 
@@ -107,9 +107,9 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
 
   const filteredMembers = members.filter(member => {
     const matchesSearch = searchQuery === '' ||
-      member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.phone?.includes(searchQuery) ||
+      member.leads?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.leads?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.leads?.phone?.includes(searchQuery) ||
       member.member_code?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCampaign = selectedCampaign === 'all' || member.campaign_id === selectedCampaign;
@@ -118,7 +118,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
   });
 
   const handleResetProgress = async (member) => {
-    if (!confirm(`Reset ${member.name}'s progress to 0 stamps?`)) return;
+    if (!confirm(`Reset ${member.leads?.name}'s progress to 0 stamps?`)) return;
 
     try {
       await supabase
@@ -144,7 +144,7 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
   };
 
   const handleDeleteMember = async (member) => {
-    if (!confirm(`Remove ${member.name} from this loyalty program? This cannot be undone.`)) return;
+    if (!confirm(`Remove ${member.leads?.name} from this loyalty program? This cannot be undone.`)) return;
 
     try {
       await supabase
@@ -169,9 +169,9 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
       const campaign = loyaltyCampaigns.find(c => c.id === m.campaign_id);
       const threshold = campaign?.config?.loyalty?.threshold || 10;
       return [
-        m.name || '',
-        m.email || '',
-        m.phone || '',
+        m.leads?.name || '',
+        m.leads?.email || '',
+        m.leads?.phone || '',
         m.campaigns?.name || '',
         `${m.current_progress || 0}/${threshold}`,
         m.total_visits || 0,
@@ -275,9 +275,9 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
           }
 
           rows.push([
-            i === 0 ? (m.name || '') : '',
-            i === 0 ? (m.email || '') : '',
-            i === 0 ? (m.phone || '') : '',
+            i === 0 ? (m.leads?.name || '') : '',
+            i === 0 ? (m.leads?.email || '') : '',
+            i === 0 ? (m.leads?.phone || '') : '',
             i === 0 ? (m.campaigns?.name || '') : '',
             i === 0 ? (m.member_code || '') : '',
             i === 0 ? formatDate(m.enrolled_at) : '',
@@ -519,8 +519,8 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
                     return (
                       <tr key={member.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                         <td className="p-3">
-                          <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{member.name}</p>
-                          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{member.email}</p>
+                          <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{member.leads?.name}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{member.leads?.email}</p>
                         </td>
                         <td className="p-3" style={{ color: 'var(--text-secondary)' }}>{member.campaigns?.name}</td>
                         <td className="p-3">
@@ -545,8 +545,8 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
                         </td>
                         {birthdayEnabled && (
                           <td className="p-3">
-                            {member.birthday ? (() => {
-                              const bd = new Date(member.birthday);
+                            {member.leads?.birthday ? (() => {
+                              const bd = new Date(member.leads.birthday);
                               const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
                               const isThisMonth = (bd.getUTCMonth() + 1) === (new Date().getUTCMonth() + 1);
                               return (
@@ -617,8 +617,8 @@ export default function LoyaltyMemberManagement({ clientId, campaigns }) {
                   <div key={member.id} className="p-3 rounded-xl" style={{ background: 'var(--bg-tertiary)' }}>
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{member.name}</p>
-                        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{member.email}</p>
+                        <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{member.leads?.name}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{member.leads?.email}</p>
                       </div>
                       {member.reward_unlocked && (
                         <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(251, 191, 36, 0.15)', color: '#FBBF24' }}>

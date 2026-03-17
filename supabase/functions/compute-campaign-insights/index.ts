@@ -163,7 +163,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: members } = await supabase
       .from("loyalty_accounts")
-      .select("id, name, email, current_progress, total_visits, campaign_id, birthday")
+      .select("id, current_progress, total_visits, campaign_id, leads(name, email, birthday)")
       .in("campaign_id", campaignIds);
 
     const allMembers = members || [];
@@ -174,10 +174,10 @@ Deno.serve(async (req: Request) => {
     const topMembers = [...allMembers]
       .sort((a, b) => (b.total_visits || 0) - (a.total_visits || 0))
       .slice(0, 10)
-      .map((m: { id: string; name: string; email: string; total_visits: number; current_progress: number; campaign_id: string }) => ({
+      .map((m: { id: string; leads: { name: string; email: string } | null; total_visits: number; current_progress: number; campaign_id: string }) => ({
         id: m.id,
-        name: m.name,
-        email: m.email,
+        name: m.leads?.name || "",
+        email: m.leads?.email || "",
         totalVisits: m.total_visits || 0,
         currentProgress: m.current_progress || 0,
         campaignId: m.campaign_id,
@@ -239,7 +239,7 @@ Deno.serve(async (req: Request) => {
         if (stampsRemaining <= 3 && stampsRemaining > 0) {
           nearingReward.push({
             id: member.id,
-            name: member.name,
+            name: (member as { leads?: { name?: string } }).leads?.name || "",
             campaignId: member.campaign_id,
             currentProgress: progress,
             nextRewardName: nextTier.reward_name,

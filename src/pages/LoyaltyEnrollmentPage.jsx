@@ -165,11 +165,59 @@ export default function LoyaltyEnrollmentPage() {
     setSubmitting(true);
 
     try {
+      const normalizedEmail = formData.email.trim().toLowerCase();
+      const normalizedPhone = formData.phone.trim() || null;
+
+      let birthdayValue = null;
+      if (formData.birthdayMonth && formData.birthdayDay) {
+        const month = String(formData.birthdayMonth).padStart(2, '0');
+        const day = String(formData.birthdayDay).padStart(2, '0');
+        birthdayValue = `2000-${month}-${day}`;
+      }
+
+      // Find or create a canonical lead for this brand
+      let leadId = null;
+      const { data: existingLead } = await supabase
+        .from('leads')
+        .select('id')
+        .eq('brand_id', campaign.brand_id)
+        .eq('email', normalizedEmail)
+        .maybeSingle();
+
+      if (existingLead) {
+        leadId = existingLead.id;
+        // Backfill birthday if not set
+        if (birthdayValue) {
+          await supabase
+            .from('leads')
+            .update({ birthday: birthdayValue })
+            .eq('id', leadId)
+            .is('birthday', null);
+        }
+      } else {
+        const { data: newLead, error: leadError } = await supabase
+          .from('leads')
+          .insert({
+            client_id: client.id,
+            brand_id: campaign.brand_id,
+            name: formData.name.trim(),
+            email: normalizedEmail,
+            phone: normalizedPhone,
+            birthday: birthdayValue,
+            source_type: 'loyalty',
+          })
+          .select('id')
+          .single();
+        if (leadError) throw leadError;
+        leadId = newLead.id;
+      }
+
+      // Check if already enrolled in this campaign
       const { data: existing } = await supabase
         .from('loyalty_accounts')
         .select('id, member_code')
         .eq('campaign_id', campaign.id)
-        .eq('email', formData.email.toLowerCase())
+        .eq('lead_id', leadId)
         .maybeSingle();
 
       if (existing) {
@@ -180,22 +228,13 @@ export default function LoyaltyEnrollmentPage() {
 
       const memberCode = generateMemberCode();
 
-      let birthdayValue = null;
-      if (formData.birthdayMonth && formData.birthdayDay) {
-        const month = String(formData.birthdayMonth).padStart(2, '0');
-        const day = String(formData.birthdayDay).padStart(2, '0');
-        birthdayValue = `2000-${month}-${day}`;
-      }
-
       const { data: newAccount, error: insertError } = await supabase
         .from('loyalty_accounts')
         .insert({
           campaign_id: campaign.id,
           client_id: client.id,
-          email: formData.email.toLowerCase(),
-          name: formData.name.trim(),
-          phone: formData.phone.trim() || null,
-          birthday: birthdayValue,
+          brand_id: campaign.brand_id,
+          lead_id: leadId,
           member_code: memberCode,
           current_progress: 0,
           total_visits: 0,

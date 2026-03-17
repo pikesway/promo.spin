@@ -14,18 +14,23 @@ export const useLead = () => {
 export const LeadProvider = ({ children }) => {
   const [leads, setLeads] = useState([]);
 
-  // Load leads
   useEffect(() => {
     const loadLeads = async () => {
       if (supabase) {
         const { data } = await supabase.from('leads').select('*');
         if (data) {
           const formattedLeads = data.map(row => ({
-            ...row.data,
             id: row.id,
-            campaignId: row.campaign_id,
             clientId: row.client_id,
-            timestamp: row.created_at
+            brandId: row.brand_id,
+            name: row.name,
+            email: row.email,
+            phone: row.phone,
+            birthday: row.birthday,
+            sourceType: row.source_type,
+            metadata: row.metadata,
+            timestamp: row.created_at,
+            formData: { name: row.name, email: row.email, phone: row.phone }
           }));
           setLeads(formattedLeads);
         }
@@ -51,9 +56,13 @@ export const LeadProvider = ({ children }) => {
     if (supabase) {
       await supabase.from('leads').insert({
         id: newLead.id,
-        campaign_id: leadData.campaignId,
         client_id: leadData.clientId || null,
-        data: newLead
+        brand_id: leadData.brandId || null,
+        name: leadData.formData?.name || leadData.name || '',
+        email: leadData.formData?.email?.trim().toLowerCase() || leadData.email || null,
+        phone: leadData.formData?.phone || leadData.phone || null,
+        source_type: 'game',
+        metadata: { deviceType: newLead.deviceType }
       });
     }
 

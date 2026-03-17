@@ -104,7 +104,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: account, error: accountError } = await supabase
       .from("loyalty_accounts")
-      .select("*")
+      .select("*, leads(name, email)")
       .eq("member_code", memberCode)
       .eq("campaign_id", campaignId)
       .maybeSingle();
@@ -328,13 +328,13 @@ Deno.serve(async (req: Request) => {
           short_code: shortCode,
           redemption_token: redemptionToken,
           token_expires_at: expiresAt,
-          email: account.email,
+          email: account.leads?.email || null,
           status: "valid",
           expires_at: expiresAt,
           metadata: {
             loyalty_account_id: account.id,
             member_code: account.member_code,
-            member_name: account.name,
+            member_name: account.leads?.name || null,
             source: "loyalty_program",
           },
         })

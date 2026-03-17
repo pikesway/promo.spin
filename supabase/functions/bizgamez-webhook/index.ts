@@ -63,7 +63,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: campaigns, error: campaignError } = await supabase
       .from("campaigns")
-      .select("id, client_id, name, config, status")
+      .select("id, client_id, brand_id, name, config, status")
       .eq("type", "bizgamez")
       .eq("status", "active");
 
@@ -158,33 +158,52 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const leadData = {
-      name: name || "",
-      email: email || "",
-      phone: mobile || "",
-    };
+    const normalizedEmail = email ? email.trim().toLowerCase() : null;
+    const normalizedPhone = mobile ? mobile.trim() : null;
 
-    const { data: lead, error: leadError } = await supabase
-      .from("leads")
-      .insert({
-        campaign_id: campaign.id,
-        client_id: campaign.client_id,
-        data: leadData,
-        metadata: {
-          source: "bizgamez_webhook",
-          game_code,
-          score,
-          webhook_event_id: webhookEvent.id,
-          original_created_at: created_at,
-          prize_name: matchedPrize.name,
-          is_win: matchedPrize.isWin,
-        },
-      })
-      .select("id")
-      .single();
+    let leadId: string | null = null;
 
-    if (leadError) {
-      console.error("Error creating lead:", leadError);
+    if (normalizedEmail && campaign.brand_id) {
+      const { data: existingLead } = await supabase
+        .from("leads")
+        .select("id")
+        .eq("brand_id", campaign.brand_id)
+        .eq("email", normalizedEmail)
+        .maybeSingle();
+
+      if (existingLead) {
+        leadId = existingLead.id;
+      }
+    }
+
+    if (!leadId) {
+      const { data: newLead, error: leadError } = await supabase
+        .from("leads")
+        .insert({
+          client_id: campaign.client_id,
+          brand_id: campaign.brand_id,
+          name: name || "",
+          email: normalizedEmail,
+          phone: normalizedPhone,
+          source_type: "webhook",
+          metadata: {
+            source: "bizgamez_webhook",
+            game_code,
+            score,
+            webhook_event_id: webhookEvent.id,
+            original_created_at: created_at,
+            prize_name: matchedPrize.name,
+            is_win: matchedPrize.isWin,
+          },
+        })
+        .select("id")
+        .single();
+
+      if (!leadError && newLead) {
+        leadId = newLead.id;
+      } else if (leadError) {
+        console.error("Error creating lead:", leadError);
+      }
     }
 
     const { data: currentAnalytics } = await supabase
@@ -229,7 +248,7 @@ Deno.serve(async (req: Request) => {
         .insert({
           campaign_id: campaign.id,
           client_id: campaign.client_id,
-          lead_id: lead?.id || null,
+          lead_id: leadId,
           prize_name: matchedPrize.name,
           short_code: shortCode,
           redemption_token: redemptionToken,
@@ -281,7 +300,7 @@ Deno.serve(async (req: Request) => {
         prize: matchedPrize.name,
         is_win: matchedPrize.isWin,
         redemption: redemptionData,
-        lead_id: lead?.id || null,
+        lead_id: leadId,
       }),
       {
         status: 200,

@@ -70,7 +70,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: campaign, error: campaignError } = await supabase
       .from("campaigns")
-      .select("id, config, type, status, client_id")
+      .select("id, config, type, status, client_id, brand_id")
       .eq("id", campaignId)
       .single();
 
@@ -219,28 +219,54 @@ Deno.serve(async (req: Request) => {
     let redemptionData = null;
 
     if (selectedPrize.isWin && leadData?.email) {
-      const { data: lead, error: leadError } = await supabase
-        .from("leads")
-        .insert({
-          campaign_id: campaignId,
-          client_id: campaign.client_id,
-          data: leadData,
-          metadata: {
-            session_id: sessionId,
-            prize_won: prizeName,
-            captured_at: new Date().toISOString(),
-          },
-        })
-        .select("id")
-        .single();
+      const normalizedEmail = leadData.email.trim().toLowerCase() || null;
+      const normalizedPhone = leadData.phone?.trim() || null;
 
-      if (!leadError && lead) {
-        analytics.leads = (analytics.leads || 0) + 1;
-        await supabase
-          .from("campaigns")
-          .update({ analytics })
-          .eq("id", campaignId);
+      let leadId: string | null = null;
 
+      if (normalizedEmail && campaign.brand_id) {
+        const { data: existingLead } = await supabase
+          .from("leads")
+          .select("id")
+          .eq("brand_id", campaign.brand_id)
+          .eq("email", normalizedEmail)
+          .maybeSingle();
+
+        if (existingLead) {
+          leadId = existingLead.id;
+        }
+      }
+
+      if (!leadId) {
+        const { data: newLead, error: leadError } = await supabase
+          .from("leads")
+          .insert({
+            client_id: campaign.client_id,
+            brand_id: campaign.brand_id,
+            name: leadData.name?.trim() || "",
+            email: normalizedEmail,
+            phone: normalizedPhone,
+            source_type: "game",
+            metadata: {
+              session_id: sessionId,
+              prize_won: prizeName,
+              captured_at: new Date().toISOString(),
+            },
+          })
+          .select("id")
+          .single();
+
+        if (!leadError && newLead) {
+          leadId = newLead.id;
+          analytics.leads = (analytics.leads || 0) + 1;
+          await supabase
+            .from("campaigns")
+            .update({ analytics })
+            .eq("id", campaignId);
+        }
+      }
+
+      if (leadId) {
         const shortCode = generateShortCode();
         const redemptionToken = crypto.randomUUID();
         const expirationDays = campaign.config?.redemption?.expirationDays || 30;
@@ -251,7 +277,7 @@ Deno.serve(async (req: Request) => {
           .insert({
             campaign_id: campaignId,
             client_id: campaign.client_id,
-            lead_id: lead.id,
+            lead_id: leadId,
             prize_name: prizeName,
             short_code: shortCode,
             redemption_token: redemptionToken,

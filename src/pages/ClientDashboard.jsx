@@ -125,9 +125,9 @@ export default function ClientDashboard() {
         new Date(lead.created_at).toLocaleDateString(),
         campaign?.name || 'Unknown',
         brand?.name || 'Unknown',
-        lead.data?.name || '',
-        lead.data?.email || '',
-        lead.data?.phone || ''
+        lead.name || '',
+        lead.email || '',
+        lead.phone || ''
       ];
     });
     const csvContent = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
@@ -424,9 +424,9 @@ export default function ClientDashboard() {
                               <td className="p-3" style={{ color: 'var(--text-primary)' }}>{new Date(lead.created_at).toLocaleDateString()}</td>
                               <td className="p-3" style={{ color: 'var(--text-primary)' }}>{brand?.name || '—'}</td>
                               <td className="p-3" style={{ color: 'var(--text-primary)' }}>{campaign?.name || 'Unknown'}</td>
-                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.data?.name || '-'}</td>
-                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.data?.email || '-'}</td>
-                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.data?.phone || '-'}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.name || '-'}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.email || '-'}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.phone || '-'}</td>
                             </tr>
                           );
                         })}
@@ -443,7 +443,7 @@ export default function ClientDashboard() {
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <FiUser size={14} style={{ color: 'var(--text-secondary)' }} />
-                            <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{lead.data?.name || 'Unknown'}</span>
+                            <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{lead.name || 'Unknown'}</span>
                           </div>
                           <span className="text-xs flex items-center gap-1" style={{ color: 'var(--text-tertiary)' }}>
                             <FiCalendar size={12} />{new Date(lead.created_at).toLocaleDateString()}
@@ -451,8 +451,8 @@ export default function ClientDashboard() {
                         </div>
                         <div className="text-xs mb-1 truncate" style={{ color: 'var(--text-tertiary)' }}>{brand?.name} · {campaign?.name || 'Unknown Campaign'}</div>
                         <div className="flex flex-wrap gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
-                          {lead.data?.email && <span className="flex items-center gap-1"><FiMail size={12} /><span className="truncate max-w-[140px]">{lead.data.email}</span></span>}
-                          {lead.data?.phone && <span className="flex items-center gap-1"><FiPhone size={12} />{lead.data.phone}</span>}
+                          {lead.email && <span className="flex items-center gap-1"><FiMail size={12} /><span className="truncate max-w-[140px]">{lead.email}</span></span>}
+                          {lead.phone && <span className="flex items-center gap-1"><FiPhone size={12} />{lead.phone}</span>}
                         </div>
                       </div>
                     );

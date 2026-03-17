@@ -75,7 +75,7 @@ export default function LoyaltyCardPage() {
       if (memberCode) {
         const { data: accountData, error: accountError } = await supabase
           .from('loyalty_accounts')
-          .select('*')
+          .select('*, leads(name, email, birthday)')
           .eq('member_code', memberCode)
           .eq('campaign_id', campaignData.id)
           .maybeSingle();
@@ -88,9 +88,10 @@ export default function LoyaltyCardPage() {
 
         setAccount(accountData);
 
-        if (programData?.birthday_reward_enabled && accountData.birthday) {
+        const leadBirthday = accountData.leads?.birthday;
+        if (programData?.birthday_reward_enabled && leadBirthday) {
           const now = new Date();
-          const bday = new Date(accountData.birthday);
+          const bday = new Date(leadBirthday);
           if ((bday.getUTCMonth() + 1) === (now.getUTCMonth() + 1)) {
             const currentYear = now.getUTCFullYear();
             const currentMonth = now.getUTCMonth() + 1;
@@ -511,7 +512,7 @@ export default function LoyaltyCardPage() {
                 <p className="font-mono font-bold text-gray-900 text-lg tracking-wider">
                   {memberCode}
                 </p>
-                <p className="text-gray-500 text-xs mt-1">{account.name}</p>
+                <p className="text-gray-500 text-xs mt-1">{account.leads?.name}</p>
               </div>
             </div>
           </div>
@@ -642,7 +643,7 @@ export default function LoyaltyCardPage() {
         isOpen={showManagerOverride}
         onClose={() => setShowManagerOverride(false)}
         onUnlock={handleManagerUnlock}
-        memberName={account?.name}
+        memberName={account?.leads?.name}
         unlockPin={client?.unlock_pin}
       />
     </div>

@@ -35,7 +35,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: account, error: accountError } = await supabase
       .from("loyalty_accounts")
-      .select("*")
+      .select("*, leads(name, email, birthday)")
       .eq("member_code", memberCode)
       .eq("campaign_id", campaignId)
       .maybeSingle();
@@ -47,7 +47,9 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (!account.birthday) {
+    const lead = account.leads;
+
+    if (!lead?.birthday) {
       return new Response(
         JSON.stringify({ success: false, error: "No birthday on file for this member" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -56,7 +58,7 @@ Deno.serve(async (req: Request) => {
 
     const now = new Date();
     const currentMonth = now.getUTCMonth() + 1;
-    const birthdayDate = new Date(account.birthday);
+    const birthdayDate = new Date(lead.birthday);
     const birthdayMonth = birthdayDate.getUTCMonth() + 1;
 
     if (birthdayMonth !== currentMonth) {
@@ -128,13 +130,13 @@ Deno.serve(async (req: Request) => {
         short_code: shortCode,
         redemption_token: redemptionToken,
         token_expires_at: expiresAt,
-        email: account.email,
+        email: lead.email,
         status: "valid",
         expires_at: expiresAt,
         metadata: {
           loyalty_account_id: account.id,
           member_code: account.member_code,
-          member_name: account.name,
+          member_name: lead.name,
           source: "birthday_reward",
         },
       })
