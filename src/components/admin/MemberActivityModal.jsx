@@ -114,8 +114,8 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
   const defaultRewardName = loyaltyProgram?.reward_name || campaign?.config?.loyalty?.rewardName || 'Free Reward';
 
   const currentMonth = new Date().getMonth() + 1;
-  const isBirthdayMonth = member.birthday
-    ? new Date(member.birthday).getUTCMonth() + 1 === currentMonth
+  const isBirthdayMonth = member.leads?.birthday
+    ? new Date(member.leads.birthday).getUTCMonth() + 1 === currentMonth
     : false;
   const showBirthdayBadge = isBirthdayMonth && loyaltyProgram?.birthday_reward_enabled;
 
@@ -153,10 +153,10 @@ export default function MemberActivityModal({ isOpen, onClose, member, campaign 
                 <FiUser className="text-rose-400" size={24} />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{member.name}</h3>
+                <h3 className="text-lg font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{member.leads?.name}</h3>
                 <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
                   <FiMail size={14} />
-                  <span className="truncate">{member.email}</span>
+                  <span className="truncate">{member.leads?.email}</span>
                 </div>
               </div>
               <div className="text-right">
