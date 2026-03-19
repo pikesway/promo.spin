@@ -125,12 +125,15 @@ const LoyaltyProgramBuilder = ({ campaign, client, onBack, canEdit = true }) => 
 
       await supabase
         .from('loyalty_programs')
-        .update({
-          birthday_reward_enabled: loyaltyData.birthdayRewardEnabled || false,
-          birthday_reward_name: loyaltyData.birthdayRewardName || null,
-          birthday_reward_description: loyaltyData.birthdayRewardDescription || null,
-        })
-        .eq('campaign_id', campaign.id);
+        .upsert(
+          {
+            campaign_id: campaign.id,
+            birthday_reward_enabled: loyaltyData.birthdayRewardEnabled || false,
+            birthday_reward_name: loyaltyData.birthdayRewardName || null,
+            birthday_reward_description: loyaltyData.birthdayRewardDescription || null,
+          },
+          { onConflict: 'campaign_id' }
+        );
 
       setHasChanges(false);
       setSaveMessage({ type: 'success', text: 'Loyalty program saved!' });
