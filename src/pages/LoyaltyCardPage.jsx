@@ -334,9 +334,9 @@ export default function LoyaltyCardPage() {
   const currentProgress = account.current_progress || 0;
   const isPaused = campaign.status === 'paused';
 
-  const loyaltyConfig = loyaltyProgram || campaign?.config?.loyalty || {};
-  const validationMethod = loyaltyConfig.validation_method || loyaltyConfig.validationMethod || 'pin';
-  const validationConfig = loyaltyConfig.validation_config || loyaltyConfig.validationConfig || {};
+  const loyaltyConfig = campaign?.config?.loyalty || {};
+  const validationMethod = loyaltyConfig.validationMethod || loyaltyConfig.validation_method || 'pin';
+  const validationConfig = loyaltyConfig.validationConfig || loyaltyConfig.validation_config || {};
 
   const cardConfig = loyaltyConfig.card || {};
   const primaryColor = cardConfig.primaryColor || client?.primary_color || '#F59E0B';
