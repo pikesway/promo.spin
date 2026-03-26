@@ -8,6 +8,7 @@ import { supabase } from '../supabase/client';
 import CampaignWizard from '../components/CampaignWizard';
 import BizGamezCampaignBuilder from '../components/admin/BizGamezCampaignBuilder';
 import LoyaltyProgramBuilder from '../components/admin/LoyaltyProgramBuilder';
+import TriviaCampaignBuilder from '../components/admin/TriviaCampaignBuilder';
 import CampaignList from '../components/admin/CampaignList';
 import LoyaltyMemberManagement from '../components/admin/LoyaltyMemberManagement';
 import CampaignInsights from '../components/admin/CampaignInsights';
@@ -182,6 +183,9 @@ export default function ClientDashboard() {
     }
     if (editingCampaign.type === 'loyalty') {
       return <LoyaltyProgramBuilder campaign={editingCampaign} client={client} onBack={() => setEditingCampaign(null)} canEdit={userCanEdit} />;
+    }
+    if (editingCampaign.type === 'trivia') {
+      return <TriviaCampaignBuilder campaign={editingCampaign} client={client} onBack={() => setEditingCampaign(null)} />;
     }
     setEditingCampaign(null);
     return null;

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FiX, FiChevronLeft, FiChevronRight, FiHeart } from 'react-icons/fi';
+import { FiX, FiChevronLeft, FiChevronRight, FiHeart, FiHelpCircle } from 'react-icons/fi';
 import { usePlatform } from '../context/PlatformContext';
 import { useAuth } from '../context/AuthContext';
 import { initializeCampaignConfig } from '../utils/campaignAdapter';
@@ -33,7 +33,10 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
     loyaltyBirthdayEnabled: false,
     loyaltyBirthdayName: '',
     loyaltyBirthdayDescription: '',
-    loyaltyCoolDownHours: 0
+    loyaltyCoolDownHours: 0,
+    triviaLeaderboardScope: 'both',
+    triviaScoringMode: 'accuracy_speed_weighted',
+    triviaGeoEnabled: false
   });
 
   const [selectedBrandId, setSelectedBrandId] = useState(brandId || (permittedBrands[0]?.id ?? null));
@@ -64,9 +67,15 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
           lockoutThreshold: 3,
           coolDownHours: formData.loyaltyCoolDownHours || 0
         };
+      } else if (formData.type === 'trivia') {
+        fullConfig.trivia = {
+          leaderboardScope: formData.triviaLeaderboardScope,
+          scoringMode: formData.triviaScoringMode,
+          geoEnabled: formData.triviaGeoEnabled
+        };
       }
 
-      const newCampaign = await createCampaign({
+      const campaignData = {
         client_id: clientId,
         brand_id: selectedBrandId,
         name: formData.name,
@@ -76,7 +85,15 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
         start_date: null,
         end_date: null,
         config: fullConfig
-      });
+      };
+
+      if (formData.type === 'trivia') {
+        campaignData.leaderboard_scope = formData.triviaLeaderboardScope;
+        campaignData.default_scoring_mode = formData.triviaScoringMode;
+        campaignData.default_geo_enabled = formData.triviaGeoEnabled;
+      }
+
+      const newCampaign = await createCampaign(campaignData);
 
       if (formData.type === 'loyalty' && formData.loyaltyBirthdayEnabled && newCampaign?.id) {
         await supabase
@@ -140,6 +157,13 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
       color: '#F97316'
     },
     {
+      id: 'trivia',
+      name: 'Trivia Campaign',
+      description: 'Competitive trivia with leaderboards and rewards',
+      icon: <FiHelpCircle style={{ color: '#fff' }} />,
+      color: '#14B8A6'
+    },
+    {
       id: 'loyalty',
       name: 'Loyalty Program',
       description: 'Digital punch card with staff validation',
@@ -150,6 +174,7 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
 
   const getAccentColor = () => {
     if (formData.type === 'loyalty') return '#F43F5E';
+    if (formData.type === 'trivia') return '#14B8A6';
     return '#F97316';
   };
 
@@ -226,6 +251,59 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
                 </div>
                 <div className="p-4 rounded-r-lg" style={{ background: 'rgba(249, 115, 22, 0.1)', borderLeft: '4px solid #F97316' }}>
                   <p className="text-sm" style={{ color: 'var(--text-secondary)' }}><strong style={{ color: 'var(--text-primary)' }}>How it works:</strong> When a player completes a game in BizGamez/Playzo, the webhook will send their score and contact info to this campaign.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && formData.type === 'trivia' && (
+            <div>
+              <h3 className="text-base md:text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Trivia Campaign Settings</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Campaign Name *</label>
+                  <input className="input" type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Weekly Trivia Challenge" required />
+                </div>
+                <div>
+                  <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Campaign Slug (URL path)</label>
+                  <input className="input" type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })} placeholder={formData.name ? formData.name.toLowerCase().replace(/\s+/g, '-') : 'weekly-trivia'} />
+                </div>
+                <div>
+                  <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Leaderboard Scope</label>
+                  <select className="select" value={formData.triviaLeaderboardScope} onChange={(e) => setFormData({ ...formData, triviaLeaderboardScope: e.target.value })}>
+                    <option value="instance">Instance Only - Separate leaderboard per game instance</option>
+                    <option value="campaign">Campaign Only - Single leaderboard across all instances</option>
+                    <option value="both">Both - Instance and campaign leaderboards</option>
+                  </select>
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                    {formData.triviaLeaderboardScope === 'instance' && 'Each game instance has its own separate leaderboard and rewards.'}
+                    {formData.triviaLeaderboardScope === 'campaign' && 'Scores are aggregated across all instances for a single campaign leaderboard.'}
+                    {formData.triviaLeaderboardScope === 'both' && 'Track winners per instance AND across the entire campaign.'}
+                  </p>
+                </div>
+                <div>
+                  <label className="block mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Scoring Mode</label>
+                  <select className="select" value={formData.triviaScoringMode} onChange={(e) => setFormData({ ...formData, triviaScoringMode: e.target.value })}>
+                    <option value="accuracy_only">Accuracy Only - Correct answers determine ranking</option>
+                    <option value="accuracy_speed_weighted">Accuracy + Speed - Faster answers earn more points</option>
+                    <option value="accuracy_then_fastest_time">Accuracy, then Speed Tiebreaker - Same score? Fastest wins</option>
+                  </select>
+                </div>
+                <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Location Verification</p>
+                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Require players to be at your location to play</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, triviaGeoEnabled: !formData.triviaGeoEnabled })}
+                    className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${formData.triviaGeoEnabled ? 'bg-green-500' : 'bg-gray-600'}`}
+                  >
+                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow ${formData.triviaGeoEnabled ? 'left-6' : 'left-1'}`} />
+                  </button>
+                </div>
+                <div className="p-4 rounded-r-lg" style={{ background: 'rgba(20, 184, 166, 0.1)', borderLeft: '4px solid #14B8A6' }}>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}><strong style={{ color: 'var(--text-primary)' }}>How it works:</strong> Create trivia game instances, configure rewards for top performers, then finalize to assign prizes. Players compete on leaderboards based on their scores.</p>
                 </div>
               </div>
             </div>
@@ -439,6 +517,20 @@ export default function CampaignWizard({ clientId, brandId, brands = [], onClose
               </button>
               <button className="btn flex-1 flex items-center justify-center gap-2" style={{ background: '#F97316', color: '#fff', opacity: (!formData.name || !formData.bizgamezCode) ? 0.5 : 1 }} onClick={handleSubmit} disabled={!formData.name || !formData.bizgamezCode}>
                 Create & Open Editor
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && formData.type === 'trivia' && (
+          <div className="sticky bottom-0 p-4 md:p-6 flex-shrink-0" style={{ background: 'var(--modal-footer-bg)', borderTop: '1px solid var(--border-color)' }}>
+            {wizardError && <p className="text-xs text-red-400 mb-2">{wizardError}</p>}
+            <div className="flex gap-3">
+              <button className="btn btn-secondary flex items-center gap-2" onClick={() => setStep(1)}>
+                <FiChevronLeft className="w-4 h-4" /> <span className="hidden sm:inline">Back</span>
+              </button>
+              <button className="btn flex-1 flex items-center justify-center gap-2" style={{ background: '#14B8A6', color: '#fff', opacity: !formData.name ? 0.5 : 1 }} onClick={handleSubmit} disabled={!formData.name}>
+                Create Trivia Campaign
               </button>
             </div>
           </div>

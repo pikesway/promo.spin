@@ -425,6 +425,336 @@ export const PlatformProvider = ({ children }) => {
     return count || 0;
   };
 
+  // ============================================================================
+  // GAME INSTANCE CRUD
+  // ============================================================================
+
+  const createGameInstance = async (instanceData) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('campaign_game_instances')
+        .insert({ ...instanceData, status: instanceData.status || 'draft' })
+        .select()
+        .single();
+      if (error) throw error;
+      await logAuditAction('game_instance_created', 'game_instance', data.id, { name: data.name });
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
+  };
+
+  const updateGameInstance = async (id, updates) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('campaign_game_instances')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      await logAuditAction('game_instance_updated', 'game_instance', id, updates);
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
+  };
+
+  const archiveGameInstance = async (id) => {
+    return updateGameInstance(id, { status: 'archived' });
+  };
+
+  const getGameInstancesByCampaign = async (campaignId) => {
+    if (!supabase) return { data: [], error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('campaign_game_instances')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .neq('status', 'archived')
+        .order('sequence_number', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return { data: data || [], error: null };
+    } catch (error) {
+      return { data: [], error };
+    }
+  };
+
+  // ============================================================================
+  // TRIVIA REWARDS CRUD
+  // ============================================================================
+
+  const createTriviaReward = async (rewardData) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('trivia_rewards')
+        .insert(rewardData)
+        .select()
+        .single();
+      if (error) throw error;
+      await logAuditAction('trivia_reward_created', 'trivia_reward', data.id, { reward_name: data.reward_name });
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
+  };
+
+  const updateTriviaReward = async (id, updates) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('trivia_rewards')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      await logAuditAction('trivia_reward_updated', 'trivia_reward', id, updates);
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
+  };
+
+  const deleteTriviaReward = async (id) => {
+    if (!supabase) return { error: new Error('Supabase not configured') };
+    try {
+      const { error } = await supabase.from('trivia_rewards').delete().eq('id', id);
+      if (error) throw error;
+      await logAuditAction('trivia_reward_deleted', 'trivia_reward', id, {});
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const getTriviaRewardsByCampaign = async (campaignId, scope = null) => {
+    if (!supabase) return { data: [], error: new Error('Supabase not configured') };
+    try {
+      let query = supabase
+        .from('trivia_rewards')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .order('rank_min', { ascending: true });
+
+      if (scope) {
+        query = query.eq('scope', scope);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return { data: data || [], error: null };
+    } catch (error) {
+      return { data: [], error };
+    }
+  };
+
+  const getTriviaRewardsByInstance = async (instanceId) => {
+    if (!supabase) return { data: [], error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('trivia_rewards')
+        .select('*')
+        .eq('instance_id', instanceId)
+        .eq('scope', 'instance')
+        .order('rank_min', { ascending: true });
+      if (error) throw error;
+      return { data: data || [], error: null };
+    } catch (error) {
+      return { data: [], error };
+    }
+  };
+
+  // ============================================================================
+  // TRIVIA FINALIZATION
+  // ============================================================================
+
+  const finalizeInstance = async (instanceId) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase.rpc('finalize_game_instance', {
+        p_instance_id: instanceId
+      });
+      if (error) throw error;
+      await logAuditAction('game_instance_finalized', 'game_instance', instanceId, data);
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
+  };
+
+  const finalizeCampaign = async (campaignId) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase.rpc('finalize_trivia_campaign', {
+        p_campaign_id: campaignId
+      });
+      if (error) throw error;
+      await logAuditAction('campaign_finalized', 'campaign', campaignId, data);
+      const updatedCampaign = campaigns.find(c => c.id === campaignId);
+      if (updatedCampaign) {
+        setCampaigns(prev => prev.map(c =>
+          c.id === campaignId ? { ...c, finalized_at: new Date().toISOString() } : c
+        ));
+      }
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
+  };
+
+  // ============================================================================
+  // LEADERBOARD QUERIES
+  // ============================================================================
+
+  const getInstanceLeaderboard = async (instanceId, limit = 100, offset = 0) => {
+    if (!supabase) return { data: [], error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase.rpc('get_instance_leaderboard', {
+        p_instance_id: instanceId,
+        p_limit: limit,
+        p_offset: offset
+      });
+      if (error) throw error;
+      return { data: data || [], error: null };
+    } catch (error) {
+      return { data: [], error };
+    }
+  };
+
+  const getCampaignLeaderboard = async (campaignId, limit = 100, offset = 0) => {
+    if (!supabase) return { data: [], error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase.rpc('get_campaign_leaderboard', {
+        p_campaign_id: campaignId,
+        p_limit: limit,
+        p_offset: offset
+      });
+      if (error) throw error;
+      return { data: data || [], error: null };
+    } catch (error) {
+      return { data: [], error };
+    }
+  };
+
+  // ============================================================================
+  // REWARD ASSIGNMENTS
+  // ============================================================================
+
+  const getTriviaRewardAssignments = async (campaignId, instanceId = null) => {
+    if (!supabase) return { data: [], error: new Error('Supabase not configured') };
+    try {
+      let query = supabase
+        .from('trivia_reward_assignments')
+        .select(`
+          *,
+          trivia_rewards (reward_name, reward_description, reward_value, fulfillment_method, scope),
+          leads (data)
+        `)
+        .eq('campaign_id', campaignId)
+        .order('rank_achieved', { ascending: true });
+
+      if (instanceId) {
+        query = query.eq('instance_id', instanceId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return { data: data || [], error: null };
+    } catch (error) {
+      return { data: [], error };
+    }
+  };
+
+  const markRewardIssued = async (assignmentId) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase
+        .from('trivia_reward_assignments')
+        .update({
+          status: 'issued',
+          issued_at: new Date().toISOString(),
+          issued_by: session?.user?.id || null
+        })
+        .eq('id', assignmentId)
+        .select()
+        .single();
+      if (error) throw error;
+      await logAuditAction('reward_issued', 'trivia_reward_assignment', assignmentId, {});
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
+  };
+
+  const markRewardsIssuedBulk = async (assignmentIds) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase
+        .from('trivia_reward_assignments')
+        .update({
+          status: 'issued',
+          issued_at: new Date().toISOString(),
+          issued_by: session?.user?.id || null
+        })
+        .in('id', assignmentIds)
+        .select();
+      if (error) throw error;
+      await logAuditAction('rewards_issued_bulk', 'trivia_reward_assignment', null, { count: assignmentIds.length });
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
+  };
+
+  const issuePlatformReward = async (assignmentId, redemptionId) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase
+        .from('trivia_reward_assignments')
+        .update({
+          status: 'issued',
+          issued_at: new Date().toISOString(),
+          issued_by: session?.user?.id || null,
+          redemption_id: redemptionId
+        })
+        .eq('id', assignmentId)
+        .select()
+        .single();
+      if (error) throw error;
+      await logAuditAction('platform_reward_issued', 'trivia_reward_assignment', assignmentId, { redemption_id: redemptionId });
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
+  };
+
+  const markRewardFulfilled = async (assignmentId) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase
+        .from('trivia_reward_assignments')
+        .update({
+          status: 'fulfilled',
+          fulfilled_at: new Date().toISOString()
+        })
+        .eq('id', assignmentId)
+        .select()
+        .single();
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
+  };
+
   const value = {
     clients,
     brands,
@@ -458,6 +788,24 @@ export const PlatformProvider = ({ children }) => {
     getClientUsage,
     getBrandAllocationSummary,
     getBrandMemberCount,
+    createGameInstance,
+    updateGameInstance,
+    archiveGameInstance,
+    getGameInstancesByCampaign,
+    createTriviaReward,
+    updateTriviaReward,
+    deleteTriviaReward,
+    getTriviaRewardsByCampaign,
+    getTriviaRewardsByInstance,
+    finalizeInstance,
+    finalizeCampaign,
+    getInstanceLeaderboard,
+    getCampaignLeaderboard,
+    getTriviaRewardAssignments,
+    markRewardIssued,
+    markRewardsIssuedBulk,
+    issuePlatformReward,
+    markRewardFulfilled,
   };
 
   return (
