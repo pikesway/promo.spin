@@ -6,32 +6,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-interface WebhookPayload {
-  score: number;
-  game_code: string;
-  name: string;
-  mobile: string;
+interface LeadCapturePayload {
+  event_type: "lead_capture";
+  campaign_id: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  created_at: string;
+  phone: string;
 }
 
-interface Prize {
-  score: number;
-  name: string;
-  isWin: boolean;
-  winHeadline?: string;
-  winMessage?: string;
+interface GameCompletePayload {
+  event_type: "game_complete";
+  campaign_id: string;
+  lead_id: string;
+  final_score: number;
+  time_elapsed_seconds: number;
 }
 
-function generateShortCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  const randomValues = crypto.getRandomValues(new Uint8Array(8));
-  for (let i = 0; i < 8; i++) {
-    code += chars[randomValues[i] % chars.length];
-  }
-  return code;
-}
+type WebhookPayload = LeadCapturePayload | GameCompletePayload;
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -42,18 +34,75 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const authHeader = req.headers.get("Authorization");
+
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing Authorization header" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+    if (!tokenMatch) {
+      return new Response(
+        JSON.stringify({ error: "Invalid Authorization header format. Expected: Bearer <token>" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const providedToken = tokenMatch[1];
+    const expectedToken = Deno.env.get("TRIVIA_WEBHOOK_SECRET");
+
+    if (!expectedToken) {
+      console.error("TRIVIA_WEBHOOK_SECRET environment variable not configured");
+      return new Response(
+        JSON.stringify({ error: "Webhook authentication not configured" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (providedToken !== expectedToken) {
+      return new Response(
+        JSON.stringify({ error: "Invalid webhook authentication token" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey, {
-      db: { schema: 'app_bizgamez_agency' }
+      db: { schema: 'public' }
     });
 
+    const contentType = req.headers.get("Content-Type");
+    if (!contentType || !contentType.includes("application/json")) {
+      return new Response(
+        JSON.stringify({ error: "Content-Type must be application/json" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const payload: WebhookPayload = await req.json();
-    const { score, game_code, name, mobile, email, created_at } = payload;
 
-    if (!game_code) {
+    if (!payload.event_type) {
       return new Response(
-        JSON.stringify({ error: "Missing game_code" }),
+        JSON.stringify({ error: "Missing required field: event_type" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -61,256 +110,28 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { data: campaigns, error: campaignError } = await supabase
-      .from("campaigns")
-      .select("id, client_id, brand_id, name, config, status")
-      .eq("type", "bizgamez")
-      .eq("status", "active");
-
-    if (campaignError) {
-      console.error("Error fetching campaigns:", campaignError);
-      return new Response(
-        JSON.stringify({ error: "Database error" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const campaign = campaigns?.find(
-      (c) => c.config?.bizgamez_code === game_code
-    );
-
-    if (!campaign) {
-      const { error: logError } = await supabase
-        .from("webhook_events")
-        .insert({
-          game_code,
-          score: score || 0,
-          name,
-          email,
-          mobile,
-          raw_payload: payload,
-          status: "failed",
-          error_message: `No active campaign found for game_code: ${game_code}`,
-        });
-
-      if (logError) {
-        console.error("Error logging failed webhook:", logError);
-      }
-
-      return new Response(
-        JSON.stringify({ error: "Campaign not found for this game code" }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const { data: webhookEvent, error: insertError } = await supabase
-      .from("webhook_events")
-      .insert({
-        campaign_id: campaign.id,
-        client_id: campaign.client_id,
-        game_code,
-        score: score || 0,
-        name,
-        email,
-        mobile,
-        raw_payload: payload,
-        status: "pending",
-      })
-      .select("id")
-      .single();
-
-    if (insertError) {
-      console.error("Error inserting webhook event:", insertError);
-      return new Response(
-        JSON.stringify({ error: "Failed to log webhook event" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const prizes: Prize[] = campaign.config?.prizes || [];
-    const matchedPrize = prizes.find((p) => p.score === score);
-
-    if (!matchedPrize) {
-      await supabase
-        .from("webhook_events")
-        .update({
-          status: "failed",
-          error_message: `No prize configured for score: ${score}`,
-          processed_at: new Date().toISOString(),
-        })
-        .eq("id", webhookEvent.id);
-
-      return new Response(
-        JSON.stringify({ error: `No prize configured for score: ${score}` }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const normalizedEmail = email ? email.trim().toLowerCase() : null;
-    const normalizedPhone = mobile ? mobile.trim() : null;
-
-    let leadId: string | null = null;
-
-    if (normalizedEmail && campaign.brand_id) {
-      const { data: existingLead } = await supabase
-        .from("leads")
-        .select("id")
-        .eq("brand_id", campaign.brand_id)
-        .eq("email", normalizedEmail)
-        .maybeSingle();
-
-      if (existingLead) {
-        leadId = existingLead.id;
-      }
-    }
-
-    if (!leadId) {
-      const { data: newLead, error: leadError } = await supabase
-        .from("leads")
-        .insert({
-          client_id: campaign.client_id,
-          brand_id: campaign.brand_id,
-          name: name || "",
-          email: normalizedEmail,
-          phone: normalizedPhone,
-          source_type: "webhook",
-          metadata: {
-            source: "bizgamez_webhook",
-            game_code,
-            score,
-            webhook_event_id: webhookEvent.id,
-            original_created_at: created_at,
-            prize_name: matchedPrize.name,
-            is_win: matchedPrize.isWin,
-          },
-        })
-        .select("id")
-        .single();
-
-      if (!leadError && newLead) {
-        leadId = newLead.id;
-      } else if (leadError) {
-        console.error("Error creating lead:", leadError);
-      }
-    }
-
-    const { data: currentAnalytics } = await supabase
-      .from("campaigns")
-      .select("analytics")
-      .eq("id", campaign.id)
-      .single();
-
-    const analytics = currentAnalytics?.analytics || {
-      views: 0,
-      leads: 0,
-      wins: 0,
-      losses: 0,
-    };
-
-    analytics.views = (analytics.views || 0) + 1;
-    analytics.leads = (analytics.leads || 0) + 1;
-
-    if (matchedPrize.isWin) {
-      analytics.wins = (analytics.wins || 0) + 1;
+    if (payload.event_type === "lead_capture") {
+      return await handleLeadCapture(payload, supabase);
+    } else if (payload.event_type === "game_complete") {
+      return await handleGameComplete(payload, supabase);
     } else {
-      analytics.losses = (analytics.losses || 0) + 1;
+      return new Response(
+        JSON.stringify({
+          error: `Unsupported event_type: ${payload.event_type}. Supported types: lead_capture, game_complete`
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
-
-    await supabase
-      .from("campaigns")
-      .update({ analytics })
-      .eq("id", campaign.id);
-
-    let redemptionData = null;
-
-    if (matchedPrize.isWin && email) {
-      const shortCode = generateShortCode();
-      const redemptionToken = crypto.randomUUID();
-      const expirationDays = campaign.config?.redemption?.expirationDays || 30;
-      const tokenExpiresAt = new Date(
-        Date.now() + expirationDays * 24 * 60 * 60 * 1000
-      ).toISOString();
-
-      const { data: redemption, error: redemptionError } = await supabase
-        .from("redemptions")
-        .insert({
-          campaign_id: campaign.id,
-          client_id: campaign.client_id,
-          lead_id: leadId,
-          prize_name: matchedPrize.name,
-          short_code: shortCode,
-          redemption_token: redemptionToken,
-          token_expires_at: tokenExpiresAt,
-          email: email,
-          status: "valid",
-          expires_at: tokenExpiresAt,
-          metadata: {
-            source: "bizgamez_webhook",
-            game_code,
-            score,
-            win_headline: matchedPrize.winHeadline,
-            win_message: matchedPrize.winMessage,
-          },
-        })
-        .select("id, short_code")
-        .single();
-
-      if (!redemptionError && redemption) {
-        redemptionData = {
-          shortCode: redemption.short_code,
-          expiresAt: tokenExpiresAt,
-        };
-
-        const supabaseFunctionsUrl = `${supabaseUrl}/functions/v1/send-redemption-email`;
-        fetch(supabaseFunctionsUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${supabaseKey}`,
-          },
-          body: JSON.stringify({ redemptionId: redemption.id }),
-        }).catch((err) => console.error("Failed to trigger email:", err));
-      }
-    }
-
-    await supabase
-      .from("webhook_events")
-      .update({
-        status: "processed",
-        processed_at: new Date().toISOString(),
-      })
-      .eq("id", webhookEvent.id);
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        campaign_name: campaign.name,
-        prize: matchedPrize.name,
-        is_win: matchedPrize.isWin,
-        redemption: redemptionData,
-        lead_id: leadId,
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
   } catch (error) {
     console.error("Error in bizgamez-webhook function:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error", details: error.message }),
+      JSON.stringify({
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : String(error)
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -318,3 +139,318 @@ Deno.serve(async (req: Request) => {
     );
   }
 });
+
+async function handleLeadCapture(payload: LeadCapturePayload, supabase: any) {
+  const { campaign_id, first_name, last_name, email, phone } = payload;
+
+  if (!campaign_id || !first_name || !last_name || !email || !phone) {
+    return new Response(
+      JSON.stringify({
+        error: "Missing required fields for lead_capture",
+        required: ["campaign_id", "first_name", "last_name", "email", "phone"]
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  const { data: campaign, error: campaignError } = await supabase
+    .from("campaigns")
+    .select("id, client_id, brand_id, status, type")
+    .eq("id", campaign_id)
+    .maybeSingle();
+
+  if (campaignError) {
+    console.error("Database error fetching campaign:", campaignError);
+    return new Response(
+      JSON.stringify({ error: "Database error while validating campaign" }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  if (!campaign) {
+    return new Response(
+      JSON.stringify({ error: `Campaign not found: ${campaign_id}` }),
+      {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  if (campaign.status !== "active") {
+    return new Response(
+      JSON.stringify({
+        error: `Campaign is not active. Current status: ${campaign.status}`
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedPhone = phone.trim();
+  const fullName = `${first_name.trim()} ${last_name.trim()}`;
+
+  let leadId: string;
+
+  if (campaign.brand_id) {
+    const { data: existingLead } = await supabase
+      .from("leads")
+      .select("id")
+      .eq("brand_id", campaign.brand_id)
+      .eq("email", normalizedEmail)
+      .maybeSingle();
+
+    if (existingLead) {
+      const { error: updateError } = await supabase
+        .from("leads")
+        .update({
+          name: fullName,
+          phone: normalizedPhone,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", existingLead.id);
+
+      if (updateError) {
+        console.error("Error updating existing lead:", updateError);
+      }
+
+      leadId = existingLead.id;
+    } else {
+      const { data: newLead, error: leadError } = await supabase
+        .from("leads")
+        .insert({
+          client_id: campaign.client_id,
+          brand_id: campaign.brand_id,
+          name: fullName,
+          email: normalizedEmail,
+          phone: normalizedPhone,
+          source_type: "trivia_webhook",
+          metadata: {
+            source: "trivia_webhook",
+            campaign_id: campaign_id,
+            first_name,
+            last_name,
+            captured_at: new Date().toISOString()
+          },
+        })
+        .select("id")
+        .single();
+
+      if (leadError) {
+        console.error("Error creating lead:", leadError);
+        return new Response(
+          JSON.stringify({ error: "Failed to create lead", details: leadError.message }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      leadId = newLead.id;
+    }
+  } else {
+    const { data: newLead, error: leadError } = await supabase
+      .from("leads")
+      .insert({
+        client_id: campaign.client_id,
+        brand_id: null,
+        name: fullName,
+        email: normalizedEmail,
+        phone: normalizedPhone,
+        source_type: "trivia_webhook",
+        metadata: {
+          source: "trivia_webhook",
+          campaign_id: campaign_id,
+          first_name,
+          last_name,
+          captured_at: new Date().toISOString()
+        },
+      })
+      .select("id")
+      .single();
+
+    if (leadError) {
+      console.error("Error creating lead:", leadError);
+      return new Response(
+        JSON.stringify({ error: "Failed to create lead", details: leadError.message }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    leadId = newLead.id;
+  }
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      lead_id: leadId,
+      message: "Lead captured successfully"
+    }),
+    {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    }
+  );
+}
+
+async function handleGameComplete(payload: GameCompletePayload, supabase: any) {
+  const { campaign_id, lead_id, final_score, time_elapsed_seconds } = payload;
+
+  if (!campaign_id || !lead_id || final_score === undefined || time_elapsed_seconds === undefined) {
+    return new Response(
+      JSON.stringify({
+        error: "Missing required fields for game_complete",
+        required: ["campaign_id", "lead_id", "final_score", "time_elapsed_seconds"]
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  const { data: campaign, error: campaignError } = await supabase
+    .from("campaigns")
+    .select("id, client_id, brand_id, status")
+    .eq("id", campaign_id)
+    .maybeSingle();
+
+  if (campaignError) {
+    console.error("Database error fetching campaign:", campaignError);
+    return new Response(
+      JSON.stringify({ error: "Database error while validating campaign" }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  if (!campaign) {
+    return new Response(
+      JSON.stringify({ error: `Campaign not found: ${campaign_id}` }),
+      {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  if (campaign.status !== "active") {
+    return new Response(
+      JSON.stringify({
+        error: `Campaign is not active. Current status: ${campaign.status}`
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  const { data: lead, error: leadError } = await supabase
+    .from("leads")
+    .select("id, client_id, brand_id")
+    .eq("id", lead_id)
+    .maybeSingle();
+
+  if (leadError) {
+    console.error("Database error fetching lead:", leadError);
+    return new Response(
+      JSON.stringify({ error: "Database error while validating lead" }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  if (!lead) {
+    return new Response(
+      JSON.stringify({ error: `Lead not found: ${lead_id}` }),
+      {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  if (lead.client_id !== campaign.client_id) {
+    return new Response(
+      JSON.stringify({
+        error: "Lead does not belong to the same client as the campaign"
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  if (campaign.brand_id && lead.brand_id !== campaign.brand_id) {
+    return new Response(
+      JSON.stringify({
+        error: "Lead does not belong to the same brand as the campaign"
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  const { data: leaderboardEntry, error: insertError } = await supabase
+    .from("campaign_leaderboards")
+    .insert({
+      campaign_id: campaign_id,
+      lead_id: lead_id,
+      final_score: final_score,
+      time_elapsed_seconds: time_elapsed_seconds,
+      completed_at: new Date().toISOString(),
+      metadata: {
+        source: "trivia_webhook",
+        received_at: new Date().toISOString()
+      }
+    })
+    .select("id")
+    .single();
+
+  if (insertError) {
+    console.error("Error inserting leaderboard entry:", insertError);
+    return new Response(
+      JSON.stringify({
+        error: "Failed to record game completion",
+        details: insertError.message
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      leaderboard_entry_id: leaderboardEntry.id,
+      message: "Game completion recorded successfully"
+    }),
+    {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    }
+  );
+}
