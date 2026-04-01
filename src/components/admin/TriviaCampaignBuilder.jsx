@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FiArrowLeft, FiSettings, FiList, FiGift, FiAward, FiFlag, FiSave, FiAlertTriangle } from 'react-icons/fi';
+import { FiArrowLeft, FiSettings, FiList, FiGift, FiAward, FiFlag, FiSave, FiAlertTriangle, FiExternalLink } from 'react-icons/fi';
 import { usePlatform } from '../../context/PlatformContext';
 import GlassCard from '../common/GlassCard';
 import GameInstanceList from './trivia/GameInstanceList';
 import GameInstanceForm from './trivia/GameInstanceForm';
 import TriviaRewardConfig from './trivia/TriviaRewardConfig';
 import TriviaRewardAssignments from './trivia/TriviaRewardAssignments';
+import ShareGameSection from './ShareGameSection';
 
 const TriviaCampaignBuilder = ({ campaign, client, onBack }) => {
   const {
@@ -16,7 +17,7 @@ const TriviaCampaignBuilder = ({ campaign, client, onBack }) => {
     finalizeCampaign
   } = usePlatform();
 
-  const [activeTab, setActiveTab] = useState('settings');
+  const [activeTab, setActiveTab] = useState('share');
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveToast, setSaveToast] = useState(null);
@@ -152,6 +153,7 @@ const TriviaCampaignBuilder = ({ campaign, client, onBack }) => {
   const showCampaignRewards = settings.leaderboard_scope === 'campaign' || settings.leaderboard_scope === 'both';
 
   const tabs = [
+    { id: 'share', label: 'Share', icon: FiExternalLink },
     { id: 'settings', label: 'Settings', icon: FiSettings },
     { id: 'instances', label: 'Game Instances', icon: FiList, badge: instances.length },
     { id: 'rewards', label: 'Rewards', icon: FiGift },
@@ -256,6 +258,12 @@ const TriviaCampaignBuilder = ({ campaign, client, onBack }) => {
         </nav>
 
         <main className="flex-1 overflow-auto p-4 md:p-6">
+          {activeTab === 'share' && (
+            <div className="max-w-2xl">
+              <ShareGameSection campaign={campaign} gameInstances={instances} />
+            </div>
+          )}
+
           {activeTab === 'settings' && (
             <div className="max-w-2xl">
               <GlassCard>

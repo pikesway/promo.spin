@@ -21,6 +21,7 @@ import LoyaltyCardPage from './pages/LoyaltyCardPage';
 import LoyaltyEnrollmentPage from './pages/LoyaltyEnrollmentPage';
 import RedemptionPage from './pages/RedemptionPage';
 import StaffDashboard from './pages/StaffDashboard';
+import LeaderboardPage from './pages/LeaderboardPage';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/redeem/:shortCode" element={<RedemptionPage />} />
                 <Route path="/loyalty/:campaignSlug" element={<LoyaltyEnrollmentPage />} />
                 <Route path="/loyalty/:campaignSlug/:memberCode" element={<LoyaltyCardPage />} />
+                <Route path="/c/:campaignId/leaderboard" element={<LeaderboardPage />} />
 
                 <Route
                   path="/"
