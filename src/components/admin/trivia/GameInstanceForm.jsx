@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiAlertCircle } from 'react-icons/fi';
 import { usePlatform } from '../../../context/PlatformContext';
 
 const GameInstanceForm = ({ campaignId, instance, defaultScoringMode, onClose, onSaved }) => {
-  const { createGameInstance, updateGameInstance } = usePlatform();
+  const { createGameInstance, updateGameInstance, fetchTriviaShells } = usePlatform();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [templates, setTemplates] = useState([]);
+  const [templatesLoading, setTemplatesLoading] = useState(true);
+  const [templatesSource, setTemplatesSource] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -18,6 +21,17 @@ const GameInstanceForm = ({ campaignId, instance, defaultScoringMode, onClose, o
     launch_url: '',
     external_instance_ref: ''
   });
+
+  useEffect(() => {
+    const loadTemplates = async () => {
+      setTemplatesLoading(true);
+      const result = await fetchTriviaShells();
+      setTemplates(result.data || []);
+      setTemplatesSource(result.source);
+      setTemplatesLoading(false);
+    };
+    loadTemplates();
+  }, [fetchTriviaShells]);
 
   useEffect(() => {
     if (instance) {
@@ -108,27 +122,42 @@ const GameInstanceForm = ({ campaignId, instance, defaultScoringMode, onClose, o
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Template ID</label>
-                <input
-                  type="text"
-                  className="input w-full"
-                  value={formData.template_id}
-                  onChange={(e) => handleChange('template_id', e.target.value)}
-                  placeholder="playzo-trivia-123"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Template Version</label>
-                <input
-                  type="text"
-                  className="input w-full"
-                  value={formData.template_version}
-                  onChange={(e) => handleChange('template_version', e.target.value)}
-                  placeholder="1.0"
-                />
-              </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">
+                Trivia Template
+                {templatesSource === 'fallback' && (
+                  <span className="ml-2 text-xs text-amber-400">
+                    (Using fallback templates)
+                  </span>
+                )}
+              </label>
+              <select
+                className="select w-full"
+                value={formData.template_id}
+                onChange={(e) => handleChange('template_id', e.target.value)}
+                disabled={templatesLoading}
+              >
+                <option value="">
+                  {templatesLoading ? 'Loading templates...' : 'Select a trivia template...'}
+                </option>
+                {templates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </select>
+              {templatesSource === 'fallback' && (
+                <div className="mt-2 p-2 bg-amber-500/10 border border-amber-500/20 rounded text-xs text-amber-400 flex items-start gap-2">
+                  <FiAlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    Unable to connect to Trivia API. Using fallback templates.
+                    Configure VITE_TRIVIA_API_URL in your environment to load actual templates.
+                  </span>
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Select a pre-configured trivia game template from the Trivia platform
+              </p>
             </div>
 
             <div>
