@@ -759,74 +759,33 @@ export const PlatformProvider = ({ children }) => {
   // TRIVIA SHELL TEMPLATES
   // ============================================================================
 
-  const FALLBACK_TRIVIA_SHELLS = [
-    { id: 'general-trivia-v1', name: 'General Knowledge Trivia v1.0' },
-    { id: 'pop-culture-2024', name: 'Pop Culture Challenge 2024' },
-    { id: 'sports-fanatic', name: 'Sports Fanatic Quiz' },
-    { id: 'history-buff', name: 'History Buff Challenge' },
-    { id: 'science-tech', name: 'Science & Technology Quiz' }
-  ];
-
   const fetchTriviaShells = async () => {
-    const triviaApiUrl = import.meta.env.VITE_TRIVIA_API_URL;
-
-    if (!triviaApiUrl || triviaApiUrl === 'https://your-trivia-app.supabase.co') {
-      return {
-        data: FALLBACK_TRIVIA_SHELLS,
-        error: null,
-        source: 'fallback',
-        message: 'Using fallback templates (VITE_TRIVIA_API_URL not configured)'
-      };
-    }
-
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const apiUrl = import.meta.env.VITE_TRIVIA_API_URL;
+      if (!apiUrl) throw new Error("VITE_TRIVIA_API_URL is missing");
 
-      const response = await fetch(`${triviaApiUrl}/rest/v1/trivia_shells?visibility=eq.global&select=id,name,version&order=name.asc`, {
-        signal: controller.signal,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
       });
 
-      clearTimeout(timeoutId);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-      if (!response.ok) {
-        throw new Error(`API responded with status ${response.status}`);
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        return { data: result.data, error: null };
+      } else {
+        throw new Error(result.error || "Failed to fetch templates");
       }
-
-      const data = await response.json();
-
-      if (!Array.isArray(data) || data.length === 0) {
-        return {
-          data: FALLBACK_TRIVIA_SHELLS,
-          error: null,
-          source: 'fallback',
-          message: 'API returned no templates, using fallback'
-        };
-      }
-
-      const formattedShells = data.map(shell => ({
-        id: shell.id,
-        name: shell.version ? `${shell.name} v${shell.version}` : shell.name
-      }));
-
-      return {
-        data: formattedShells,
-        error: null,
-        source: 'api',
-        message: 'Successfully fetched templates from Trivia API'
-      };
-
     } catch (error) {
-      console.warn('Failed to fetch trivia shells from API:', error.message);
+      console.warn("Using mock templates due to API failure:", error);
       return {
-        data: FALLBACK_TRIVIA_SHELLS,
-        error: null,
-        source: 'fallback',
-        message: `API fetch failed (${error.message}), using fallback templates`
+        data: [
+          { id: 'mock-1', name: 'General Trivia V1', status: 'active' },
+          { id: 'mock-2', name: 'Pop Culture 2026', status: 'active' }
+        ],
+        error: null
       };
     }
   };
