@@ -469,6 +469,8 @@ const TriviaCampaignBuilder = ({ campaign, client, onBack }) => {
       {instanceFormOpen && (
         <GameInstanceForm
           campaignId={campaign.id}
+          clientId={campaign.client_id}
+          brandId={campaign.brand_id}
           instance={editingInstance}
           defaultScoringMode={settings.default_scoring_mode}
           onClose={() => { setInstanceFormOpen(false); setEditingInstance(null); }}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiX, FiAlertCircle } from 'react-icons/fi';
 import { usePlatform } from '../../../context/PlatformContext';
 
-const GameInstanceForm = ({ campaignId, instance, defaultScoringMode, onClose, onSaved }) => {
+const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScoringMode, onClose, onSaved }) => {
   const { createGameInstance, updateGameInstance, fetchTriviaShells } = usePlatform();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -63,6 +63,8 @@ const GameInstanceForm = ({ campaignId, instance, defaultScoringMode, onClose, o
     try {
       const payload = {
         campaign_id: campaignId,
+        client_id: clientId,
+        brand_id: brandId || null,
         name: formData.name.trim(),
         template_id: formData.template_id || null,
         template_version: formData.template_version || null,
