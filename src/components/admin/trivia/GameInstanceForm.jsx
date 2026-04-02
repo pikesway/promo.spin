@@ -17,9 +17,7 @@ const GameInstanceForm = ({ campaignId, instance, defaultScoringMode, onClose, o
     sequence_number: null,
     start_at: '',
     end_at: '',
-    scoring_mode: '',
-    launch_url: '',
-    external_instance_ref: ''
+    scoring_mode: ''
   });
 
   useEffect(() => {
@@ -42,9 +40,7 @@ const GameInstanceForm = ({ campaignId, instance, defaultScoringMode, onClose, o
         sequence_number: instance.sequence_number || null,
         start_at: instance.start_at ? instance.start_at.slice(0, 16) : '',
         end_at: instance.end_at ? instance.end_at.slice(0, 16) : '',
-        scoring_mode: instance.scoring_mode || '',
-        launch_url: instance.launch_url || '',
-        external_instance_ref: instance.external_instance_ref || ''
+        scoring_mode: instance.scoring_mode || ''
       });
     }
   }, [instance]);
@@ -206,28 +202,6 @@ const GameInstanceForm = ({ campaignId, instance, defaultScoringMode, onClose, o
                 <option value="accuracy_speed_weighted">Accuracy + Speed Weighted</option>
                 <option value="accuracy_then_fastest_time">Accuracy, then Speed Tiebreaker</option>
               </select>
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">Launch URL</label>
-              <input
-                type="url"
-                className="input w-full"
-                value={formData.launch_url}
-                onChange={(e) => handleChange('launch_url', e.target.value)}
-                placeholder="https://play.bizgamez.io/game/xyz"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">External Instance Reference</label>
-              <input
-                type="text"
-                className="input w-full"
-                value={formData.external_instance_ref}
-                onChange={(e) => handleChange('external_instance_ref', e.target.value)}
-                placeholder="External system ID"
-              />
             </div>
 
             {error && (
