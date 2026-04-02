@@ -200,14 +200,16 @@ const TriviaCampaignBuilder = ({ campaign, client, onBack }) => {
           </div>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={isSaving || !hasChanges}
-          className="hidden md:flex bg-teal-600 hover:bg-teal-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium items-center gap-2 shadow-lg shadow-teal-500/20 transition-colors"
-        >
-          <FiSave className="w-4 h-4" />
-          <span>{isSaving ? 'Saving...' : 'Save'}</span>
-        </button>
+        {activeTab === 'settings' && (
+          <button
+            onClick={handleSave}
+            disabled={isSaving || !hasChanges}
+            className="hidden md:flex bg-teal-600 hover:bg-teal-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium items-center gap-2 shadow-lg shadow-teal-500/20 transition-colors"
+          >
+            <FiSave className="w-4 h-4" />
+            <span>{isSaving ? 'Saving...' : 'Save'}</span>
+          </button>
+        )}
 
         {hasChanges && (
           <div className="md:hidden flex items-center gap-2">
@@ -452,7 +454,7 @@ const TriviaCampaignBuilder = ({ campaign, client, onBack }) => {
       </div>
 
       {/* Mobile save button */}
-      {hasChanges && (
+      {hasChanges && activeTab === 'settings' && (
         <div className="md:hidden fixed bottom-4 left-4 right-4">
           <button
             onClick={handleSave}

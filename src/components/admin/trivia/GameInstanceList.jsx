@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiEdit2, FiTrash2, FiPlay, FiPause, FiCheck, FiArchive, FiMoreVertical } from 'react-icons/fi';
+import { FiEdit2, FiPlay, FiPause } from 'react-icons/fi';
 import { usePlatform } from '../../../context/PlatformContext';
 import GlassCard from '../../common/GlassCard';
 
@@ -13,59 +13,19 @@ const STATUS_COLORS = {
 };
 
 const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
-  const { updateGameInstance, archiveGameInstance } = usePlatform();
-  const [actionMenu, setActionMenu] = useState(null);
+  const { updateGameInstance } = usePlatform();
   const [isUpdating, setIsUpdating] = useState(null);
 
-  const handleStatusChange = async (instanceId, newStatus) => {
-    setIsUpdating(instanceId);
-    setActionMenu(null);
+  const handleToggleStatus = async (instance) => {
+    setIsUpdating(instance.id);
     try {
-      await updateGameInstance(instanceId, { status: newStatus });
+      const newStatus = instance.status === 'active' ? 'paused' : 'active';
+      await updateGameInstance(instance.id, { status: newStatus });
       onRefresh();
     } catch (error) {
       console.error('Failed to update status:', error);
     }
     setIsUpdating(null);
-  };
-
-  const handleArchive = async (instanceId) => {
-    setIsUpdating(instanceId);
-    setActionMenu(null);
-    try {
-      await archiveGameInstance(instanceId);
-      onRefresh();
-    } catch (error) {
-      console.error('Failed to archive:', error);
-    }
-    setIsUpdating(null);
-  };
-
-  const getAvailableActions = (instance) => {
-    const actions = [];
-    switch (instance.status) {
-      case 'draft':
-        actions.push({ label: 'Activate', icon: FiPlay, status: 'active' });
-        actions.push({ label: 'Schedule', icon: FiCheck, status: 'scheduled' });
-        break;
-      case 'scheduled':
-        actions.push({ label: 'Activate', icon: FiPlay, status: 'active' });
-        actions.push({ label: 'Back to Draft', icon: FiEdit2, status: 'draft' });
-        break;
-      case 'active':
-        actions.push({ label: 'Pause', icon: FiPause, status: 'paused' });
-        actions.push({ label: 'Complete', icon: FiCheck, status: 'completed' });
-        break;
-      case 'paused':
-        actions.push({ label: 'Resume', icon: FiPlay, status: 'active' });
-        actions.push({ label: 'Complete', icon: FiCheck, status: 'completed' });
-        break;
-      case 'completed':
-        break;
-      default:
-        break;
-    }
-    return actions;
   };
 
   if (instances.length === 0) {
@@ -82,8 +42,8 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
   return (
     <div className="space-y-3">
       {instances.map(instance => {
-        const actions = getAvailableActions(instance);
         const isFinalized = !!instance.finalized_at;
+        const canToggleStatus = ['draft', 'paused', 'active'].includes(instance.status);
 
         return (
           <GlassCard key={instance.id}>
@@ -118,6 +78,19 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
                   <span className="text-xs text-gray-500">Updating...</span>
                 ) : (
                   <>
+                    {canToggleStatus && !isFinalized && (
+                      <button
+                        onClick={() => handleToggleStatus(instance)}
+                        className="p-2 hover:bg-white/5 rounded-lg text-gray-400 hover:text-white transition-colors"
+                        title={instance.status === 'active' ? 'Pause' : 'Activate'}
+                      >
+                        {instance.status === 'active' ? (
+                          <FiPause className="w-4 h-4" />
+                        ) : (
+                          <FiPlay className="w-4 h-4" />
+                        )}
+                      </button>
+                    )}
                     <button
                       onClick={() => onEdit(instance)}
                       className="p-2 hover:bg-white/5 rounded-lg text-gray-400 hover:text-white transition-colors"
@@ -125,46 +98,6 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
                     >
                       <FiEdit2 className="w-4 h-4" />
                     </button>
-
-                    {actions.length > 0 && !isFinalized && (
-                      <div className="relative">
-                        <button
-                          onClick={() => setActionMenu(actionMenu === instance.id ? null : instance.id)}
-                          className="p-2 hover:bg-white/5 rounded-lg text-gray-400 hover:text-white transition-colors"
-                        >
-                          <FiMoreVertical className="w-4 h-4" />
-                        </button>
-
-                        {actionMenu === instance.id && (
-                          <>
-                            <div
-                              className="fixed inset-0 z-10"
-                              onClick={() => setActionMenu(null)}
-                            />
-                            <div className="absolute right-0 top-full mt-1 bg-zinc-800 border border-white/10 rounded-lg shadow-xl z-20 py-1 min-w-[150px]">
-                              {actions.map((action, idx) => (
-                                <button
-                                  key={idx}
-                                  onClick={() => handleStatusChange(instance.id, action.status)}
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 flex items-center gap-2 text-gray-300 hover:text-white"
-                                >
-                                  <action.icon className="w-4 h-4" />
-                                  {action.label}
-                                </button>
-                              ))}
-                              <div className="border-t border-white/10 my-1" />
-                              <button
-                                onClick={() => handleArchive(instance.id)}
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 flex items-center gap-2 text-red-400 hover:text-red-300"
-                              >
-                                <FiArchive className="w-4 h-4" />
-                                Archive
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
                   </>
                 )}
               </div>

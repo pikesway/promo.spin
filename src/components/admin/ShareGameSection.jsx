@@ -89,10 +89,10 @@ export default function ShareGameSection({ campaign, gameInstances = [] }) {
           <div className="flex gap-2">
             <input
               type="text"
-              value={launchUrl}
+              value="Secure Game Link Ready"
               readOnly
-              className="input flex-1 text-sm font-mono"
-              style={{ background: 'var(--bg-tertiary)' }}
+              className="input flex-1 text-sm"
+              style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
             />
             <button
               onClick={handleCopy}
