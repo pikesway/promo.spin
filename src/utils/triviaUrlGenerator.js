@@ -1,4 +1,4 @@
-export function generateTriviaLaunchURL(campaignId) {
+export function generateTriviaLaunchURL(campaignId, templateId = null) {
   const triviaBaseUrl = import.meta.env.VITE_TRIVIA_RUNTIME_URL;
 
   if (!triviaBaseUrl) {
@@ -14,7 +14,13 @@ export function generateTriviaLaunchURL(campaignId) {
   const returnUrl = `${window.location.origin}/c/${campaignId}/leaderboard`;
   const encodedReturnUrl = encodeURIComponent(returnUrl);
 
-  const url = `${triviaBaseUrl}/?campaign_id=${campaignId}&return_url=${encodedReturnUrl}`;
+  let url = `${triviaBaseUrl}/?campaign_id=${campaignId}`;
+
+  if (templateId) {
+    url += `&template_id=${templateId}`;
+  }
+
+  url += `&return_url=${encodedReturnUrl}`;
 
   return url;
 }

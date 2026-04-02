@@ -8,10 +8,12 @@ export default function ShareGameSection({ campaign, gameInstances = [] }) {
 
   useEffect(() => {
     if (campaign?.id) {
-      const url = generateTriviaLaunchURL(campaign.id);
+      const activeInstance = gameInstances.find(inst => inst.status === 'active');
+      const templateId = activeInstance?.template_id || null;
+      const url = generateTriviaLaunchURL(campaign.id, templateId);
       setLaunchUrl(url);
     }
-  }, [campaign?.id]);
+  }, [campaign?.id, gameInstances]);
 
   const handleCopy = async () => {
     if (!launchUrl) return;
@@ -48,6 +50,8 @@ export default function ShareGameSection({ campaign, gameInstances = [] }) {
   }
 
   const hasActiveInstances = gameInstances.some(inst => inst.status === 'active');
+  const activeInstance = gameInstances.find(inst => inst.status === 'active');
+  const hasTemplateId = activeInstance?.template_id;
 
   return (
     <div className="glass-card p-4 md:p-5">
@@ -68,6 +72,15 @@ export default function ShareGameSection({ campaign, gameInstances = [] }) {
           <FiAlertCircle size={16} style={{ color: 'var(--warning)', flexShrink: 0, marginTop: 2 }} />
           <p className="text-sm" style={{ color: 'var(--warning)' }}>
             No active game instances yet. Create and activate a game instance for players to participate.
+          </p>
+        </div>
+      )}
+
+      {hasActiveInstances && !hasTemplateId && (
+        <div className="mb-3 p-3 rounded-lg flex items-start gap-2" style={{ background: 'var(--warning-bg)', border: '1px solid var(--warning)' }}>
+          <FiAlertCircle size={16} style={{ color: 'var(--warning)', flexShrink: 0, marginTop: 2 }} />
+          <p className="text-sm" style={{ color: 'var(--warning)' }}>
+            Active instance found but no template ID set. The game may not load correctly. Please add a template ID to the active instance.
           </p>
         </div>
       )}
