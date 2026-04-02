@@ -61,11 +61,14 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
     setError(null);
 
     try {
+      const generatedSlug = formData.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
       const payload = {
         campaign_id: campaignId,
         client_id: clientId,
         brand_id: brandId || null,
         name: formData.name.trim(),
+        slug: generatedSlug,
         template_id: formData.template_id || null,
         template_version: formData.template_version || null,
         sequence_number: formData.sequence_number ? parseInt(formData.sequence_number) : null,
