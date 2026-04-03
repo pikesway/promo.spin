@@ -10,7 +10,8 @@ export default function ShareGameSection({ campaign, gameInstances = [] }) {
     if (campaign?.id) {
       const activeInstance = gameInstances.find(inst => inst.status === 'active');
       const templateId = activeInstance?.template_id || null;
-      const url = generateTriviaLaunchURL(campaign.id, templateId);
+      const instanceId = activeInstance?.id || null;
+      const url = generateTriviaLaunchURL(campaign.id, templateId, instanceId);
       setLaunchUrl(url);
     }
   }, [campaign?.id, gameInstances]);

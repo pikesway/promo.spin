@@ -1,4 +1,4 @@
-export function generateTriviaLaunchURL(campaignId, templateId = null) {
+export function generateTriviaLaunchURL(campaignId, templateId = null, instanceId = null) {
   const triviaBaseUrl = import.meta.env.VITE_TRIVIA_RUNTIME_URL;
 
   if (!triviaBaseUrl) {
@@ -18,6 +18,10 @@ export function generateTriviaLaunchURL(campaignId, templateId = null) {
 
   if (templateId) {
     url += `&template_id=${templateId}`;
+  }
+
+  if (instanceId) {
+    url += `&instance_id=${instanceId}`;
   }
 
   url += `&return_url=${encodedReturnUrl}`;
