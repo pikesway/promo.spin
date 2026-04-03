@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { FiX, FiAlertCircle } from 'react-icons/fi';
+import React, { useState, useEffect, useRef } from 'react';
+import { FiX, FiAlertCircle, FiUpload, FiImage } from 'react-icons/fi';
 import { usePlatform } from '../../../context/PlatformContext';
+import { uploadFile, getPublicUrl, validateImageFile } from '../../../utils/storageHelpers';
 
 const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScoringMode, onClose, onSaved }) => {
   const { createGameInstance, updateGameInstance, fetchTriviaShells } = usePlatform();
@@ -11,6 +12,9 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
   const [templatesSource, setTemplatesSource] = useState(null);
 
   const [activeOverrideTab, setActiveOverrideTab] = useState('rules');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -93,6 +97,48 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
     }
 
     return current || '';
+  };
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadError(null);
+
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      setUploadError(validation.error);
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '');
+      const filePath = `backgrounds/${Date.now()}_${sanitizedFileName}`;
+
+      const { data, error: uploadErr } = await uploadFile('game-assets', filePath, file);
+
+      if (uploadErr) {
+        throw new Error(uploadErr.message || 'Failed to upload file');
+      }
+
+      const publicUrl = getPublicUrl('game-assets', filePath);
+      handleConfigChange('ui.background_url', publicUrl);
+      setUploadError(null);
+    } catch (err) {
+      setUploadError(err.message || 'Failed to upload image');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveBackground = () => {
+    handleConfigChange('ui.background_url', '');
+    setUploadError(null);
   };
 
   const syncToRuntime = async (instanceId) => {
@@ -353,12 +399,21 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
                           type="number"
                           className="input w-full"
                           value={getConfigValue('question_count')}
-                          onChange={(e) => handleConfigChange('question_count', e.target.value ? parseInt(e.target.value) : '')}
+                          onChange={(e) => {
+                            const value = e.target.value ? parseInt(e.target.value) : '';
+                            const maxQuestions = selectedTemplate?.max_available_questions || 50;
+                            const clampedValue = value ? Math.min(Math.max(value, 1), maxQuestions) : '';
+                            handleConfigChange('question_count', clampedValue);
+                          }}
                           placeholder={selectedTemplate?.default_question_count || 10}
                           min="1"
+                          max={selectedTemplate?.max_available_questions || 50}
                         />
                         <p className="text-xs text-gray-500 mt-1">
                           Number of questions in this trivia instance (default: {selectedTemplate?.default_question_count || 10})
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Maximum available in template: {selectedTemplate?.max_available_questions || 'Unknown'}
                         </p>
                       </div>
 
@@ -452,17 +507,93 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
 
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-1">
-                          Background Image URL
+                          Background Image
                         </label>
+
+                        {getConfigValue('ui.background_url') && (
+                          <div className="mb-3 p-3 bg-zinc-900/80 border border-zinc-700 rounded-lg">
+                            <div className="flex items-start gap-3">
+                              <div className="flex-shrink-0">
+                                <img
+                                  src={getConfigValue('ui.background_url')}
+                                  alt="Background preview"
+                                  className="w-24 h-16 object-cover rounded border border-white/10"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-gray-400 truncate mb-2">
+                                  {getConfigValue('ui.background_url')}
+                                </p>
+                                <div className="flex gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={isUploading}
+                                    className="text-xs px-3 py-1 bg-teal-600/20 text-teal-400 rounded hover:bg-teal-600/30 disabled:opacity-50"
+                                  >
+                                    Change Image
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={handleRemoveBackground}
+                                    disabled={isUploading}
+                                    className="text-xs px-3 py-1 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30 disabled:opacity-50"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         <input
                           type="text"
-                          className="input w-full"
+                          className="input w-full mb-2"
                           value={getConfigValue('ui.background_url')}
                           onChange={(e) => handleConfigChange('ui.background_url', e.target.value)}
                           placeholder={selectedTemplate?.config?.backgrounds?.game || 'https://example.com/background.jpg'}
+                          disabled={isUploading}
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                          Public URL for custom background image
+
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                          className="w-full px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-gray-300 rounded-lg border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+                        >
+                          {isUploading ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-teal-400 border-t-transparent rounded-full animate-spin"></div>
+                              <span>Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <FiUpload className="w-4 h-4" />
+                              <span>Upload Background Image</span>
+                            </>
+                          )}
+                        </button>
+
+                        {uploadError && (
+                          <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs text-red-400">
+                            {uploadError}
+                          </div>
+                        )}
+
+                        <p className="text-xs text-gray-500 mt-2">
+                          Upload a custom background image or paste a URL above (Max 2MB, PNG/JPEG/SVG/WebP)
                         </p>
                       </div>
                     </div>
