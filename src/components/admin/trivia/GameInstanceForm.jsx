@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FiX, FiAlertCircle, FiUpload, FiImage } from 'react-icons/fi';
+import { FiX, FiAlertCircle, FiUpload } from 'react-icons/fi';
 import { usePlatform } from '../../../context/PlatformContext';
 import { uploadFile, getPublicUrl, validateImageFile } from '../../../utils/storageHelpers';
 
@@ -38,7 +38,7 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
       setTemplatesLoading(false);
     };
     loadTemplates();
-  }, [fetchTriviaShells]);
+  }, []);
 
   useEffect(() => {
     if (instance) {
@@ -142,14 +142,13 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
   };
 
   const syncToRuntime = async (instanceId) => {
+    const runtimeApiUrl = import.meta.env.VITE_TRIVIA_API_URL;
+
+    if (!runtimeApiUrl) {
+      return;
+    }
+
     try {
-      const runtimeApiUrl = import.meta.env.VITE_TRIVIA_API_URL;
-
-      if (!runtimeApiUrl) {
-        console.warn('VITE_TRIVIA_API_URL not configured, skipping Runtime sync');
-        return;
-      }
-
       const baseUrl = runtimeApiUrl.replace('/functions/v1/public-templates', '');
       const syncEndpoint = `${baseUrl}/functions/v1/sync-instance-override`;
 
@@ -159,7 +158,7 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
         settings: formData.config || {}
       };
 
-      const response = await fetch(syncEndpoint, {
+      await fetch(syncEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,15 +167,8 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
         },
         body: JSON.stringify(syncPayload)
       });
-
-      if (response.ok) {
-        console.log('Successfully synced instance overrides to Runtime');
-      } else {
-        const errorText = await response.text();
-        console.warn('Runtime sync failed:', response.status, errorText);
-      }
-    } catch (error) {
-      console.warn('Failed to sync instance overrides to Runtime:', error.message);
+    } catch {
+      // Sync failures are non-blocking
     }
   };
 
@@ -356,7 +348,7 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
                   <button
                     type="button"
                     onClick={() => setActiveOverrideTab('rules')}
-                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                    className={`flex-1 px-3 py-3 text-sm font-medium transition-colors ${
                       activeOverrideTab === 'rules'
                         ? 'bg-teal-600/20 text-teal-400 border-b-2 border-teal-400'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -367,7 +359,7 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
                   <button
                     type="button"
                     onClick={() => setActiveOverrideTab('branding')}
-                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                    className={`flex-1 px-3 py-3 text-sm font-medium transition-colors ${
                       activeOverrideTab === 'branding'
                         ? 'bg-teal-600/20 text-teal-400 border-b-2 border-teal-400'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -378,7 +370,7 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
                   <button
                     type="button"
                     onClick={() => setActiveOverrideTab('screens')}
-                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                    className={`flex-1 px-3 py-3 text-sm font-medium transition-colors ${
                       activeOverrideTab === 'screens'
                         ? 'bg-teal-600/20 text-teal-400 border-b-2 border-teal-400'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
