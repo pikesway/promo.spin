@@ -10,6 +10,8 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
   const [templatesLoading, setTemplatesLoading] = useState(true);
   const [templatesSource, setTemplatesSource] = useState(null);
 
+  const [activeOverrideTab, setActiveOverrideTab] = useState('rules');
+
   const [formData, setFormData] = useState({
     name: '',
     template_id: '',
@@ -20,6 +22,8 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
     scoring_mode: '',
     config: {}
   });
+
+  const selectedTemplate = templates?.find(t => t.id === formData.template_id);
 
   useEffect(() => {
     const loadTemplates = async () => {
@@ -300,37 +304,220 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
 
             <div className="border-t border-white/20 pt-4 mt-6">
               <h3 className="text-sm font-semibold text-white mb-3">Game Overrides (Optional)</h3>
-              <div className="space-y-4 bg-zinc-900/50 border border-zinc-700 rounded-lg p-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Background Image URL
-                  </label>
-                  <input
-                    type="text"
-                    className="input w-full"
-                    value={getConfigValue('ui.background_url')}
-                    onChange={(e) => handleConfigChange('ui.background_url', e.target.value)}
-                    placeholder="https://example.com/background.jpg"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Custom background image for this game instance
-                  </p>
+
+              <div className="bg-zinc-900/50 border border-zinc-700 rounded-lg overflow-hidden">
+                <div className="flex border-b border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => setActiveOverrideTab('rules')}
+                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                      activeOverrideTab === 'rules'
+                        ? 'bg-teal-600/20 text-teal-400 border-b-2 border-teal-400'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    Game Rules
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveOverrideTab('branding')}
+                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                      activeOverrideTab === 'branding'
+                        ? 'bg-teal-600/20 text-teal-400 border-b-2 border-teal-400'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    Branding
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveOverrideTab('screens')}
+                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                      activeOverrideTab === 'screens'
+                        ? 'bg-teal-600/20 text-teal-400 border-b-2 border-teal-400'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    Screens & Copy
+                  </button>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Start Screen Headline
-                  </label>
-                  <input
-                    type="text"
-                    className="input w-full"
-                    value={getConfigValue('screens.start.headline')}
-                    onChange={(e) => handleConfigChange('screens.start.headline', e.target.value)}
-                    placeholder="Welcome to the Trivia Challenge!"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Override the default start screen headline text
-                  </p>
+                <div className="p-4">
+                  {activeOverrideTab === 'rules' && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Question Count
+                        </label>
+                        <input
+                          type="number"
+                          className="input w-full"
+                          value={getConfigValue('question_count')}
+                          onChange={(e) => handleConfigChange('question_count', e.target.value ? parseInt(e.target.value) : '')}
+                          placeholder={selectedTemplate?.default_question_count || 10}
+                          min="1"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Number of questions in this trivia instance (default: {selectedTemplate?.default_question_count || 10})
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Timer Seconds
+                        </label>
+                        <input
+                          type="number"
+                          className="input w-full"
+                          value={getConfigValue('timer.seconds')}
+                          onChange={(e) => handleConfigChange('timer.seconds', e.target.value ? parseInt(e.target.value) : '')}
+                          placeholder={selectedTemplate?.default_timer_seconds || 15}
+                          min="1"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Time limit in seconds (default: {selectedTemplate?.default_timer_seconds || 15})
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Timer Mode
+                        </label>
+                        <select
+                          className="select w-full"
+                          value={getConfigValue('timer.mode')}
+                          onChange={(e) => handleConfigChange('timer.mode', e.target.value)}
+                        >
+                          <option value="">Use template default ({selectedTemplate?.default_timer_mode || 'per_question'})</option>
+                          <option value="per_question">Per Question</option>
+                          <option value="per_quiz">Per Quiz</option>
+                          <option value="none">No Timer</option>
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">
+                          When the timer applies to this trivia game
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeOverrideTab === 'branding' && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Primary Text Color
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="color"
+                            className="h-10 w-16 rounded border border-white/10 bg-transparent cursor-pointer"
+                            value={getConfigValue('theme.primary_text_color') || selectedTemplate?.config?.theme?.primary_text_color || '#FFFFFF'}
+                            onChange={(e) => handleConfigChange('theme.primary_text_color', e.target.value)}
+                          />
+                          <input
+                            type="text"
+                            className="input flex-1"
+                            value={getConfigValue('theme.primary_text_color')}
+                            onChange={(e) => handleConfigChange('theme.primary_text_color', e.target.value)}
+                            placeholder={selectedTemplate?.config?.theme?.primary_text_color || '#FFFFFF'}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Main text color for game screens (default: {selectedTemplate?.config?.theme?.primary_text_color || '#FFFFFF'})
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Button Fill Color
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="color"
+                            className="h-10 w-16 rounded border border-white/10 bg-transparent cursor-pointer"
+                            value={getConfigValue('theme.button_fill_color') || selectedTemplate?.config?.theme?.button_fill_color || '#3b82f6'}
+                            onChange={(e) => handleConfigChange('theme.button_fill_color', e.target.value)}
+                          />
+                          <input
+                            type="text"
+                            className="input flex-1"
+                            value={getConfigValue('theme.button_fill_color')}
+                            onChange={(e) => handleConfigChange('theme.button_fill_color', e.target.value)}
+                            placeholder={selectedTemplate?.config?.theme?.button_fill_color || '#3b82f6'}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Background color for buttons (default: {selectedTemplate?.config?.theme?.button_fill_color || '#3b82f6'})
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Background Image URL
+                        </label>
+                        <input
+                          type="text"
+                          className="input w-full"
+                          value={getConfigValue('ui.background_url')}
+                          onChange={(e) => handleConfigChange('ui.background_url', e.target.value)}
+                          placeholder={selectedTemplate?.config?.backgrounds?.game || 'https://example.com/background.jpg'}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Public URL for custom background image
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeOverrideTab === 'screens' && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-white/10 bg-zinc-700 checked:bg-teal-600"
+                            checked={getConfigValue('lead_capture.enabled') !== false}
+                            onChange={(e) => handleConfigChange('lead_capture.enabled', e.target.checked)}
+                          />
+                          Lead Capture Enabled
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1 ml-6">
+                          Collect player information before the game starts
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Start Screen Headline
+                        </label>
+                        <input
+                          type="text"
+                          className="input w-full"
+                          value={getConfigValue('screens.start.headline')}
+                          onChange={(e) => handleConfigChange('screens.start.headline', e.target.value)}
+                          placeholder={selectedTemplate?.config?.screens?.start?.headline || 'Ready to Play?'}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Main headline text on the start screen
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Start Screen Button Label
+                        </label>
+                        <input
+                          type="text"
+                          className="input w-full"
+                          value={getConfigValue('screens.start.button_label')}
+                          onChange={(e) => handleConfigChange('screens.start.button_label', e.target.value)}
+                          placeholder={selectedTemplate?.config?.screens?.start?.button_label || 'Start Quiz'}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Text displayed on the start button
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
