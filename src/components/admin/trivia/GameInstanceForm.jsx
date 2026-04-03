@@ -17,7 +17,8 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
     sequence_number: null,
     start_at: '',
     end_at: '',
-    scoring_mode: ''
+    scoring_mode: '',
+    config: {}
   });
 
   useEffect(() => {
@@ -40,7 +41,8 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
         sequence_number: instance.sequence_number || null,
         start_at: instance.start_at ? instance.start_at.slice(0, 16) : '',
         end_at: instance.end_at ? instance.end_at.slice(0, 16) : '',
-        scoring_mode: instance.scoring_mode || ''
+        scoring_mode: instance.scoring_mode || '',
+        config: instance.config || {}
       });
     }
   }, [instance]);
@@ -48,6 +50,84 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
   const handleChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
     setError(null);
+  };
+
+  const handleConfigChange = (path, value) => {
+    setFormData(prev => {
+      const newConfig = { ...prev.config };
+      const keys = path.split('.');
+      let current = newConfig;
+
+      for (let i = 0; i < keys.length - 1; i++) {
+        const key = keys[i];
+        if (!current[key] || typeof current[key] !== 'object') {
+          current[key] = {};
+        } else {
+          current[key] = { ...current[key] };
+        }
+        current = current[key];
+      }
+
+      const lastKey = keys[keys.length - 1];
+      current[lastKey] = value;
+
+      return { ...prev, config: newConfig };
+    });
+    setError(null);
+  };
+
+  const getConfigValue = (path) => {
+    const keys = path.split('.');
+    let current = formData.config;
+
+    for (const key of keys) {
+      if (current && typeof current === 'object' && key in current) {
+        current = current[key];
+      } else {
+        return '';
+      }
+    }
+
+    return current || '';
+  };
+
+  const syncToRuntime = async (instanceId) => {
+    try {
+      const runtimeApiUrl = import.meta.env.VITE_TRIVIA_API_URL;
+
+      if (!runtimeApiUrl) {
+        console.warn('VITE_TRIVIA_API_URL not configured, skipping Runtime sync');
+        return;
+      }
+
+      const baseUrl = runtimeApiUrl.replace('/functions/v1/public-templates', '');
+      const syncEndpoint = `${baseUrl}/functions/v1/sync-instance-override`;
+
+      const syncPayload = {
+        instance_id: instanceId,
+        campaign_id: campaignId,
+        settings: formData.config || {}
+      };
+
+      const response = await fetch(syncEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_TRIVIA_RUNTIME_ANON_KEY || '',
+          'Authorization': `Bearer ${import.meta.env.VITE_TRIVIA_RUNTIME_ANON_KEY || ''}`
+        },
+        body: JSON.stringify(syncPayload)
+      });
+
+      if (response.ok) {
+        console.log('Successfully synced instance overrides to Runtime');
+      } else {
+        const errorText = await response.text();
+        console.warn('Runtime sync failed:', response.status, errorText);
+      }
+    } catch (error) {
+      console.warn('Failed to sync instance overrides to Runtime:', error.message);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -76,15 +156,24 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
         end_at: formData.end_at ? new Date(formData.end_at).toISOString() : null,
         scoring_mode: formData.scoring_mode || null,
         launch_url: formData.launch_url || null,
-        external_instance_ref: formData.external_instance_ref || null
+        external_instance_ref: formData.external_instance_ref || null,
+        config: formData.config || {}
       };
+
+      let savedInstanceId;
 
       if (instance) {
         const { error: updateError } = await updateGameInstance(instance.id, payload);
         if (updateError) throw updateError;
+        savedInstanceId = instance.id;
       } else {
-        const { error: createError } = await createGameInstance(payload);
+        const { data, error: createError } = await createGameInstance(payload);
         if (createError) throw createError;
+        savedInstanceId = data?.id;
+      }
+
+      if (savedInstanceId) {
+        syncToRuntime(savedInstanceId);
       }
 
       onSaved();
@@ -207,6 +296,43 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
                 <option value="accuracy_speed_weighted">Accuracy + Speed Weighted</option>
                 <option value="accuracy_then_fastest_time">Accuracy, then Speed Tiebreaker</option>
               </select>
+            </div>
+
+            <div className="border-t border-white/20 pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-white mb-3">Game Overrides (Optional)</h3>
+              <div className="space-y-4 bg-zinc-900/50 border border-zinc-700 rounded-lg p-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Background Image URL
+                  </label>
+                  <input
+                    type="text"
+                    className="input w-full"
+                    value={getConfigValue('ui.background_url')}
+                    onChange={(e) => handleConfigChange('ui.background_url', e.target.value)}
+                    placeholder="https://example.com/background.jpg"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Custom background image for this game instance
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Start Screen Headline
+                  </label>
+                  <input
+                    type="text"
+                    className="input w-full"
+                    value={getConfigValue('screens.start.headline')}
+                    onChange={(e) => handleConfigChange('screens.start.headline', e.target.value)}
+                    placeholder="Welcome to the Trivia Challenge!"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Override the default start screen headline text
+                  </p>
+                </div>
+              </div>
             </div>
 
             {error && (
