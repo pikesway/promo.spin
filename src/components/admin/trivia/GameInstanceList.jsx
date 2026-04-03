@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { FiEdit2, FiPlay, FiPause } from 'react-icons/fi';
+import { FiEdit2, FiPlay, FiPause, FiLink, FiCheck } from 'react-icons/fi';
 import { usePlatform } from '../../../context/PlatformContext';
 import GlassCard from '../../common/GlassCard';
+import { generateTriviaLaunchURL } from '../../../utils/triviaUrlGenerator';
 
 const STATUS_COLORS = {
   draft: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
@@ -15,6 +16,7 @@ const STATUS_COLORS = {
 const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
   const { updateGameInstance } = usePlatform();
   const [isUpdating, setIsUpdating] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   const handleToggleStatus = async (instance) => {
     setIsUpdating(instance.id);
@@ -26,6 +28,19 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
       console.error('Failed to update status:', error);
     }
     setIsUpdating(null);
+  };
+
+  const handleCopyLink = async (instance) => {
+    const url = generateTriviaLaunchURL(campaignId, instance.template_id, instance.id);
+    if (!url) return;
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(instance.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+    }
   };
 
   if (instances.length === 0) {
@@ -78,6 +93,22 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
                   <span className="text-xs text-gray-500">Updating...</span>
                 ) : (
                   <>
+                    {instance.template_id && (
+                      <button
+                        onClick={() => handleCopyLink(instance)}
+                        className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                        style={{
+                          color: copiedId === instance.id ? 'var(--success)' : 'var(--text-tertiary)'
+                        }}
+                        title="Copy Launch URL"
+                      >
+                        {copiedId === instance.id ? (
+                          <FiCheck className="w-4 h-4" />
+                        ) : (
+                          <FiLink className="w-4 h-4" />
+                        )}
+                      </button>
+                    )}
                     {canToggleStatus && !isFinalized && (
                       <button
                         onClick={() => handleToggleStatus(instance)}
