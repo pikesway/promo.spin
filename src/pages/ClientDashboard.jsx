@@ -383,6 +383,7 @@ export default function ClientDashboard() {
               <CampaignList
                 campaigns={clientCampaigns}
                 brands={clientBrands}
+                leads={clientLeads}
                 onEditCampaign={userCanEdit ? setEditingCampaign : null}
                 onDeleteCampaign={userCanDelete ? handleDeleteCampaign : null}
                 onDuplicateCampaign={userCanEdit ? handleDuplicateCampaign : null}

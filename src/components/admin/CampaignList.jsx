@@ -4,6 +4,7 @@ import { FiCopy, FiTrash2, FiExternalLink, FiPlay, FiPause, FiGrid, FiChevronRig
 const CampaignList = ({
   campaigns,
   brands = [],
+  leads = null,
   onEditCampaign,
   onDeleteCampaign,
   onDuplicateCampaign,
@@ -52,7 +53,9 @@ const CampaignList = ({
     <div className="flex flex-col gap-2 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4">
       {campaigns.map((campaign) => {
         const analytics = getCampaignAnalytics ? getCampaignAnalytics(campaign.id) : (campaign.analytics || {});
-        const leads = analytics.totalLeads || analytics.leads || 0;
+        const leadsCount = leads
+          ? leads.filter(l => l.campaign_id === campaign.id).length
+          : (analytics.totalLeads || analytics.leads || 0);
         const isActive = campaign.status === 'active';
         const typeLabel = getTypeLabel(campaign.type);
         const brandName = getBrandName(campaign.brand_id);
@@ -81,7 +84,7 @@ const CampaignList = ({
                   }}>
                     {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
                   </span>
-                  {showStats && <span className="text-xs font-semibold" style={{ color: 'var(--info)' }}>{leads} leads</span>}
+                  {showStats && <span className="text-xs font-semibold" style={{ color: 'var(--info)' }}>{leadsCount} leads</span>}
                   {brandName && (
                     <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'var(--glass-bg)', color: 'var(--text-tertiary)' }}>
                       <FiTag size={9} />
@@ -98,7 +101,7 @@ const CampaignList = ({
                   <div className="grid grid-cols-2 gap-2 mb-4">
                     <div className="rounded-lg p-2 text-center" style={{ background: 'var(--bg-tertiary)' }}>
                       <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Leads</div>
-                      <div className="text-sm font-bold" style={{ color: 'var(--info)' }}>{leads}</div>
+                      <div className="text-sm font-bold" style={{ color: 'var(--info)' }}>{leadsCount}</div>
                     </div>
                     <div className="rounded-lg p-2 text-center" style={{ background: 'var(--bg-tertiary)' }}>
                       <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Type</div>
