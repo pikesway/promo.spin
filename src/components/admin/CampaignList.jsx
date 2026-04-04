@@ -54,7 +54,7 @@ const CampaignList = ({
       {campaigns.map((campaign) => {
         const analytics = getCampaignAnalytics ? getCampaignAnalytics(campaign.id) : (campaign.analytics || {});
         const leadsCount = leads
-          ? leads.filter(l => l.campaign_id === campaign.id).length
+          ? leads.filter(l => l.metadata?.campaign_id === campaign.id).length
           : (analytics.totalLeads || analytics.leads || 0);
         const isActive = campaign.status === 'active';
         const typeLabel = getTypeLabel(campaign.type);

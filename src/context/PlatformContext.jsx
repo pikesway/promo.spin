@@ -362,7 +362,7 @@ export const PlatformProvider = ({ children }) => {
   const getCampaignBySlug = (slug) => campaigns.find(c => c.slug === slug) || null;
 
   const getCampaignAnalytics = (campaignId) => {
-    const campaignLeads = leads.filter(l => l.campaign_id === campaignId);
+    const campaignLeads = leads.filter(l => l.metadata?.campaign_id === campaignId);
     const campaignRedemptions = redemptions.filter(r => r.campaign_id === campaignId);
     return {
       totalLeads: campaignLeads.length,
