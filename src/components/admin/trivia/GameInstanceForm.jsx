@@ -411,6 +411,24 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
 
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Question Selection Mode
+                        </label>
+                        <select
+                          className="select w-full"
+                          value={getConfigValue('question_mode')}
+                          onChange={(e) => handleConfigChange('question_mode', e.target.value)}
+                        >
+                          <option value="">Use template default</option>
+                          <option value="fixed">Fixed (Same questions & order for everyone)</option>
+                          <option value="random">Random Per Play (Different questions each time)</option>
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Controls question ordering behavior for this trivia instance
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
                           Timer Seconds
                         </label>
                         <input
