@@ -118,13 +118,14 @@ export default function ClientDashboard() {
 
   const exportLeadsCSV = () => {
     if (clientLeads.length === 0) { setDashboardError('No leads to export'); return; }
-    const headers = ['Date', 'Campaign', 'Brand', 'Name', 'Email', 'Phone'];
+    const headers = ['Date', 'Campaign', 'Instance', 'Brand', 'Name', 'Email', 'Phone'];
     const rows = clientLeads.map(lead => {
       const campaign = campaigns.find(c => c.id === lead.campaign_id);
       const brand = clientBrands.find(b => b.id === lead.brand_id);
       return [
         new Date(lead.created_at).toLocaleDateString(),
-        campaign?.name || 'Unknown',
+        lead.metadata?.campaign_name || campaign?.name || 'Unknown',
+        lead.metadata?.instance_name || '—',
         brand?.name || 'Unknown',
         lead.name || '',
         lead.email || '',
@@ -414,7 +415,7 @@ export default function ClientDashboard() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          {['Date', 'Brand', 'Campaign', 'Name', 'Email', 'Phone'].map(h => (
+                          {['Date', 'Brand', 'Campaign', 'Instance', 'Name', 'Email', 'Phone'].map(h => (
                             <th key={h} className="text-left p-3 font-medium" style={{ color: 'var(--text-secondary)' }}>{h}</th>
                           ))}
                         </tr>
@@ -427,7 +428,8 @@ export default function ClientDashboard() {
                             <tr key={lead.id} style={{ borderBottom: '1px solid var(--divider)' }}>
                               <td className="p-3" style={{ color: 'var(--text-primary)' }}>{new Date(lead.created_at).toLocaleDateString()}</td>
                               <td className="p-3" style={{ color: 'var(--text-primary)' }}>{brand?.name || '—'}</td>
-                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{campaign?.name || 'Unknown'}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.metadata?.campaign_name || campaign?.name || 'Unknown'}</td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.metadata?.instance_name || '—'}</td>
                               <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.name || '-'}</td>
                               <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.email || '-'}</td>
                               <td className="p-3" style={{ color: 'var(--text-primary)' }}>{lead.phone || '-'}</td>
@@ -453,7 +455,7 @@ export default function ClientDashboard() {
                             <FiCalendar size={12} />{new Date(lead.created_at).toLocaleDateString()}
                           </span>
                         </div>
-                        <div className="text-xs mb-1 truncate" style={{ color: 'var(--text-tertiary)' }}>{brand?.name} · {campaign?.name || 'Unknown Campaign'}</div>
+                        <div className="text-xs mb-1 truncate" style={{ color: 'var(--text-tertiary)' }}>{brand?.name} · {lead.metadata?.campaign_name || campaign?.name || 'Unknown Campaign'} {lead.metadata?.instance_name ? `(${lead.metadata.instance_name})` : ''}</div>
                         <div className="flex flex-wrap gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
                           {lead.email && <span className="flex items-center gap-1"><FiMail size={12} /><span className="truncate max-w-[140px]">{lead.email}</span></span>}
                           {lead.phone && <span className="flex items-center gap-1"><FiPhone size={12} />{lead.phone}</span>}
