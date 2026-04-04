@@ -206,28 +206,58 @@ async function handleLeadCapture(payload: LeadCapturePayload, supabase: any) {
     if (instanceData) instanceName = instanceData.name;
   }
 
-  const normalizedEmail = email.trim().toLowerCase();
-  const normalizedPhone = phone.trim();
+  const normalizedEmail = email.trim().toLowerCase() || null;
+  const normalizedPhone = phone.trim() || null;
   const fullName = `${first_name.trim()} ${last_name.trim()}`;
+
+  if (!normalizedEmail && !normalizedPhone) {
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Lead capture skipped: no valid contact information provided"
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
 
   let leadId: string;
 
   if (campaign.brand_id) {
-    const { data: existingLead } = await supabase
+    let query = supabase
       .from("leads")
-      .select("id")
-      .eq("brand_id", campaign.brand_id)
-      .eq("email", normalizedEmail)
-      .maybeSingle();
+      .select("id, email, phone")
+      .eq("brand_id", campaign.brand_id);
+
+    if (normalizedEmail && normalizedPhone) {
+      query = query.or(`email.eq.${normalizedEmail},phone.eq.${normalizedPhone}`);
+    } else if (normalizedEmail) {
+      query = query.eq("email", normalizedEmail);
+    } else if (normalizedPhone) {
+      query = query.eq("phone", normalizedPhone);
+    }
+
+    const { data: existingLeads } = await query.limit(1);
+    const existingLead = existingLeads?.[0];
 
     if (existingLead) {
+      const updateFields: any = {
+        name: fullName,
+        updated_at: new Date().toISOString()
+      };
+
+      if (normalizedEmail && !existingLead.email) {
+        updateFields.email = normalizedEmail;
+      }
+      if (normalizedPhone && !existingLead.phone) {
+        updateFields.phone = normalizedPhone;
+      }
+
       const { error: updateError } = await supabase
         .from("leads")
-        .update({
-          name: fullName,
-          phone: normalizedPhone,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateFields)
         .eq("id", existingLead.id);
 
       if (updateError) {
