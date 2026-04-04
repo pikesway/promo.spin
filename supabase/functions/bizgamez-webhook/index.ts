@@ -9,6 +9,7 @@ const corsHeaders = {
 interface LeadCapturePayload {
   event_type: "lead_capture";
   campaign_id: string;
+  instance_id?: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -158,7 +159,7 @@ async function handleLeadCapture(payload: LeadCapturePayload, supabase: any) {
 
   const { data: campaign, error: campaignError } = await supabase
     .from("campaigns")
-    .select("id, client_id, brand_id, status, type")
+    .select("id, client_id, brand_id, status, type, name")
     .eq("id", campaign_id)
     .maybeSingle();
 
@@ -193,6 +194,16 @@ async function handleLeadCapture(payload: LeadCapturePayload, supabase: any) {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
+  }
+
+  let instanceName = "Unknown Instance";
+  if (payload.instance_id) {
+    const { data: instanceData } = await supabase
+      .from("campaign_game_instances")
+      .select("name")
+      .eq("id", payload.instance_id)
+      .maybeSingle();
+    if (instanceData) instanceName = instanceData.name;
   }
 
   const normalizedEmail = email.trim().toLowerCase();
@@ -237,6 +248,9 @@ async function handleLeadCapture(payload: LeadCapturePayload, supabase: any) {
           metadata: {
             source: "trivia_webhook",
             campaign_id: campaign_id,
+            campaign_name: campaign.name || 'Unknown Campaign',
+            instance_id: payload.instance_id || null,
+            instance_name: instanceName,
             first_name,
             last_name,
             captured_at: new Date().toISOString()
@@ -271,6 +285,9 @@ async function handleLeadCapture(payload: LeadCapturePayload, supabase: any) {
         metadata: {
           source: "trivia_webhook",
           campaign_id: campaign_id,
+          campaign_name: campaign.name || 'Unknown Campaign',
+          instance_id: payload.instance_id || null,
+          instance_name: instanceName,
           first_name,
           last_name,
           captured_at: new Date().toISOString()
