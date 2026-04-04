@@ -774,7 +774,7 @@ export const PlatformProvider = ({ children }) => {
       const result = await response.json();
 
       if (result.success && result.data) {
-        return { data: result.data, error: null };
+        return { data: result.data, error: null, source: 'api' };
       } else {
         throw new Error(result.error || "Failed to fetch templates");
       }
@@ -782,10 +782,47 @@ export const PlatformProvider = ({ children }) => {
       console.warn("Using mock templates due to API failure:", error);
       return {
         data: [
-          { id: 'mock-1', name: 'General Trivia V1', status: 'active' },
-          { id: 'mock-2', name: 'Pop Culture 2026', status: 'active' }
+          {
+            id: 'mock-1',
+            name: 'General Trivia V1',
+            status: 'active',
+            default_question_count: 10,
+            default_timer_seconds: 15,
+            default_timer_mode: 'per_question',
+            max_available_questions: 50,
+            config: {
+              theme: {
+                primary_text_color: '#FFFFFF',
+                button_fill_color: '#3b82f6',
+                button_text_color: '#FFFFFF'
+              },
+              ui: {
+                background_url: ''
+              }
+            }
+          },
+          {
+            id: 'mock-2',
+            name: 'Pop Culture 2026',
+            status: 'active',
+            default_question_count: 15,
+            default_timer_seconds: 20,
+            default_timer_mode: 'per_question',
+            max_available_questions: 100,
+            config: {
+              theme: {
+                primary_text_color: '#FFFFFF',
+                button_fill_color: '#8b5cf6',
+                button_text_color: '#FFFFFF'
+              },
+              ui: {
+                background_url: ''
+              }
+            }
+          }
         ],
-        error: null
+        error: null,
+        source: 'fallback'
       };
     }
   };
