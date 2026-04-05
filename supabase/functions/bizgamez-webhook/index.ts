@@ -144,11 +144,23 @@ Deno.serve(async (req: Request) => {
 async function handleLeadCapture(payload: LeadCapturePayload, supabase: any) {
   const { campaign_id, first_name, last_name, email, phone } = payload;
 
-  if (!campaign_id || !first_name || !last_name || !email || !phone) {
+  if (!campaign_id || !first_name) {
     return new Response(
       JSON.stringify({
         error: "Missing required fields for lead_capture",
-        required: ["campaign_id", "first_name", "last_name", "email", "phone"]
+        required: ["campaign_id", "first_name"]
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  if (!email && !phone) {
+    return new Response(
+      JSON.stringify({
+        error: "At least one contact method (email or phone) is required"
       }),
       {
         status: 400,
