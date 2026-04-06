@@ -80,7 +80,7 @@ export default function PublicLeaderboard() {
 
       if (campaignResult?.error) throw campaignResult.error;
 
-      const leaderboardQuery = supabase
+      let leaderboardQuery = supabase
         .from('campaign_leaderboards')
         .select(`
           id,
@@ -96,9 +96,9 @@ export default function PublicLeaderboard() {
         .order('time_elapsed_seconds', { ascending: true });
 
       if (isInstanceScope) {
-        leaderboardQuery.eq('metadata->>instance_id', instanceIdParam);
+        leaderboardQuery = leaderboardQuery.eq('metadata->>instance_id', instanceIdParam);
       } else {
-        leaderboardQuery.eq('campaign_id', campaignIdParam);
+        leaderboardQuery = leaderboardQuery.eq('campaign_id', campaignIdParam);
       }
 
       const leaderboardResult = await leaderboardQuery;

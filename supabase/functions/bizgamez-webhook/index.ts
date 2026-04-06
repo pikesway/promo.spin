@@ -22,6 +22,8 @@ interface GameCompletePayload {
   lead_id: string;
   final_score: number;
   time_elapsed_seconds: number;
+  instance_id?: string;
+  device_id?: string;
 }
 
 type WebhookPayload = LeadCapturePayload | GameCompletePayload;
@@ -366,7 +368,7 @@ async function handleLeadCapture(payload: LeadCapturePayload, supabase: any) {
 }
 
 async function handleGameComplete(payload: GameCompletePayload, supabase: any) {
-  const { campaign_id, lead_id, final_score, time_elapsed_seconds } = payload;
+  const { campaign_id, lead_id, final_score, time_elapsed_seconds, instance_id, device_id } = payload;
 
   if (!campaign_id || !lead_id || final_score === undefined || time_elapsed_seconds === undefined) {
     return new Response(
@@ -481,6 +483,8 @@ async function handleGameComplete(payload: GameCompletePayload, supabase: any) {
       completed_at: new Date().toISOString(),
       metadata: {
         source: "trivia_webhook",
+        instance_id,
+        device_id,
         received_at: new Date().toISOString()
       }
     })
