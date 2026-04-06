@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { FiEdit2, FiPlay, FiPause, FiLink, FiCheck } from 'react-icons/fi';
+import { FiEdit2, FiPlay, FiPause, FiLink, FiCheck, FiAward } from 'react-icons/fi';
 import { usePlatform } from '../../../context/PlatformContext';
 import GlassCard from '../../common/GlassCard';
 import { generateTriviaLaunchURL } from '../../../utils/triviaUrlGenerator';
+import QRCodeModal from './QRCodeModal';
 
 const STATUS_COLORS = {
   draft: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
@@ -17,6 +18,8 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
   const { updateGameInstance } = usePlatform();
   const [isUpdating, setIsUpdating] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [selectedInstance, setSelectedInstance] = useState(null);
 
   const handleToggleStatus = async (instance) => {
     setIsUpdating(instance.id);
@@ -43,6 +46,16 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
     }
   };
 
+  const handleShowQRCode = (instance) => {
+    setSelectedInstance(instance);
+    setQrModalOpen(true);
+  };
+
+  const getLeaderboardUrl = (instance) => {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/public/leaderboard?instance_id=${instance.id}&campaign_id=${campaignId}`;
+  };
+
   if (instances.length === 0) {
     return (
       <GlassCard>
@@ -55,8 +68,15 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
   }
 
   return (
-    <div className="space-y-3">
-      {instances.map(instance => {
+    <>
+      <QRCodeModal
+        isOpen={qrModalOpen}
+        onClose={() => setQrModalOpen(false)}
+        url={selectedInstance ? getLeaderboardUrl(selectedInstance) : ''}
+        instanceName={selectedInstance?.name}
+      />
+      <div className="space-y-3">
+        {instances.map(instance => {
         const isFinalized = !!instance.finalized_at;
         const canToggleStatus = ['draft', 'paused', 'active'].includes(instance.status);
 
@@ -93,6 +113,14 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
                   <span className="text-xs text-gray-500">Updating...</span>
                 ) : (
                   <>
+                    <button
+                      onClick={() => handleShowQRCode(instance)}
+                      className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                      style={{ color: 'var(--text-tertiary)' }}
+                      title="Show QR Code for Leaderboard"
+                    >
+                      <FiAward className="w-4 h-4" />
+                    </button>
                     {instance.template_id && (
                       <button
                         onClick={() => handleCopyLink(instance)}
@@ -135,8 +163,9 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
             </div>
           </GlassCard>
         );
-      })}
-    </div>
+        })}
+      </div>
+    </>
   );
 };
 

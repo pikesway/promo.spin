@@ -22,6 +22,7 @@ import LoyaltyEnrollmentPage from './pages/LoyaltyEnrollmentPage';
 import RedemptionPage from './pages/RedemptionPage';
 import StaffDashboard from './pages/StaffDashboard';
 import LeaderboardPage from './pages/LeaderboardPage';
+import PublicLeaderboard from './pages/public/PublicLeaderboard';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
                 <Route path="/loyalty/:campaignSlug" element={<LoyaltyEnrollmentPage />} />
                 <Route path="/loyalty/:campaignSlug/:memberCode" element={<LoyaltyCardPage />} />
                 <Route path="/c/:campaignId/leaderboard" element={<LeaderboardPage />} />
+                <Route path="/public/leaderboard" element={<PublicLeaderboard />} />
 
                 <Route
                   path="/"
