@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { FiEdit2, FiPlay, FiPause, FiLink, FiCheck, FiAward } from 'react-icons/fi';
+import { BsQrCode } from 'react-icons/bs';
 import { usePlatform } from '../../../context/PlatformContext';
 import GlassCard from '../../common/GlassCard';
 import { generateTriviaLaunchURL } from '../../../utils/triviaUrlGenerator';
 import QRCodeModal from './QRCodeModal';
+import GameLaunchQRModal from './GameLaunchQRModal';
 
 const STATUS_COLORS = {
   draft: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
@@ -19,6 +21,7 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
   const [isUpdating, setIsUpdating] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [gameLaunchQrModalOpen, setGameLaunchQrModalOpen] = useState(false);
   const [selectedInstance, setSelectedInstance] = useState(null);
 
   const handleToggleStatus = async (instance) => {
@@ -51,9 +54,18 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
     setQrModalOpen(true);
   };
 
+  const handleShowGameLaunchQR = (instance) => {
+    setSelectedInstance(instance);
+    setGameLaunchQrModalOpen(true);
+  };
+
   const getLeaderboardUrl = (instance) => {
     const baseUrl = window.location.origin;
     return `${baseUrl}/public/leaderboard?instance_id=${instance.id}&campaign_id=${campaignId}`;
+  };
+
+  const getGameLaunchUrl = (instance) => {
+    return generateTriviaLaunchURL(campaignId, instance.template_id, instance.id);
   };
 
   if (instances.length === 0) {
@@ -73,6 +85,12 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
         isOpen={qrModalOpen}
         onClose={() => setQrModalOpen(false)}
         url={selectedInstance ? getLeaderboardUrl(selectedInstance) : ''}
+        instanceName={selectedInstance?.name}
+      />
+      <GameLaunchQRModal
+        isOpen={gameLaunchQrModalOpen}
+        onClose={() => setGameLaunchQrModalOpen(false)}
+        url={selectedInstance ? getGameLaunchUrl(selectedInstance) : ''}
         instanceName={selectedInstance?.name}
       />
       <div className="space-y-3">
@@ -113,11 +131,21 @@ const GameInstanceList = ({ instances, onEdit, onRefresh, campaignId }) => {
                   <span className="text-xs text-gray-500">Updating...</span>
                 ) : (
                   <>
+                    {instance.template_id && (
+                      <button
+                        onClick={() => handleShowGameLaunchQR(instance)}
+                        className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                        style={{ color: 'var(--text-tertiary)' }}
+                        title="Show Game Launch QR Code"
+                      >
+                        <BsQrCode className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
                       onClick={() => handleShowQRCode(instance)}
                       className="p-2 hover:bg-white/5 rounded-lg transition-colors"
                       style={{ color: 'var(--text-tertiary)' }}
-                      title="Show QR Code for Leaderboard"
+                      title="Show Leaderboard QR Code"
                     >
                       <FiAward className="w-4 h-4" />
                     </button>

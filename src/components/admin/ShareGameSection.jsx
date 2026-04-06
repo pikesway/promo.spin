@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { FiCopy, FiCheck, FiAlertCircle, FiExternalLink } from 'react-icons/fi';
+import React, { useState, useRef } from 'react';
+import { FiCopy, FiCheck, FiAlertCircle, FiExternalLink, FiDownload } from 'react-icons/fi';
+import { QRCodeSVG } from 'qrcode.react';
 import { generateTriviaLaunchURL, isTriviaConfigured } from '../../utils/triviaUrlGenerator';
 
 export default function ShareGameSection({ campaign, gameInstances = [] }) {
   const [copiedInstanceId, setCopiedInstanceId] = useState(null);
+  const qrRefs = useRef({});
 
   const activeInstances = gameInstances.filter(inst => inst.status === 'active');
 
@@ -18,6 +20,41 @@ export default function ShareGameSection({ campaign, gameInstances = [] }) {
     } catch (err) {
       console.error('Failed to copy to clipboard:', err);
     }
+  };
+
+  const handleDownloadQR = (instanceId, instanceName) => {
+    const qrRef = qrRefs.current[instanceId];
+    if (!qrRef) return;
+
+    const svg = qrRef.querySelector('svg');
+    if (!svg) return;
+
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+
+    canvas.width = 512;
+    canvas.height = 512;
+
+    img.onload = () => {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `game-launch-qr-${instanceName || instanceId}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      });
+    };
+
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
   };
 
   if (!isTriviaConfigured()) {
@@ -73,7 +110,7 @@ export default function ShareGameSection({ campaign, gameInstances = [] }) {
       )}
 
       {activeInstances.length === 1 && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div>
             <label className="block text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
               Game Launch URL
@@ -116,17 +153,50 @@ export default function ShareGameSection({ campaign, gameInstances = [] }) {
               </button>
             </div>
           </div>
+
+          {activeInstances[0].template_id && (
+            <div>
+              <label className="block text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                QR Code
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3 items-start">
+                <div
+                  ref={(el) => qrRefs.current[activeInstances[0].id] = el}
+                  className="bg-white p-4 rounded-lg"
+                >
+                  <QRCodeSVG
+                    value={generateTriviaLaunchURL(campaign.id, activeInstances[0].template_id, activeInstances[0].id)}
+                    size={128}
+                    level="H"
+                    includeMargin={true}
+                  />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs mb-2" style={{ color: 'var(--text-tertiary)' }}>
+                    Share this QR code with customers to let them play the game directly.
+                  </p>
+                  <button
+                    onClick={() => handleDownloadQR(activeInstances[0].id, activeInstances[0].name)}
+                    className="btn btn-secondary flex items-center gap-2 text-sm"
+                  >
+                    <FiDownload size={16} />
+                    Download QR
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {activeInstances.length > 1 && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <label className="block text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
             Active Game Instances ({activeInstances.length})
           </label>
           {activeInstances.map(instance => (
-            <div key={instance.id}>
-              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
+            <div key={instance.id} className="glass-card p-4">
+              <label className="block text-xs font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
                 {instance.name}
               </label>
               {!instance.template_id && (
@@ -137,7 +207,7 @@ export default function ShareGameSection({ campaign, gameInstances = [] }) {
                   </p>
                 </div>
               )}
-              <div className="flex gap-2">
+              <div className="flex gap-2 mb-3">
                 <input
                   type="text"
                   value="Secure Game Link Ready"
@@ -166,6 +236,36 @@ export default function ShareGameSection({ campaign, gameInstances = [] }) {
                   )}
                 </button>
               </div>
+
+              {instance.template_id && (
+                <div className="pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                  <div className="flex flex-col sm:flex-row gap-3 items-start">
+                    <div
+                      ref={(el) => qrRefs.current[instance.id] = el}
+                      className="bg-white p-3 rounded-lg"
+                    >
+                      <QRCodeSVG
+                        value={generateTriviaLaunchURL(campaign.id, instance.template_id, instance.id)}
+                        size={96}
+                        level="H"
+                        includeMargin={true}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs mb-2" style={{ color: 'var(--text-tertiary)' }}>
+                        QR Code for this instance
+                      </p>
+                      <button
+                        onClick={() => handleDownloadQR(instance.id, instance.name)}
+                        className="btn btn-secondary flex items-center gap-2 text-sm"
+                      >
+                        <FiDownload size={16} />
+                        Download QR
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
