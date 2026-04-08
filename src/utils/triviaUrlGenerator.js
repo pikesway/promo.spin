@@ -11,8 +11,13 @@ export function generateTriviaLaunchURL(campaignId, templateId = null, instanceI
     return null;
   }
 
-  const returnUrl = `${window.location.origin}/c/${campaignId}/leaderboard`;
-  const encodedReturnUrl = encodeURIComponent(returnUrl);
+  let leaderboardUrl = `${window.location.origin}/public/leaderboard?campaign_id=${campaignId}`;
+
+  if (instanceId) {
+    leaderboardUrl += `&instance_id=${instanceId}`;
+  }
+
+  const encodedReturnUrl = encodeURIComponent(leaderboardUrl);
 
   let url = `${triviaBaseUrl}/?campaign_id=${campaignId}`;
 
