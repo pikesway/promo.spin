@@ -81,18 +81,9 @@ export default function PublicLeaderboard() {
       if (campaignResult?.error) throw campaignResult.error;
 
       let leaderboardQuery = supabase
-        .from('campaign_leaderboards')
-        .select(`
-          id,
-          campaign_id,
-          lead_id,
-          final_score,
-          time_elapsed_seconds,
-          completed_at,
-          metadata,
-          leads(name, email)
-        `)
-        .order('final_score', { ascending: false })
+        .from('public_leaderboard_view')
+        .select('*')
+        .order('score', { ascending: false })
         .order('time_elapsed_seconds', { ascending: true });
 
       if (isInstanceScope) {
@@ -285,7 +276,7 @@ export default function PublicLeaderboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-lg truncate" style={{ color: 'var(--text-primary)' }}>
-                          {entry.leads?.name || 'Anonymous Player'}
+                          {entry.player_name || 'Anonymous Player'}
                         </h3>
                         {isPersonal && (
                           <span className="px-2 py-0.5 rounded text-xs font-bold" style={{
@@ -296,18 +287,13 @@ export default function PublicLeaderboard() {
                           </span>
                         )}
                       </div>
-                      {entry.leads?.email && (
-                        <p className="text-sm truncate" style={{ color: 'var(--text-tertiary)' }}>
-                          {entry.leads.email}
-                        </p>
-                      )}
                     </div>
 
                     <div className="flex-shrink-0 text-right">
                       <div className="flex items-center gap-1.5 justify-end mb-1">
                         <FiStar size={16} style={{ color: brandColor }} />
                         <span className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                          {Math.round(entry.final_score)}
+                          {Math.round(entry.score)}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 justify-end text-sm" style={{ color: 'var(--text-secondary)' }}>
