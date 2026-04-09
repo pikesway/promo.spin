@@ -766,6 +766,8 @@ export const PlatformProvider = ({ children }) => {
 
       const apiUrl = baseApiUrl.replace(/\/+$/, '').replace(/\/functions\/v1\/public-templates$/, '') + '/functions/v1/public-templates';
 
+      console.log('[TriviaAPI] Fetching templates from:', apiUrl);
+
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
@@ -781,7 +783,7 @@ export const PlatformProvider = ({ children }) => {
         throw new Error(result.error || "Failed to fetch templates");
       }
     } catch (error) {
-      console.warn("Using mock templates due to API failure:", error);
+      console.error('[TriviaAPI] Failed to fetch templates. URL attempted:', import.meta.env.VITE_TRIVIA_API_URL, 'Error:', error);
       return {
         data: [
           {
