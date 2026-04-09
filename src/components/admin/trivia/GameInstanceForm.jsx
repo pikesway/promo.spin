@@ -283,7 +283,6 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
                   <FiAlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>
                     Unable to connect to Trivia API. Using fallback templates.
-                    Configure VITE_TRIVIA_API_URL in your environment to load actual templates.
                   </span>
                 </div>
               )}
