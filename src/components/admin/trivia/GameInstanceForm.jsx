@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FiX, FiAlertCircle, FiUpload } from 'react-icons/fi';
 import { usePlatform } from '../../../context/PlatformContext';
 import { uploadFile, getPublicUrl, validateImageFile } from '../../../utils/storageHelpers';
+import { utcToLocalInputValue, localInputValueToISO } from '../../../utils/dateHelpers';
 
 const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScoringMode, onClose, onSaved }) => {
   const { createGameInstance, updateGameInstance, fetchTriviaShells } = usePlatform();
@@ -47,8 +48,8 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
         template_id: instance.template_id || '',
         template_version: instance.template_version || '',
         sequence_number: instance.sequence_number || null,
-        start_at: instance.start_at ? instance.start_at.slice(0, 16) : '',
-        end_at: instance.end_at ? instance.end_at.slice(0, 16) : '',
+        start_at: utcToLocalInputValue(instance.start_at),
+        end_at: utcToLocalInputValue(instance.end_at),
         scoring_mode: instance.scoring_mode || '',
         config: instance.config || {}
       });
@@ -194,8 +195,8 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
         template_id: formData.template_id || null,
         template_version: formData.template_version || null,
         sequence_number: formData.sequence_number ? parseInt(formData.sequence_number) : null,
-        start_at: formData.start_at ? new Date(formData.start_at).toISOString() : null,
-        end_at: formData.end_at ? new Date(formData.end_at).toISOString() : null,
+        start_at: localInputValueToISO(formData.start_at),
+        end_at: localInputValueToISO(formData.end_at),
         scoring_mode: formData.scoring_mode || null,
         launch_url: formData.launch_url || null,
         external_instance_ref: formData.external_instance_ref || null,
