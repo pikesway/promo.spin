@@ -761,16 +761,19 @@ export const PlatformProvider = ({ children }) => {
 
   const fetchTriviaShells = async () => {
     try {
-      const baseApiUrl = import.meta.env.VITE_TRIVIA_API_URL;
-      if (!baseApiUrl) throw new Error("VITE_TRIVIA_API_URL is missing");
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      if (!supabaseUrl) throw new Error("VITE_SUPABASE_URL is missing");
 
-      const apiUrl = baseApiUrl.replace(/\/+$/, '').replace(/\/functions\/v1\/public-templates$/, '') + '/functions/v1/public-templates';
-
-      console.log('[TriviaAPI] Fetching templates from:', apiUrl);
+      const apiUrl = `${supabaseUrl.replace(/\/+$/, '')}/functions/v1/trivia-templates-proxy`;
 
       const response = await fetch(apiUrl, {
         method: 'GET',
-        headers: { 'Accept': 'application/json' }
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
+          'Apikey': anonKey,
+        }
       });
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -783,7 +786,7 @@ export const PlatformProvider = ({ children }) => {
         throw new Error(result.error || "Failed to fetch templates");
       }
     } catch (error) {
-      console.error('[TriviaAPI] Failed to fetch templates. URL attempted:', import.meta.env.VITE_TRIVIA_API_URL, 'Error:', error);
+      console.error('[TriviaAPI] Failed to fetch templates via proxy. Error:', error);
       return {
         data: [
           {
