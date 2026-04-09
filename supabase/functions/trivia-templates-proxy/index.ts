@@ -12,14 +12,40 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const triviaRuntimeUrl = Deno.env.get("TRIVIA_RUNTIME_URL") || "https://quizbattles-trivia-r-zu2v.bolt.host";
-    const endpoint = triviaRuntimeUrl.replace(/\/+$/, "") + "/api/public-templates";
+    const triviaSupabaseUrl = Deno.env.get("TRIVIA_SUPABASE_URL");
+    const triviaAnonKey = Deno.env.get("TRIVIA_SUPABASE_ANON_KEY");
 
-    console.log("[trivia-proxy] Fetching:", endpoint);
+    if (!triviaSupabaseUrl || !triviaAnonKey) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Trivia API not configured. TRIVIA_SUPABASE_URL and TRIVIA_SUPABASE_ANON_KEY secrets are required.",
+        }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    const response = await fetch(endpoint, {
+    const endpoint = triviaSupabaseUrl.replace(/\/+$/, "") + "/functions/v1/admin-shells";
+
+    const url = new URL(req.url);
+    const status = url.searchParams.get("status") || "ready";
+    const visibility = url.searchParams.get("visibility") || "public";
+    const search = url.searchParams.get("search");
+
+    const targetUrl = new URL(endpoint);
+    targetUrl.searchParams.set("status", status);
+    targetUrl.searchParams.set("visibility", visibility);
+    if (search) targetUrl.searchParams.set("search", search);
+
+    console.log("[trivia-proxy] Fetching:", targetUrl.toString());
+
+    const response = await fetch(targetUrl.toString(), {
       method: "GET",
-      headers: { "Accept": "application/json", "Content-Type": "application/json" },
+      headers: {
+        "Accept": "application/json",
+        "Authorization": `Bearer ${triviaAnonKey}`,
+        "Apikey": triviaAnonKey,
+      },
     });
 
     const text = await response.text();
