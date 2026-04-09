@@ -25,16 +25,12 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const endpoint = triviaSupabaseUrl.replace(/\/+$/, "") + "/functions/v1/admin-shells";
+    const endpoint = triviaSupabaseUrl.replace(/\/+$/, "") + "/functions/v1/public-templates";
 
     const url = new URL(req.url);
-    const status = url.searchParams.get("status") || "ready";
-    const visibility = url.searchParams.get("visibility") || "public";
     const search = url.searchParams.get("search");
 
     const targetUrl = new URL(endpoint);
-    targetUrl.searchParams.set("status", status);
-    targetUrl.searchParams.set("visibility", visibility);
     if (search) targetUrl.searchParams.set("search", search);
 
     console.log("[trivia-proxy] Fetching:", targetUrl.toString());
