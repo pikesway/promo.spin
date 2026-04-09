@@ -214,10 +214,21 @@ async function handleLeadCapture(payload: LeadCapturePayload, supabase: any) {
   if (payload.instance_id) {
     const { data: instanceData } = await supabase
       .from("campaign_game_instances")
-      .select("name")
+      .select("name, end_at")
       .eq("id", payload.instance_id)
       .maybeSingle();
-    if (instanceData) instanceName = instanceData.name;
+    if (instanceData) {
+      instanceName = instanceData.name;
+      if (instanceData.end_at && new Date() > new Date(instanceData.end_at)) {
+        return new Response(
+          JSON.stringify({ error: "This game instance has ended and is no longer accepting entries." }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
   }
 
   const normalizedEmail = email.trim().toLowerCase() || null;
@@ -420,6 +431,23 @@ async function handleGameComplete(payload: GameCompletePayload, supabase: any) {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
+  }
+
+  if (instance_id) {
+    const { data: instanceData } = await supabase
+      .from("campaign_game_instances")
+      .select("end_at")
+      .eq("id", instance_id)
+      .maybeSingle();
+    if (instanceData?.end_at && new Date() > new Date(instanceData.end_at)) {
+      return new Response(
+        JSON.stringify({ error: "This game instance has ended and is no longer accepting entries." }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
   }
 
   const { data: lead, error: leadError } = await supabase
