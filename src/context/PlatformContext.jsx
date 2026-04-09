@@ -761,8 +761,10 @@ export const PlatformProvider = ({ children }) => {
 
   const fetchTriviaShells = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_TRIVIA_API_URL;
-      if (!apiUrl) throw new Error("VITE_TRIVIA_API_URL is missing");
+      const baseApiUrl = import.meta.env.VITE_TRIVIA_API_URL;
+      if (!baseApiUrl) throw new Error("VITE_TRIVIA_API_URL is missing");
+
+      const apiUrl = baseApiUrl.replace(/\/+$/, '').replace(/\/functions\/v1\/public-templates$/, '') + '/functions/v1/public-templates';
 
       const response = await fetch(apiUrl, {
         method: 'GET',
