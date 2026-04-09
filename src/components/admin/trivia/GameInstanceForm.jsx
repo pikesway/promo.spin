@@ -142,20 +142,23 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
     setUploadError(null);
   };
 
-  const syncToRuntime = async (instanceId) => {
+  const syncToRuntime = async (instanceId, status, startTime, endTime) => {
     const runtimeApiUrl = import.meta.env.VITE_TRIVIA_API_URL;
 
     if (!runtimeApiUrl) {
       return;
     }
 
-    try {
-      const baseUrl = runtimeApiUrl.replace('/functions/v1/public-templates', '');
-      const syncEndpoint = `${baseUrl}/functions/v1/sync-instance-override`;
+    const baseUrl = runtimeApiUrl.replace('/functions/v1/public-templates', '');
+    const syncEndpoint = `${baseUrl}/functions/v1/sync-instance-override`;
 
+    try {
       const syncPayload = {
         instance_id: instanceId,
         campaign_id: campaignId,
+        status: status || null,
+        start_time: startTime || null,
+        end_time: endTime || null,
         settings: formData.config || {}
       };
 
@@ -168,8 +171,8 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
         },
         body: JSON.stringify(syncPayload)
       });
-    } catch {
-      // Sync failures are non-blocking
+    } catch (err) {
+      console.warn(`[syncToRuntime] Failed to sync instance to Runtime at ${syncEndpoint}:`, err.message);
     }
   };
 
@@ -204,19 +207,27 @@ const GameInstanceForm = ({ campaignId, clientId, brandId, instance, defaultScor
       };
 
       let savedInstanceId;
+      let savedStatus;
 
       if (instance) {
         const { error: updateError } = await updateGameInstance(instance.id, payload);
         if (updateError) throw updateError;
         savedInstanceId = instance.id;
+        savedStatus = instance.status;
       } else {
         const { data, error: createError } = await createGameInstance(payload);
         if (createError) throw createError;
         savedInstanceId = data?.id;
+        savedStatus = data?.status;
       }
 
       if (savedInstanceId) {
-        syncToRuntime(savedInstanceId);
+        syncToRuntime(
+          savedInstanceId,
+          savedStatus,
+          localInputValueToISO(formData.start_at),
+          localInputValueToISO(formData.end_at)
+        );
       }
 
       onSaved();
